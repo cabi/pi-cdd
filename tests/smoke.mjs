@@ -98,6 +98,14 @@ The CLI says nothing today; users need a greeting on startup.
 
 - The CLI prints a greeting on startup
 
+## Solutions Considered
+
+- stdlib covers it
+
+## Non-Goals
+
+- none beyond scope
+
 Done-When: node cli.js prints a greeting line
 Code: cli.js
 `);
@@ -126,6 +134,10 @@ fill("cdd/changes/add-greeting/tasks.md", `# Tasks — add-greeting
 
 - [x] 3.1 write cli.js greeting — verify by tests/acceptance/greeting-prints.test.js
 
+## Done When Traceability
+
+| d | 3.1 |
+
 ## 4. Close
 
 - [ ] 4.1 cdd_validate strict green, guard green
@@ -149,9 +161,9 @@ check("S6", "pin file exists -> strict green", () => {
 const sb2 = sandbox();
 initStore(sb2.root, REPO, { ci: "none", hooks: false });
 createChange(sb2.root, "bad-pin", ["x"]);
-fill2("proposal.md", `# bad-pin\n\n## Why\n\np\n\n## What Changes\n\n- b\n\nDone-When: d\nCode: x.js\n`);
+fill2("proposal.md", `# bad-pin\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: x.js\n`);
 fill2("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\nP.\n\n#### Scenario: S\n\nProse.\n`);
-fill2("tasks.md", `# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
+fill2("tasks.md", `# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
 function fill2(rel, text) {
   fs.writeFileSync(path.join(sb2.root, "cdd", "changes", "bad-pin", rel), text);
 }
@@ -171,7 +183,7 @@ const tasks = [`# T`, ``, `## 1. Context`, ``, `- [ ] 1.1 c`, ``, `## 2. Design`
 for (let i = 1; i <= 9; i++) tasks.push(`- [ ] 3.${i} t${i} — verify by tests/acceptance/t${i}.js`);
 tasks.push(``, `## 4. Close`, ``, `- [ ] 4.1 c`);
 fs.writeFileSync(path.join(sb3.root, "cdd", "changes", "many-tasks", "tasks.md"), tasks.join("\n"));
-fs.writeFileSync(path.join(sb3.root, "cdd", "changes", "many-tasks", "proposal.md"), `# many-tasks\n\n## Why\n\np\n\n## What Changes\n\n- b\n\nDone-When: d\nCode: x.js\n`);
+fs.writeFileSync(path.join(sb3.root, "cdd", "changes", "many-tasks", "proposal.md"), `# many-tasks\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: x.js\n`);
 check("S9", ">8 implementation subtasks -> split warning", () => {
   const v = validateChange(sb3.root, "many-tasks", "draft");
   assert(v.warnings.some((w) => /split signal/.test(w)), formatVerdict(v));
@@ -192,14 +204,14 @@ check("S10", "archive merges ADDED into living spec and moves folder", () => {
 
 // second change: MODIFIED
 createChange(sb.root, "louder-greeting", ["greeting"]);
-fs.writeFileSync(path.join(sb.root, "cdd", "changes", "louder-greeting", "proposal.md"), `# louder-greeting\n\n## Why\n\np\n\n## What Changes\n\n- louder\n\nDone-When: d\nCode: cli.js\n`);
+fs.writeFileSync(path.join(sb.root, "cdd", "changes", "louder-greeting", "proposal.md"), `# louder-greeting\n\n## Why\n\np\n\n## What Changes\n\n- louder\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: cli.js\n`);
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "louder-greeting", "specs", "greeting", "spec.md"),
   `## MODIFIED Requirements\n\n### Requirement: Startup greeting\n\nLouder.\n\n#### Scenario: shouts greeting\n\nShouts.\nVerified by: tests/acceptance/greeting-prints.test.js\n`,
 );
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "louder-greeting", "tasks.md"),
-  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 louder — verify by tests/acceptance/greeting-prints.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
+  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 louder — verify by tests/acceptance/greeting-prints.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
 );
 check("S11", "MODIFIED replaces the living requirement", () => {
   const v = validateChange(sb.root, "louder-greeting", "strict");
@@ -213,14 +225,14 @@ check("S11", "MODIFIED replaces the living requirement", () => {
 
 // third change: REMOVED
 createChange(sb.root, "drop-greeting", ["greeting"]);
-fs.writeFileSync(path.join(sb.root, "cdd", "changes", "drop-greeting", "proposal.md"), `# drop-greeting\n\n## Why\n\np\n\n## What Changes\n\n- drop\n\nDone-When: d\nCode: cli.js\n`);
+fs.writeFileSync(path.join(sb.root, "cdd", "changes", "drop-greeting", "proposal.md"), `# drop-greeting\n\n## Why\n\np\n\n## What Changes\n\n- drop\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: cli.js\n`);
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "drop-greeting", "specs", "greeting", "spec.md"),
-  `## REMOVED Requirements\n\n### Requirement: Startup greeting\n\nRemoval marker.\n`,
+  `## REMOVED Requirements\n\n### Requirement: Startup greeting\n\nRemoval marker.\nReason: the greeting was removed from the product.\n`,
 );
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "drop-greeting", "tasks.md"),
-  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 drop — verify by tests/acceptance/greeting-prints.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
+  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 drop — verify by tests/acceptance/greeting-prints.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
 );
 check("S12", "REMOVED deletes the living requirement", () => {
   const v = validateChange(sb.root, "drop-greeting", "strict");
@@ -236,14 +248,14 @@ const sb4 = sandbox();
 initStore(sb4.root, REPO, { ci: "none", hooks: false });
 createChange(sb4.root, "close-tick", ["x"]);
 const f4 = (rel, t) => fs.writeFileSync(path.join(sb4.root, "cdd", "changes", "close-tick", rel), t);
-f4("proposal.md", `# close-tick\n\n## Why\n\np\n\n## What Changes\n\n- b\n\nDone-When: d\nCode: x.js\n`);
+f4("proposal.md", `# close-tick\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: x.js\n`);
 f4("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\nP.\n\n#### Scenario: S\n\nProse.\nVerified by: tests/acceptance/close-tick.test.js\n`);
 fs.writeFileSync(path.join(sb4.root, "tests", "acceptance", "close-tick.test.js"), "// pin\n");
 check("S20", "strict blocks unchecked work; archive auto-ticks the Close section", () => {
-  f4("tasks.md", `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 impl — verify by tests/acceptance/close-tick.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
+  f4("tasks.md", `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 impl — verify by tests/acceptance/close-tick.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
   const red = validateChange(sb4.root, "close-tick", "strict");
   assert(!red.ok && red.errors.some((e) => /unchecked task/.test(e)), formatVerdict(red));
-  f4("tasks.md", `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 impl — verify by tests/acceptance/close-tick.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
+  f4("tasks.md", `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 impl — verify by tests/acceptance/close-tick.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
   const green = validateChange(sb4.root, "close-tick", "strict");
   assert(green.ok, formatVerdict(green));
   const r = archiveChange(sb4.root, "close-tick");
@@ -273,6 +285,74 @@ check("S21", "/cdd-help renders the driving workflow (prompts, gates, commands)"
   const themed = renderHelp(fake);
   for (const needle of ['"New change: <what and why>"', "Done-When", "/cdd-help"]) assert(themed.includes(needle), `themed missing: ${needle}`);
 });
+// --- S22–S25: the restored schema instructions are enforced ----------------------
+check("S22", "proposal requires Solutions Considered + Non-Goals; Done-When capped at 5", () => {
+  const sb = sandbox().root;
+  initStore(sb, REPO, { ci: "none", hooks: false });
+  createChange(sb, "c3", ["cap"]);
+  const w = (p, t) => fs.writeFileSync(path.join(sb, "cdd", "changes", "c3", p), t);
+  const good = "# c3\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib\n\n## Non-Goals\n\n- none\n\nDone-When: d\nCode: x.js\n";
+  w("proposal.md", good);
+  w("tasks.md", "# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t — verify by tests/acceptance/cap.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n");
+  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\nx\nVerified by: tests/acceptance/cap.test.js\n");
+  let v = validateChange(sb, "c3", "draft");
+  assert(!v.errors.some((e) => /proposal/.test(e)), formatVerdict(v));
+  w("proposal.md", "# c3\n\n## Why\n\np\n\n## What Changes\n\n- b\n\nDone-When: d\nCode: x.js\n");
+  v = validateChange(sb, "c3", "draft");
+  assert(v.errors.some((e) => /Solutions Considered/.test(e)), formatVerdict(v));
+  assert(v.errors.some((e) => /Non-Goals/.test(e)), formatVerdict(v));
+  w("proposal.md", good.replace("Done-When: d", Array.from({ length: 6 }, () => "Done-When: d").join("\n")));
+  v = validateChange(sb, "c3", "draft");
+  assert(v.errors.some((e) => /max 5/.test(e)), formatVerdict(v));
+});
+
+check("S23", "REMOVED requires Reason; vague comparatives warn (C2)", () => {
+  const sb = sandbox().root;
+  initStore(sb, REPO, { ci: "none", hooks: false });
+  createChange(sb, "c4", ["cap"]);
+  const w = (p, t) => fs.writeFileSync(path.join(sb, "cdd", "changes", "c4", p), t);
+  w("proposal.md", "# c4\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- s\n\n## Non-Goals\n\n- n\n\nDone-When: d\nCode: x.js\n");
+  w("tasks.md", "# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t — verify by tests/acceptance/cap.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n");
+  w("specs/cap/spec.md", "## REMOVED Requirements\n\n### Requirement: ghost\n\nbye\n");
+  let v = validateChange(sb, "c4", "draft");
+  assert(v.errors.some((e) => /REMOVED "ghost" carries no "Reason:"/.test(e)), formatVerdict(v));
+  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: fast-response\n\nWHEN polled THEN responds fast\nVerified by: tests/acceptance/cap.test.js\n");
+  v = validateChange(sb, "c4", "draft");
+  assert(v.warnings.some((x) => /quantify it \(C2 rule\)/.test(x)), formatVerdict(v));
+});
+
+check("S24", "tasks require the Done When Traceability section", () => {
+  const sb = sandbox().root;
+  initStore(sb, REPO, { ci: "none", hooks: false });
+  createChange(sb, "c5", ["cap"]);
+  const w = (p, t) => fs.writeFileSync(path.join(sb, "cdd", "changes", "c5", p), t);
+  w("proposal.md", "# c5\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- s\n\n## Non-Goals\n\n- n\n\nDone-When: d\nCode: x.js\n");
+  w("tasks.md", "# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t — verify by tests/acceptance/cap.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n");
+  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\nx\nVerified by: tests/acceptance/cap.test.js\n");
+  const v = validateChange(sb, "c5", "draft");
+  assert(v.errors.some((e) => /Done When Traceability/.test(e)), formatVerdict(v));
+});
+
+check("S25", ">12 implementation subtasks fails strict unless split-considered", () => {
+  const sb = sandbox().root;
+  initStore(sb, REPO, { ci: "none", hooks: false });
+  createChange(sb, "c6", ["cap"]);
+  const w = (p, t) => fs.writeFileSync(path.join(sb, "cdd", "changes", "c6", p), t);
+  w("proposal.md", "# c6\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- s\n\n## Non-Goals\n\n- n\n\nDone-When: d\nCode: x.js\n");
+  const tasks = ["# T", "", "## 1. Context", "", "- [x] 1.1 c", "", "## 2. Design", "", "- [x] 2.1 d", "", "## 3. Implementation", ""];
+  for (let i = 1; i <= 13; i++) tasks.push(`- [x] 3.${i} t — verify by tests/acceptance/cap.test.js`, "");
+  tasks.push("## Done When Traceability", "", "| d | 3.1 |", "", "## 4. Close", "", "- [ ] 4.1 c", "");
+  w("tasks.md", tasks.join("\n"));
+  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\nx\nVerified by: tests/acceptance/cap.test.js\n");
+  fs.mkdirSync(path.join(sb, "tests", "acceptance"), { recursive: true });
+  fs.writeFileSync(path.join(sb, "tests", "acceptance", "cap.test.js"), "test();\n");
+  let v = validateChange(sb, "c6", "strict");
+  assert(v.errors.some((e) => /> 12/.test(e)), formatVerdict(v));
+  w("tasks.md", tasks.join("\n").replace("## Done When Traceability", "split-considered: kept whole — atomic migration\n\n## Done When Traceability"));
+  v = validateChange(sb, "c6", "strict");
+  assert(!v.errors.some((e) => /> 12/.test(e)), formatVerdict(v));
+});
+
 // --- guard (doors 2/3) against a real git repo --------------------------------
 
 const g = sandbox();
@@ -282,14 +362,14 @@ git(g.root, "config", "user.email", "t@t");
 git(g.root, "config", "user.name", "t");
 createChange(g.root, "add-cap", ["cap"]);
 const w = (rel, t) => { fs.mkdirSync(path.dirname(path.join(g.root, rel)), { recursive: true }); fs.writeFileSync(path.join(g.root, rel), t); };
-w("cdd/changes/add-cap/proposal.md", `# add-cap\n\n## Why\n\np\n\n## What Changes\n\n- b\n\nDone-When: d\nCode: src/**\n`);
+w("cdd/changes/add-cap/proposal.md", `# add-cap\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: src/**\n`);
 w(
   "cdd/changes/add-cap/specs/cap/spec.md",
   `## ADDED Requirements\n\n### Requirement: R1\n\nP.\n\nCode: src/**\n\n#### Scenario: S1\n\nProse.\nVerified by: tests/acceptance/cap-s1.test.js\n`,
 );
 w(
   "cdd/changes/add-cap/tasks.md",
-  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 impl — verify by tests/acceptance/cap-s1.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
+  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 impl — verify by tests/acceptance/cap-s1.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
 );
 w("tests/acceptance/cap-s1.test.js", "// pin\n");
 w("src/impl.js", "export const x = 1;\n");

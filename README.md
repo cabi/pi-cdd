@@ -45,13 +45,25 @@ lib/context.mjs   ambient block builder
 lib/templates.mjs  rules.md, CI files, hook, artifact scaffolds
 cdd-src/          the files copied into adopting projects
 scripts/          standalone ports (spec-drift, spec-extract, arch-extract)
-tests/smoke.mjs   22 checks — `npm test` runs 20; RUN_PI_LOOP=1 adds the two
+tests/smoke.mjs   26 checks — `npm test` runs 24; RUN_PI_LOOP=1 adds the two
                   isolated-pi checks that spend tokens)
 decisions/        ADRs 0001–0005
 GLOSSARY.md       canonical language
 PRODUCT.md        bird's-eye map from the factory
 ```
 
+
+## The authoring corpus
+
+The per-artifact `instruction` text we developed in openspec-cdd's
+`schema.yaml` lives on in `lib/instructions.mjs` — ported line for line
+(reuse-first Solutions Considered, Non-Goals fence, Done-When criteria,
+quantification rules, design-gate triage, traceability, split procedure).
+`cdd_new_change` embeds it into every generated artifact as the leading
+HTML comment, `cdd/rules.md` summarizes it, and the validator enforces its
+machine-checkable parts (missing sections, Done-When cap, REMOVED Reason,
+vague comparatives, traceability table, >12 split). The corpus is pinned by
+smoke checks S22–S25.
 
 ## Driving the loop — your prompts are the triggers
 
