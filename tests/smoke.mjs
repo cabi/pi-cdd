@@ -15,6 +15,11 @@ const val = await import(path.join(REPO, "lib", "validate.mjs"));
 const ctx = await import(path.join(REPO, "lib", "context.mjs"));
 const { status, statusTable } = await import(path.join(REPO, "lib", "status.mjs"));
 const { helpText, renderHelp } = await import(path.join(REPO, "lib", "help.mjs"));
+// status-ui.ts imports @earendil-works/pi-tui, so it must load the way pi loads
+// extensions (jiti + install aliases). Discover the managed install; skip when absent.
+const { loadViaPi } = await import(path.join(REPO, "tests", "pi-jiti.mjs"));
+const statusUiMod = await loadViaPi(path.join(REPO, "lib", "status-ui.ts"));
+const CddStatusView = statusUiMod?.CddStatusView ?? null;
 
 let pass = 0;
 let fail = 0;
@@ -269,6 +274,10 @@ check("S20", "strict blocks unchecked work; archive auto-ticks the Close section
   assert(st.openChanges.some((c) => c.name === "fresh-change" && c.next.startsWith("author:")), JSON.stringify(st.openChanges));
   const tbl = statusTable(st);
   assert(/Change\s+│/.test(tbl) && /archived \d{8}/.test(tbl) && /frozen history/.test(tbl) && /fresh-change/.test(tbl), tbl);
+  // S20c: rows carry the TUI fields — state machine, recency, archived caps
+  const fresh = st.openChanges.find((c) => c.name === "fresh-change");
+  assert(fresh && fresh.state === "authoring" && typeof fresh.updated === "number" && fresh.updated > 0, JSON.stringify(fresh));
+  assert(st.archived.every((a) => typeof a.caps === "number" && a.caps >= 1), JSON.stringify(st.archived));
 });
 sb4.dispose();
 
@@ -590,6 +599,56 @@ check("S28", "hook health: half-upgraded scaffold goes red, hooks:false stays si
   s.dispose();
 });
 
+// --- S29: /cdd-status TUI window (status-ui.ts, loaded like pi loads it) --------
+if (CddStatusView) {
+  check("S29", "status TUI: tabs, newest first, in-process highlighted, sortable, esc closes", () => {
+    const s = sandbox();
+    initStore(s.root, REPO, { ci: "none", hooks: false });
+    createChange(s.root, "older", ["a"]);
+    createChange(s.root, "newer", ["b"]);
+    const now = Date.now();
+    fs.utimesSync(path.join(s.root, "cdd", "changes", "older", "tasks.md"), new Date(now - 3600e3), new Date(now - 3600e3));
+    fs.utimesSync(path.join(s.root, "cdd", "changes", "newer", "tasks.md"), new Date(now), new Date(now));
+    const events = [];
+    // passthrough theme: records tokens as text so assertions can grep them
+    const theme = {
+      style: (t, o) => `<${[o.fg, o.bg, o.bold && "b", o.underline && "u"].filter(Boolean).join(",")}>${t}</>`,
+      fg: (c, t) => `<fg:${c}>${t}</>`,
+      bg: (c, t) => `<bg:${c}>${t}</>`,
+    };
+    const plain = (view, w = 110) => view.render(w).map((l) => l.replace(/\x1b\[[0-9;]*m/g, ""));
+    const view = new CddStatusView(status(s.root), { requestRender: () => events.push("render") }, theme, () => events.push("closed"));
+    let lines = plain(view);
+    assert(lines.some((l) => /Open \(2\)/.test(l) && /Archived \(0\)/.test(l)), "tab bar shows both tabs");
+    assert(lines.findIndex((l) => /newer/.test(l)) < lines.findIndex((l) => /older/.test(l)), "newest change on top");
+    assert(lines.some((l) => /Updated ↓/.test(l)), "default sort marker on Updated column");
+    // in-process highlight: every cell of the row carries selectedBg
+    const data = status(s.root);
+    data.openChanges[0].state = "in-process";
+    const v2 = new CddStatusView(data, { requestRender() {} }, theme, () => {});
+    const raw = v2.render(300).join("\n");
+    const row = raw.split("\n").find((l) => /newer/.test(l));
+    const stateLine = raw.split("\n").find((l) => />in-process</.test(l) || /in-process\s*</.test(l));
+    assert(row && stateLine && row.includes("newer"), `in-process row missing: ${row}`);
+    assert(stateLine && /selectedBg/.test(stateLine) && stateLine.split("selectedBg").length >= 7, `in-process row not fully highlighted: ${stateLine}`);
+    // keyboard: tab switches to archived, enter re-sorts, esc closes
+    view.handleInput("\t");
+    lines = plain(view);
+    assert(lines.some((l) => /Archived \(0\)/.test(l)) && !lines.join("\n").includes("Updated ↓"), "second tab shows archived table");
+    view.handleInput("\t"); // back to open tab
+    view.handleInput("\r");
+    assert(plain(view).some((l) => /Updated ↑/.test(l)), "enter flips sort direction");
+    view.handleInput("\x1b");
+    assert(events.includes("closed"), "esc closes the window");
+    const max = Math.max(...plain(view, 40).map((l) => l.length), 0);
+    assert(max <= 40, `rendered line exceeds width: ${max}`);
+    s.dispose();
+  });
+} else {
+  console.log("  skip S29 (no pi install found — status-ui.ts not loadable)");
+}
+
+// --- report ---------------------------------------------------------------------
 // --- report ---------------------------------------------------------------------
 
 sb.dispose();

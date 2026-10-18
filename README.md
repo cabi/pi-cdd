@@ -118,7 +118,7 @@ phase machine; your prompt is the requirement input.
 | `"New change: <what and why>"` | design gate → proposal → deltas → tasks | `cdd validate` **draft green** (placeholders replaced, every scenario ends with a `Verified by:` pin, every task carries `verify by`) |
 | `"implement <change>"` | test-first ticking | the acceptance test exists before the task ticks |
 | *(nothing — automatic at green)* | archive | strict green + guard green → `cdd archive`; or you: `/cdd-archive <name>` |
-| `/cdd-status` | any time | — table of open + archived changes with verdicts and next step |
+| `/cdd-status` | any time | — TUI window: **Open** / **Archived** tabs as sortable tables (newest first, in-process highlighted, `tab`/arrows/`enter`, `esc` closes); plain table outside the TUI |
 | `/cdd-help` | any time | — the themed version of this section, in the TUI |
 
 "Enough" is mechanical, never a feeling: authoring is done when draft

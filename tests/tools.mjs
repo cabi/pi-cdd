@@ -55,7 +55,10 @@ function fakeApi() {
   return api;
 }
 
-const mod = await import(path.join(REPO, "index.ts"));
+const { loadViaPi } = await import(path.join(REPO, "tests", "pi-jiti.mjs"));
+// index.ts imports lib/status-ui.ts, which needs the pi-tui alias — load it
+// through the same jiti setup pi uses (tests/pi-jiti.mjs), plain import as fallback.
+const mod = (await loadViaPi(path.join(REPO, "index.ts"))) ?? (await import(path.join(REPO, "index.ts")));
 const api = fakeApi();
 mod.default(api);
 

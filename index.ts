@@ -18,6 +18,7 @@ import { initStore, createChange, archiveChange } from "./lib/store.mjs";
 import { validateChange, validateStore, formatVerdict } from "./lib/validate.mjs";
 import { buildAmbientBlock } from "./lib/context.mjs";
 import { status, statusTable } from "./lib/status.mjs";
+import { CddStatusView } from "./lib/status-ui.ts";
 import { helpText, renderHelp } from "./lib/help.mjs";
 
 const EXT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
@@ -191,9 +192,15 @@ export default function cddExtension(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("cdd-status", {
-    description: "All changes — open with progress/verdicts/next step, plus archived — as a table",
+    description: "All changes as two tabs (open with progress/verdicts/next, archived) — sortable tables, keyboard navigation",
     handler: async (_args: string, ctx) => {
-      console.log(statusTable(status(ctx.cwd)));
+      const s = status(ctx.cwd);
+      if (ctx.mode === "tui") {
+        // door-1 window: tabs + sortable tables, ESC closes (ADR-0002)
+        await ctx.ui.custom<void>((tui, theme, _kb, done) => new CddStatusView(s, tui, theme, () => done()));
+      } else {
+        console.log(statusTable(s));
+      }
     },
   });
 
