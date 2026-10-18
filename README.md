@@ -1,14 +1,36 @@
 # pi-cdd — contract-driven development inside pi
 
 A pi extension that brings the [openspec-cdd](https://github.com/cabi/openspec-cdd)
-method to any project — **without the OpenSpec CLI**. The method (change loop,
-lean-verified schema, three doors, drift guard) is unchanged; the counterparty
-at door 1 is no longer an external tool but the extension itself.
+method (same author: cabi) to any project — **without the OpenSpec CLI**. The
+method (change loop, lean-verified schema, three doors, drift guard) is
+unchanged; the counterparty at door 1 is no longer an external tool but the
+extension itself. The agent sees it as **one lean `cdd` tool** (six ops)
+instead of five separate tools — same features, ~63% fewer declaration tokens
+per request (see [Lean tool declaration](#lean-tool-declaration)).
+
+## How to install this extension into pi
+
+```bash
+pi install git:github.com/cabi/pi-cdd           # user-level: loads in every project
+pi install git:github.com/cabi/pi-cdd@v0.1.0    # pinned to a tag
+pi install --local git:github.com/cabi/pi-cdd   # this project only (loads after project trust)
+pi remove git:github.com/cabi/pi-cdd            # uninstall again
+```
+
+- A git source is cloned under pi's package directory and reconciled to the
+  selected ref; a configured ref never moves on its own — `pi update
+  --extensions` picks up a newer tag when you ask it to.
+- To try it once without touching settings: `pi -e git:github.com/cabi/pi-cdd`
+  (or, from a checkout, `pi --extension /path/to/pi-cdd`).
+- Requires Node ≥ 20 (the runtime pi already uses; the extension itself is
+  zero-dependency).
+- Then, in the adopting project, run `/cdd-init` once to scaffold the `cdd/`
+  store and the git hooks.
 
 ```
 door 1 · authoring      /cdd-init /cdd-new /cdd-status /cdd-archive   (human)
-                        cdd_init cdd_new_change cdd_validate          (agent)
-                        cdd_status cdd_archive
+                        cdd (agent tool; ops: init · new · validate ·
+                        status · archive · help)
                         + ambient method injection (before_agent_start)
 door 2 · commit         .githooks/pre-commit  → spec-drift.mjs --staged   (message-independent checks)
                         .githooks/commit-msg  → spec-drift.mjs --commit-msg "$1"
@@ -17,12 +39,6 @@ door 2 · commit         .githooks/pre-commit  → spec-drift.mjs --staged   (me
 door 3 · CI             guard + acceptance suite, machine verdicts only
 ```
 
-## Install (dev)
-
-```bash
-pi --extension /path/to/pi-cdd        # per invocation
-# or in pi settings:  extensions: ["/path/to/pi-cdd"]
-```
 
 `/cdd-init` scaffolds the store (`cdd/`), the executable `pre-commit` and
 `commit-msg` hooks (git hands the second one the composed message — that is
@@ -40,18 +56,39 @@ session's context (`before_agent_start` — no skippable fetch), verdicts are
 close button. Multi-session continuity is the store itself: a cold-start
 agent in a `cdd/` project is oriented by the ambient block alone.
 
+## Lean tool declaration
+
+This is the lean version of the tool surface: the previous five tools
+(`cdd_init`, `cdd_new_change`, `cdd_validate`, `cdd_status`, `cdd_archive`)
+are merged into **one `cdd` tool** with an `op` parameter. Rare parameters
+travel inside `options` as a JSON string; `op: help` returns the full per-op
+documentation — the verbatim descriptions and schemas of the five-tool
+version — so nothing is lost, only not repeated on every request. Legacy tool
+names (`cdd_validate`, …) still work: `prepareArguments` maps them onto ops
+and folds legacy top-level parameters into `options` before validation.
+
+| Model-facing text | five-tool version | lean (one tool) |
+|---|---|---|
+| tool declarations (name + description + schema) | 1818 chars ≈ 455 tok | 665 chars ≈ 166 tok (−63%) |
+| ambient block (store present) | 797 chars ≈ 199 tok | 662 chars ≈ 166 tok (−17%) |
+| **total per request** | **≈ 654 tok** | **≈ 332 tok (−49%)** |
+
+Characters are exact; tokens estimated at 4 chars/token (no tokenizer
+dependency). Without a store there is no ambient block, so the per-request
+cost is the declaration alone: ≈ 455 → ≈ 166 tok.
 ## Layout
 
 ```
-index.ts          extension factory: commands, tools, event handler
+index.ts          extension factory: commands, one merged cdd tool, ambient hook
 lib/store.mjs     init / create / archive (plain fs over cdd/)
 lib/validate.mjs  draft + strict validator (errors / warnings / split signal)
 lib/context.mjs   ambient block builder
 lib/templates.mjs  rules.md, CI files, hook, artifact scaffolds
 cdd-src/          the files copied into adopting projects
 scripts/          standalone ports (spec-drift, spec-extract, arch-extract)
-tests/smoke.mjs   26 checks — `npm test` runs 24; RUN_PI_LOOP=1 adds the two
-                  isolated-pi checks that spend tokens)
+tests/            smoke.mjs (libs, ambient, guard) + tools.mjs (merged-tool
+                  suite: every op, fill-ins, help, static list); npm test runs
+                  both; RUN_PI_LOOP=1 adds the isolated-pi checks (spends tokens)
 decisions/        ADRs 0001–0005
 GLOSSARY.md       canonical language
 PRODUCT.md        bird's-eye map from the factory
@@ -64,7 +101,7 @@ The per-artifact `instruction` text we developed in openspec-cdd's
 `schema.yaml` lives on in `lib/instructions.mjs` — ported line for line
 (reuse-first Solutions Considered, Non-Goals fence, Done-When criteria,
 quantification rules, design-gate triage, traceability, split procedure).
-`cdd_new_change` embeds it into every generated artifact as the leading
+The `new` op embeds it into every generated artifact as the leading
 HTML comment, `cdd/rules.md` summarizes it, and the validator enforces its
 machine-checkable parts (missing sections, Done-When cap, REMOVED Reason,
 vague comparatives, traceability table, >12 split). The corpus is pinned by
@@ -78,9 +115,9 @@ phase machine; your prompt is the requirement input.
 
 | You say / do | Phase | Gate that says "enough" |
 |---|---|---|
-| `"New change: <what and why>"` | design gate → proposal → deltas → tasks | `cdd_validate` **draft green** (placeholders replaced, every scenario ends with a `Verified by:` pin, every task carries `verify by`) |
+| `"New change: <what and why>"` | design gate → proposal → deltas → tasks | `cdd validate` **draft green** (placeholders replaced, every scenario ends with a `Verified by:` pin, every task carries `verify by`) |
 | `"implement <change>"` | test-first ticking | the acceptance test exists before the task ticks |
-| *(nothing — automatic at green)* | archive | strict green + guard green → `cdd_archive`; or you: `/cdd-archive <name>` |
+| *(nothing — automatic at green)* | archive | strict green + guard green → `cdd archive`; or you: `/cdd-archive <name>` |
 | `/cdd-status` | any time | — table of open + archived changes with verdicts and next step |
 | `/cdd-help` | any time | — the themed version of this section, in the TUI |
 

@@ -140,7 +140,7 @@ fill("cdd/changes/add-greeting/tasks.md", `# Tasks — add-greeting
 
 ## 4. Close
 
-- [ ] 4.1 cdd_validate strict green, guard green
+- [ ] 4.1 cdd validate strict green, guard green
 - [ ] 4.2 Archive — pair-commit: feature commit, then archive commit
 `);
 
@@ -276,7 +276,7 @@ sb4.dispose();
 check("S21", "/cdd-help renders the driving workflow (prompts, gates, commands)", () => {
   // helpText/renderHelp imported at module top (S21 uses them directly)
   const txt = helpText();
-  for (const needle of ['"New change: <what and why>"', '"implement <change>"', "Done-When", "draft green", "/cdd-status", "cdd_new_change", "Mechanical-Change", "no spec markers"]) {
+  for (const needle of ['"New change: <what and why>"', '"implement <change>"', "Done-When", "draft green", "/cdd-status", "agent tool: cdd", "Mechanical-Change", "no spec markers"]) {
     assert(txt.includes(needle), `help text missing: ${needle}\n${txt}`);
   }
   assert(!txt.includes("\x1b["), "helpText must stay plain (no ANSI)");
@@ -496,7 +496,7 @@ if (process.env.RUN_PI_LOOP === "1") {
   check("S19", "isolated pi via CLI: tools registered and callable headless", () => {
     const out = execFileSync(
       "pi",
-      ["--print", "--extension", REPO, "-p", "Call the cdd_status tool and reply with exactly the JSON it returned."],
+      ["--print", "--extension", REPO, "-p", "Call the cdd tool with op status and reply with exactly the JSON it returned."],
       { encoding: "utf8", cwd: g.root, timeout: 300_000 },
     );
     assert(/openChanges/.test(out) && /add-cap/.test(out), `unexpected output:\n${out.slice(0, 800)}`);

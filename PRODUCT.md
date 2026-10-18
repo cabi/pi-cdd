@@ -16,10 +16,10 @@ The two products share the method, not the code path:
 | Surface | Name | Kind | Trigger |
 |---|---|---|---|
 | Project init | `/cdd-init` | command | human, once — scaffolds `cdd/` tree, rules file, decisions dir, hooks + CI templates |
-| Change scaffold | `/cdd-new <id>` · `cdd_new_change` | command + tool | start of every change |
-| Form gate | `cdd_validate` | tool (readOnlyHint) | agent, before every commit |
-| Orientation | `/cdd-status` · `cdd_status` | command + tool | anytime |
-| Close loop | `/cdd-archive <id>` · `cdd_archive` | command + tool | end of every change |
+| Change scaffold | `/cdd-new <id>` · `cdd` (op new) | command + tool | start of every change |
+| Form gate | `cdd` (op validate) | tool (readOnlyHint) | agent, before every commit |
+| Orientation | `/cdd-status` · `cdd` (op status) | command + tool | anytime |
+| Close loop | `/cdd-archive <id>` · `cdd` (op archive) | command + tool | end of every change |
 | Method context | ambient injection | `before_agent_start` | every session |
 
 Not in v1: TUI components beyond notifications, custom renderers, model/provider integration, MCP.
@@ -41,7 +41,7 @@ pi-cdd/
     templates.ts      # artifact templates + method rules text
     context.ts        # ambient injection (claude-rules pattern)
   commands/           # /cdd-init /cdd-new /cdd-status /cdd-archive
-  tools/              # cdd_new_change cdd_validate cdd_status cdd_archive
+  index.ts            # the single merged `cdd` tool (ops: init new validate status archive help)
   scripts/            # standalone ports (copied into adopting projects)
     spec-drift.mjs    # door 2/3 guard, reads cdd/ instead of openspec/
     spec-extract.mjs  # brownfield extractor
@@ -69,12 +69,12 @@ Artifact format ports unchanged: delta sections `## ADDED/MODIFIED/REMOVED Requi
 | openspec command | pi-cdd equivalent | Mechanism |
 |---|---|---|
 | `schema add` + project init | `/cdd-init` | command, human, once |
-| `new change <id>` | `/cdd-new` / `cdd_new_change` | command (human) + tool (agent) |
+| `new change <id>` | `/cdd-new` / `cdd` op new | command (human) + tool (agent) |
 | `instructions <artifact> --change` | ambient context + `cdd/schemas/` files | injected every session, no call to skip |
-| `validate <id> --strict` | `cdd_validate` | tool, agent self-serves red/green |
-| `list` / `status` | `/cdd-status` / `cdd_status` | command + tool |
+| `validate <id> --strict` | `cdd` op validate | tool, agent self-serves red/green |
+| `list` / `status` | `/cdd-status` / `cdd` op status | command + tool |
 | `instructions apply` | injected method instruction (run guard preflight) | ambient |
-| `archive <id> --yes` | `/cdd-archive` / `cdd_archive` | command + tool, git pair-commit |
+| `archive <id> --yes` | `/cdd-archive` / `cdd` op archive | command + tool, git pair-commit |
 
 Hard gates unchanged: validate (door 1 form gate), `spec-drift.mjs` pre-commit (door 2), guard + acceptance suite + tool jobs in CI (door 3).
 
