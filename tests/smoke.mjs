@@ -13,6 +13,7 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const lib = await import(path.join(REPO, "lib", "store.mjs"));
 const val = await import(path.join(REPO, "lib", "validate.mjs"));
 const ctx = await import(path.join(REPO, "lib", "context.mjs"));
+const { status, statusTable } = await import(path.join(REPO, "lib", "status.mjs"));
 
 let pass = 0;
 let fail = 0;
@@ -248,6 +249,13 @@ check("S20", "strict blocks unchecked work; archive auto-ticks the Close section
   assert(r.ok && r.autoTicked >= 1, JSON.stringify(r));
   const archived = fs.readFileSync(path.join(sb4.root, r.archivedTo, "tasks.md"), "utf8");
   assert(!/- \[ \]/.test(archived), "archived tasks.md still has unchecked boxes");
+  // S20b: status table shows open + archived with verdicts (the /cdd-status view)
+  createChange(sb4.root, "fresh-change", ["x"]);
+  const st = status(sb4.root);
+  assert(st.archived.some((a) => a.name === "close-tick"), JSON.stringify(st.archived));
+  assert(st.openChanges.some((c) => c.name === "fresh-change" && c.next.startsWith("author:")), JSON.stringify(st.openChanges));
+  const tbl = statusTable(st);
+  assert(/Change\s+│/.test(tbl) && /archived \d{8}/.test(tbl) && /frozen history/.test(tbl) && /fresh-change/.test(tbl), tbl);
 });
 sb4.dispose();
 // --- guard (doors 2/3) against a real git repo --------------------------------

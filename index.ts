@@ -14,9 +14,10 @@
 import { fileURLToPath } from "node:url";
 import * as path from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { initStore, hasStore, listChanges, listCapabilities, createChange, archiveChange } from "./lib/store.mjs";
+import { initStore, createChange, archiveChange } from "./lib/store.mjs";
 import { validateChange, validateStore, formatVerdict } from "./lib/validate.mjs";
 import { buildAmbientBlock } from "./lib/context.mjs";
+import { status, statusTable } from "./lib/status.mjs";
 
 const EXT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -67,9 +68,9 @@ export default function cddExtension(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("cdd-status", {
-    description: "Open changes, capabilities, draft/strict verdicts",
+    description: "All changes — open with progress/verdicts/next step, plus archived — as a table",
     handler: async (_args: string, ctx) => {
-      console.log(json(status(ctx.cwd)));
+      console.log(statusTable(status(ctx.cwd)));
     },
   });
 
@@ -190,14 +191,3 @@ export default function cddExtension(pi: ExtensionAPI) {
   });
 }
 
-function status(root) {
-  if (!hasStore(root)) return { store: false, hint: "no cdd/ store — run cdd_init" };
-  return {
-    store: true,
-    openChanges: listChanges(root),
-    capabilities: listCapabilities(root),
-    verdicts: Object.fromEntries(
-      listChanges(root).map((c) => [c, { draft: validateChange(root, c, "draft").ok, strict: validateChange(root, c, "strict").ok }]),
-    ),
-  };
-}
