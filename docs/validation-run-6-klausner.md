@@ -24,6 +24,40 @@
 - **F3:** 4 option-backed decisions incl. **the `Mechanical-Change:` trailer for the stray-tag fix, chosen uncoached** — the M-lane selected purely from the ambient method block. PO overrode one recommendation (DSGVO checkbox against "keep it minimal"); override absorbed, test pinned. The mechanical sweep also caught a second same-class defect (duplicate `}` in style.css) and stayed inside the trailer lane.
 - **Out-of-scope discipline:** F2 spotted a pre-existing defect in F1's page and *asked* instead of fixing. Never touched a line outside its `Code:` globs without a door.
 
+## Session-transcript analysis (the three .jsonl files)
+
+Tool results are not persisted in this transcript format, so transcripts prove **order and timing**; outcomes are proven by the repo (re-run verdicts above). Per feature: exactly **1 `cdd_new_change`, 3 `cdd_validate` (draft → strict → whole-store), 1 `cdd_archive`**, plus `cdd_status` at start — the designed tool rhythm, unprompted.
+
+- **Gate order holds 3/3.** First repo write always follows the design-gate ask: F1 ask at event 9 → `cdd_new_change` at 17; F2 ask at 15 → 21; F3 PO reply lands at transcript line 27, the mechanical fix at line 49 and `cdd_new_change` after — even the piggyback cleanup waited for the owner's `4a yes`.
+- **F2's ask needed retries and survived them:** `ask → send → pending → list → ask` — the child worked a busy supervisor for ~80 s without human help, then proceeded only on the answer.
+- **Discipline signals:** `todo` lists used in F1/F3 (9/16 calls) for multi-phase work; F2 skipped todos, read instead (14 `read` — studied the living spec + pages before asking); no repo writes outside a change, ever.
+- **Effort per feature:** ~20–31 k output tokens, 6.3–8.1 min wall clock, cost dominated by cache reads (ambient corpus amortizes well: ~1.2 k-token method block cached across every request).
+
+## Screenshot analysis (Chrome headless, file:// , 1280 px)
+
+Objective CDP audit (structure + computed styles, re-verified live):
+
+| page | height | h1 | h2 | links | form fields | overflow-x |
+|---|---|---|---|---|---|---|
+| index.html | 1369 | 1 | 2 | 4 | 0 | no |
+| katalog.html | 2600 | 1 | 3 | 3 | 0 | no |
+| kontakt.html | 1526 | 1 | 1 | 2 | 7 | no |
+| impressum.html | 1120 | 1 | 1 | 1 | 0 | no |
+
+Palette and typography are uniform across all four pages (`system-ui` on `rgb(250,245,236)` cream, text `rgb(53,41,29)`). The catalog is the tall page (9 cards) and stays inside the viewport width.
+
+**Vision pass (vision-capable reviewer on true full-page shots): PASS on all four pages.**
+
+- kontakt: complete inquiry form — Name, E-Mail, optional Telefon, E-Mail/Telefon radios, unchecked DSGVO checkbox, "Anfrage senden" submit, Platzhalter note; one consistent input column. Only nit: two-line phone label wrap (below noticeability).
+- impressum: "Vertretungsberechtigt" + value fully rendered, footer intact; German legal typography correct throughout.
+- katalog: all 9 cards painted; per-row grid stretching absorbs the DOM height variance (`300×5, 250, 276×2, 300`) — aligned baselines, no orphan rows.
+- Price contrast, computed (not eyeballed): `rgb(122,79,43)` on `rgb(255,253,248)` at 19.2 px = **6.93:1** — WCAG-AA comfortable, near-AAA. The reviewer's "~3.5:1" from a scaled crop was wrong; the math settled it.
+- Best detail called out by the reviewer: correct German typographic quotes „…" and em-dashes in the product cards.
+
+**Capture-pipeline lesson (why this section took three passes):** two plausible screenshot methods were silently wrong — the helper's default shot is a 493 px viewport crop (which made a below-the-fold form look "missing"), and CDP `clip` beyond the viewport paints only the first screenful onto a tall blank canvas (`captureBeyondViewport` nulls outright in this Chromium build). The working recipe: launch the browser taller than the tallest page (`--window-size=765,2700`), plain `Page.captureScreenshot`, then `magick -trim`. Structural facts came from DOM audits, not pixels — the right division of labor for a visual door.
+
+Full-page screenshots archived in `docs/run-6-shots/` (index, katalog, kontakt, impressum).
+
 ## What this validates about pi-cdd
 
 1. **Ambient injection** — agents followed the full method (phases, gates, trailer lanes, archive pairing) without ever being handed the corpus; it arrived via `before_agent_start` context.
