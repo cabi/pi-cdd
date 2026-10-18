@@ -512,6 +512,57 @@ if (process.env.RUN_PI_LOOP === "1") {
   });
 }
 
+check("S27", "commit-msg door: mechanical passes honestly, bare code fails with a remedy, M polices the claim", () => {
+  const s = sandbox();
+  initStore(s.root, REPO, { ci: "none", hooks: true });
+  git(s.root, "init", "-q");
+  git(s.root, "config", "user.email", "t@t");
+  git(s.root, "config", "user.name", "t");
+  const wf = (rel, t) => fs.writeFileSync(path.join(s.root, rel), t);
+  fs.mkdirSync(path.join(s.root, "cdd", "specs", "cap"), { recursive: true });
+  wf("cdd/specs/cap/spec.md", "### Requirement: R1\n\nP.\n\nCode: src/**\n\n#### Scenario: S1\n\nProse.\nVerified by: tests/acceptance/cap.test.js\n");
+  fs.mkdirSync(path.join(s.root, "tests", "acceptance"), { recursive: true });
+  wf("tests/acceptance/cap.test.js", "// pin\n");
+  fs.mkdirSync(path.join(s.root, "src"), { recursive: true });
+  wf("src/impl.js", "export const x = 1;\n");
+  git(s.root, "add", "-A");
+  git(s.root, "commit", "-qm", "feat: cap");
+  const run = (args) => {
+    try {
+      return { code: 0, out: execFileSync("node", [path.join(s.root, "cdd", "scripts", "spec-drift.mjs"), ...args], { encoding: "utf8", cwd: s.root }) };
+    } catch (e) {
+      return { code: e.status ?? 1, out: (e.stdout ?? "") + (e.stderr ?? "") };
+    }
+  };
+  const msg = (t) => {
+    const p = path.join(s.root, "MSGFILE");
+    fs.writeFileSync(p, t);
+    return p;
+  };
+  // (a) bare code change without its spec -> commit-msg red, remedy, never a bypass hint
+  wf("src/impl.js", "export const x = 2;\n");
+  git(s.root, "add", "-A");
+  const bare = run(["--commit-msg", msg("feat: change impl\n")]);
+  assert(bare.code !== 0 && /\[L2\]/.test(bare.out), `expected L2 at the commit-msg door:\n${bare.out}`);
+  assert(!/no-verify/.test(bare.out), "a red door must teach the remedy, never the bypass");
+  // (b) the same staged change with the Mechanical-Change: trailer -> passes honestly
+  const mech = run(["--commit-msg", msg("chore: codestyle sweep\n\nMechanical-Change: lint --fix over src\n")]);
+  assert(mech.code === 0, `mechanical commit must pass the commit-msg door:\n${mech.out}`);
+  // (c) mechanical claim but stages the contract layer -> M red with the split remedy
+  wf("cdd/specs/cap/spec.md", "### Requirement: R1\n\nP. changed.\n\nCode: src/**\n\n#### Scenario: S1\n\nProse.\nVerified by: tests/acceptance/cap.test.js\n");
+  git(s.root, "add", "-A");
+  const smuggle = run(["--commit-msg", msg("chore: sweep\n\nMechanical-Change: rename\n")]);
+  assert(smuggle.code !== 0 && /\[M\]/.test(smuggle.out), `expected M smuggling rejection:\n${smuggle.out}`);
+  // (d) both hooks installed, and neither hook teaches the bypass
+  assert(fs.existsSync(path.join(s.root, ".githooks", "commit-msg")), "commit-msg hook not scaffolded");
+  assert(fs.existsSync(path.join(s.root, ".githooks", "pre-commit")), "pre-commit hook not scaffolded");
+  for (const h of ["pre-commit", "commit-msg"]) {
+    const hook = fs.readFileSync(path.join(s.root, ".githooks", h), "utf8");
+    assert(!/--no-verify/.test(hook), `${h} hook must not mention --no-verify`);
+  }
+  git(s.root, "commit", "-qm", "chore: codestyle sweep\n\nMechanical-Change: lint --fix over src");
+  s.dispose();
+});
 // --- report ---------------------------------------------------------------------
 
 sb.dispose();

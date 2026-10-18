@@ -114,12 +114,12 @@ export default function cddExtension(pi: ExtensionAPI) {
     name: "cdd_init",
     label: "cdd init",
     description:
-      "Scaffold the cdd store in the project root: cdd/rules.md, cdd/scripts (drift guard), .githooks/pre-commit, CI workflows, tests/acceptance/. Run once per project, before any other cdd tool.",
+      "Scaffold the cdd store in the project root: cdd/rules.md, cdd/scripts (drift guard), .githooks/pre-commit + commit-msg, CI workflows, tests/acceptance/. Run once per project, before any other cdd tool.",
     parameters: {
       type: "object",
       properties: {
         ci: { type: "string", enum: ["github", "gitlab", "both", "none"], description: "CI templates to write (default both)" },
-        hooks: { type: "boolean", description: "install .githooks/pre-commit (default true)" },
+        hooks: { type: "boolean", description: "install .githooks/pre-commit + commit-msg (default true)" },
       },
     },
     async execute(_id, params, _signal, _onUpdate, ctx) {

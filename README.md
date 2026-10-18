@@ -10,7 +10,10 @@ door 1 · authoring      /cdd-init /cdd-new /cdd-status /cdd-archive   (human)
                         cdd_init cdd_new_change cdd_validate          (agent)
                         cdd_status cdd_archive
                         + ambient method injection (before_agent_start)
-door 2 · commit         .githooks/pre-commit → node cdd/scripts/spec-drift.mjs
+door 2 · commit         .githooks/pre-commit  → spec-drift.mjs --staged   (message-independent checks)
+                        .githooks/commit-msg  → spec-drift.mjs --commit-msg "$1"
+                          (L2 travel + mechanical exemption + M integrity — the
+                          trailer is visible here, so nothing needs --no-verify)
 door 3 · CI             guard + acceptance suite, machine verdicts only
 ```
 
@@ -21,8 +24,10 @@ pi --extension /path/to/pi-cdd        # per invocation
 # or in pi settings:  extensions: ["/path/to/pi-cdd"]
 ```
 
-`/cdd-init` scaffolds the store (`cdd/`), the executable pre-commit hook,
-CI templates (GitHub and/or GitLab), and `tests/acceptance/`. Everything it
+`/cdd-init` scaffolds the store (`cdd/`), the executable `pre-commit` and
+`commit-msg` hooks (git hands the second one the composed message — that is
+what makes the `Mechanical-Change:` lane pass the door honestly, no
+`--no-verify` ever),
 writes is zero-dependency Node + git — uninstall the extension and every
 door keeps working (ADR-0003).
 

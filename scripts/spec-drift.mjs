@@ -4,8 +4,12 @@
 // Premise: code is the truth, the spec is the index. This script keeps the
 // index honest. Same script, three doors, nearest to where drift starts:
 //   1. apply preflight  — the schema's apply instruction runs it before `/cdd-archive`
-//   2. pre-commit hook  — .githooks/pre-commit runs it with --staged
-//   3. CI               — full scan on push/PR (needs fetch-depth: 0)
+//   2. commit door      — .githooks/pre-commit runs it with --staged
+//                         (message-independent checks); .githooks/commit-msg
+//                         runs it with --commit-msg "$1" (L2 travel with the
+//                         mechanical exemption, staged-M integrity). The
+//                         trailer is visible only to the second hook, so a
+//                         mechanical commit never needs --no-verify.
 //
 // L1 traceability (always, no git needed):
 //   - every `Verified by <path>` pin in every spec resolves to an existing file
@@ -57,12 +61,22 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const argv = process.argv.slice(2);
-const staged = argv.includes('--staged');
-const unknown = argv.filter((a) => a !== '--staged');
-if (unknown.length) {
-  console.error(`usage: spec-drift.mjs [--staged]  (unknown args: ${unknown.join(' ')})`);
+const msgIdx = argv.indexOf('--commit-msg');
+const msgFile = msgIdx !== -1 ? argv[msgIdx + 1] : null;
+const preCommit = argv.includes('--staged');
+// --staged (pre-commit) sees the index but never the message: it runs only
+// message-independent checks. --commit-msg <file> (commit-msg hook) sees both:
+// it runs the message-dependent ones — the L2 travel check, with the
+// mechanical exemption, and the M integrity check on the staged set.
+const staged = preCommit || msgFile !== null;
+const unknown = argv.filter((a, i) => a !== '--staged' && a !== '--commit-msg' && argv[i - 1] !== '--commit-msg');
+if (unknown.length || (msgIdx !== -1 && !msgFile)) {
+  console.error(`usage: spec-drift.mjs [--staged | --commit-msg <file>]  (unknown args: ${unknown.join(' ')})`);
   process.exit(2);
 }
+const mechanical = msgFile
+  ? /^Mechanical-Change:|^\[mechanical\]/m.test(fs.readFileSync(msgFile, 'utf8'))
+  : false;
 
 // --- locate the project root (the dir that owns cdd/) --------------------
 function findRoot(start) {
@@ -199,7 +213,7 @@ function globToRe(glob) {
 const stagedSet = new Set(
   staged && isRepo ? (git(['diff', '--cached', '--name-only']) ?? '').split('\n').filter(Boolean) : []
 );
-const specsToCheck = staged ? allSpecs.filter((s) => stagedSet.has(s)) : allSpecs;
+const specsToCheck = preCommit ? allSpecs.filter((s) => stagedSet.has(s)) : allSpecs;
 for (const specRel of specsToCheck) {
   for (const { pin, resolved } of pinsOf.get(specRel)) {
     if (!resolved) {
@@ -212,7 +226,7 @@ for (const specRel of specsToCheck) {
 // L1 — reverse: every acceptance test is pinned somewhere
 // (staged mode: only files newly added to tests/acceptance/)
 // ==============================================================================
-if (staged && isRepo) {
+if (preCommit && isRepo) {
   const stagedAdds = (git(['diff', '--cached', '--name-only', '--diff-filter=A']) ?? '')
     .split('\n')
     .filter(Boolean);
@@ -232,7 +246,7 @@ if (staged && isRepo) {
 // ==============================================================================
 // L1 — the commit door: staged deletions of pinned tests
 // ==============================================================================
-if (staged && isRepo) {
+if (preCommit && isRepo) {
   const stagedDels = (git(['diff', '--cached', '--name-only', '--diff-filter=D']) ?? '')
     .split('\n')
     .filter(Boolean);
@@ -279,7 +293,7 @@ if (isRepo) {
     const res = globs.map(globToRe);
     const matches = tracked.filter((f) => res.some((re) => re.test(f)));
     if (!matches.length) continue;
-    if (staged) {
+    if (msgFile && !mechanical) {
       const stagedCode = matches.filter((f) => stagedSet.has(f));
       if (stagedCode.length && !specRels.some((s) => stagedSet.has(s))) {
         issues.push(`[L2] staged code ${stagedCode.join(', ')} but no spec of ${cap} is in this commit — spec and code travel together (update the living spec or the change's delta)`);
@@ -305,6 +319,20 @@ if (isRepo) {
 // smuggling route past the commit door. (History check — full scan only; at
 // the commit door the message doesn't exist yet, CI re-checks the tip.)
 // ==============================================================================
+// M at the commit door: with --commit-msg the trailer is finally visible, so
+// the mechanical claim is policed on the staged set — not only in history.
+if (msgFile && mechanical && stagedSet.size) {
+  const contract = [...stagedSet].filter(
+    (f) =>
+      f.startsWith('cdd/specs/') ||
+      accDirs.some((d) => path.join(root, f).startsWith(d + path.sep))
+  );
+  if (contract.length) {
+    issues.push(
+      `[M] commit claims Mechanical-Change: but stages contract-layer files (${contract.join(', ')}) — split it: a behavior change goes through the change loop, contract and code together`
+    );
+  }
+}
 if (isRepo && !staged) {
   const mechLog = git([
     'log', '-n', '1000', '--extended-regexp', '--grep', MECH_GREP,
