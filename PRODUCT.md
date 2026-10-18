@@ -27,7 +27,7 @@ Not in v1: TUI components beyond notifications, custom renderers, model/provider
 ## Non-goals
 
 1. **No openspec dependency of any form** — not the CLI, not its artifact naming, not `openspec/` paths, not its scaffold strings.
-2. **Doors 2 and 3 are never owned by the extension.** The pre-commit guard and the CI workflow stay standalone zero-dependency Node scripts (ADR-0001). The extension may *reference* them, never *be* them.
+2. **Doors 2 and 3 are never owned by the extension.** The pre-commit guard and the CI workflow stay standalone Node scripts (ADR-0001). Doors 1–2 are zero-dependency; door 3 re-parses gherkin fences and takes `@cucumber/gherkin` as the project's devDependency, failing loudly with the install command when absent (ADR-0005). The extension may *reference* the doors, never *be* them.
 3. **No lock-in the other direction either:** the store is plain markdown (ADR-0003); the extension can be uninstalled and every door keeps working.
 
 ## Architecture

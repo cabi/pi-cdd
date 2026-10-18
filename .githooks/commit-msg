@@ -1,0 +1,4 @@
+#!/bin/sh
+# door 2b — the drift guard on the composed commit message (this hook can
+# see the Mechanical-Change: trailer, so mechanical commits pass honestly)
+node cdd/scripts/spec-drift.mjs --commit-msg "$1"

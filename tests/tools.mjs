@@ -192,7 +192,13 @@ X.
 
 #### Scenario: x prints
 
-When x, then y.
+\`\`\`gherkin
+Scenario: x prints
+Given x
+When x runs
+Then y is printed
+\`\`\`
+
 Verified by: tests/acceptance/x-prints.test.js
 `);
 w("cdd/changes/add-x/tasks.md", `# Tasks — add-x

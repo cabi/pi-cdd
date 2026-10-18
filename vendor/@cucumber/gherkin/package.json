@@ -1,0 +1,7 @@
+{
+  "name": "@cucumber/gherkin",
+  "version": "42.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "license": "MIT"
+}

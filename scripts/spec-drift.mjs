@@ -120,7 +120,7 @@ function lastCommit(file) {
 
 // --- collect specs: pins + code globs -------------------------------------------
 const issues = [];
-const pinRe = /Verified by[*:]*\s*`?([^\s`]+)`?/g;
+const pinRe = /^Verified by[*:]*\s*`?([^\s`]+)`?/gm;
 const codeRe = /^\s*(?:-\s+)?Code:\s*(.+)$/gm;
 
 function specsIn(dir, acc = []) {
@@ -158,9 +158,26 @@ const pinsOf = new Map(); // specRel -> [{ pin, resolved }]
 const codeGlobs = new Map(); // specRel -> [globs]
 for (const specRel of allSpecs) {
   const text = fs.readFileSync(path.join(root, specRel), 'utf8');
+  // Pins live outside the gherkin fences: fence bodies are parser territory
+  // (a scenario may legitimately quote the phrase), so blank them first.
+  let inFence = false;
+  const masked = text
+    .split('\n')
+    .map((l) => {
+      if (!inFence && /^\s*```\s*gherkin\s*$/.test(l)) {
+        inFence = true;
+        return l;
+      }
+      if (inFence) {
+        if (/^\s*```\s*$/.test(l)) inFence = false;
+        return '';
+      }
+      return l;
+    })
+    .join('\n');
   pinsOf.set(
     specRel,
-    [...text.matchAll(pinRe)].map((m) => ({ pin: m[1], resolved: null }))
+    [...masked.matchAll(pinRe)].map((m) => ({ pin: m[1], resolved: null }))
   );
   for (const p of pinsOf.get(specRel)) p.resolved = pinResolve(p.pin, specRel);
   codeGlobs.set(

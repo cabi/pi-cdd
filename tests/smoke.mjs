@@ -122,7 +122,13 @@ The CLI greets the user on startup.
 
 #### Scenario: prints greeting
 
-When the CLI starts, it prints a greeting line.
+\`\`\`gherkin
+Scenario: prints greeting
+Given the CLI is started
+When the CLI starts
+Then it prints a greeting line
+\`\`\`
+
 Verified by: tests/acceptance/greeting-prints.test.js
 `);
 fill("cdd/changes/add-greeting/tasks.md", `# Tasks — add-greeting
@@ -167,7 +173,7 @@ const sb2 = sandbox();
 initStore(sb2.root, REPO, { ci: "none", hooks: false });
 createChange(sb2.root, "bad-pin", ["x"]);
 fill2("proposal.md", `# bad-pin\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: x.js\n`);
-fill2("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\nP.\n\n#### Scenario: S\n\nProse.\n`);
+fill2("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\n\n#### Scenario: S\n\n\`\`\`gherkin\nScenario: S\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n`);
 fill2("tasks.md", `# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
 function fill2(rel, text) {
   fs.writeFileSync(path.join(sb2.root, "cdd", "changes", "bad-pin", rel), text);
@@ -212,7 +218,7 @@ createChange(sb.root, "louder-greeting", ["greeting"]);
 fs.writeFileSync(path.join(sb.root, "cdd", "changes", "louder-greeting", "proposal.md"), `# louder-greeting\n\n## Why\n\np\n\n## What Changes\n\n- louder\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: cli.js\n`);
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "louder-greeting", "specs", "greeting", "spec.md"),
-  `## MODIFIED Requirements\n\n### Requirement: Startup greeting\n\nLouder.\n\n#### Scenario: shouts greeting\n\nShouts.\nVerified by: tests/acceptance/greeting-prints.test.js\n`,
+  `## MODIFIED Requirements\n\n### Requirement: Startup greeting\n\nLouder.\n\n#### Scenario: shouts greeting\n\n\`\`\`gherkin\nScenario: shouts greeting\nGiven the CLI is started\nWhen the CLI starts\nThen it shouts the greeting\n\`\`\`\n\nVerified by: tests/acceptance/greeting-prints.test.js\n`,
 );
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "louder-greeting", "tasks.md"),
@@ -254,7 +260,7 @@ initStore(sb4.root, REPO, { ci: "none", hooks: false });
 createChange(sb4.root, "close-tick", ["x"]);
 const f4 = (rel, t) => fs.writeFileSync(path.join(sb4.root, "cdd", "changes", "close-tick", rel), t);
 f4("proposal.md", `# close-tick\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: x.js\n`);
-f4("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\nP.\n\n#### Scenario: S\n\nProse.\nVerified by: tests/acceptance/close-tick.test.js\n`);
+f4("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\nP.\n\n#### Scenario: S\n\n\`\`\`gherkin\nScenario: S\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n\nVerified by: tests/acceptance/close-tick.test.js\n`);
 fs.writeFileSync(path.join(sb4.root, "tests", "acceptance", "close-tick.test.js"), "// pin\n");
 check("S20", "strict blocks unchecked work; archive auto-ticks the Close section", () => {
   f4("tasks.md", `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 impl — verify by tests/acceptance/close-tick.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
@@ -303,7 +309,7 @@ check("S22", "proposal requires Solutions Considered + Non-Goals; Done-When capp
   const good = "# c3\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib\n\n## Non-Goals\n\n- none\n\nDone-When: d\nCode: x.js\n";
   w("proposal.md", good);
   w("tasks.md", "# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t — verify by tests/acceptance/cap.test.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n");
-  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\nx\nVerified by: tests/acceptance/cap.test.js\n");
+  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\n\`\`\`gherkin\nScenario: s\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n\nVerified by: tests/acceptance/cap.test.js\n");
   let v = validateChange(sb, "c3", "draft");
   assert(!v.errors.some((e) => /proposal/.test(e)), formatVerdict(v));
   w("proposal.md", "# c3\n\n## Why\n\np\n\n## What Changes\n\n- b\n\nDone-When: d\nCode: x.js\n");
@@ -325,7 +331,7 @@ check("S23", "REMOVED requires Reason; vague comparatives warn (C2)", () => {
   w("specs/cap/spec.md", "## REMOVED Requirements\n\n### Requirement: ghost\n\nbye\n");
   let v = validateChange(sb, "c4", "draft");
   assert(v.errors.some((e) => /REMOVED "ghost" carries no "Reason:"/.test(e)), formatVerdict(v));
-  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: fast-response\n\nWHEN polled THEN responds fast\nVerified by: tests/acceptance/cap.test.js\n");
+  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: fast-response\n\n\`\`\`gherkin\nScenario: fast-response\nGiven the service is up\nWhen it is polled\nThen it responds fast\n\`\`\`\n\nVerified by: tests/acceptance/cap.test.js\n");
   v = validateChange(sb, "c4", "draft");
   assert(v.warnings.some((x) => /quantify it \(C2 rule\)/.test(x)), formatVerdict(v));
 });
@@ -337,7 +343,7 @@ check("S24", "tasks require the Done When Traceability section", () => {
   const w = (p, t) => fs.writeFileSync(path.join(sb, "cdd", "changes", "c5", p), t);
   w("proposal.md", "# c5\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- s\n\n## Non-Goals\n\n- n\n\nDone-When: d\nCode: x.js\n");
   w("tasks.md", "# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t — verify by tests/acceptance/cap.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n");
-  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\nx\nVerified by: tests/acceptance/cap.test.js\n");
+  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\n\`\`\`gherkin\nScenario: s\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n\nVerified by: tests/acceptance/cap.test.js\n");
   const v = validateChange(sb, "c5", "draft");
   assert(v.errors.some((e) => /Done When Traceability/.test(e)), formatVerdict(v));
 });
@@ -352,7 +358,7 @@ check("S25", ">12 implementation subtasks fails strict unless split-considered",
   for (let i = 1; i <= 13; i++) tasks.push(`- [x] 3.${i} t — verify by tests/acceptance/cap.test.js`, "");
   tasks.push("## Done When Traceability", "", "| d | 3.1 |", "", "## 4. Close", "", "- [ ] 4.1 c", "");
   w("tasks.md", tasks.join("\n"));
-  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\nx\nVerified by: tests/acceptance/cap.test.js\n");
+  w("specs/cap/spec.md", "## ADDED Requirements\n\n### Requirement: r\n\np\n\n#### Scenario: s\n\n\`\`\`gherkin\nScenario: s\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n\nVerified by: tests/acceptance/cap.test.js\n");
   fs.mkdirSync(path.join(sb, "tests", "acceptance"), { recursive: true });
   fs.writeFileSync(path.join(sb, "tests", "acceptance", "cap.test.js"), "test();\n");
   let v = validateChange(sb, "c6", "strict");
@@ -377,17 +383,35 @@ p
 
 #### Scenario: bare
 
-The catalog contains 9 products.
+\`\`\`gherkin
+Scenario: bare
+Given a filled catalog
+When the catalog is listed
+Then the output contains 9 products
+\`\`\`
+
 Verified by: tests/acceptance/cap.test.js
 
 #### Scenario: floor
 
-The catalog contains at least 9 products.
+\`\`\`gherkin
+Scenario: floor
+Given a filled catalog
+When the catalog is listed
+Then the output contains at least 9 products
+\`\`\`
+
 Verified by: tests/acceptance/cap.test.js
 
 #### Scenario: exact
 
-The catalog contains exactly 9 products.
+\`\`\`gherkin
+Scenario: exact
+Given a filled catalog
+When the catalog is listed
+Then the output contains exactly 9 products
+\`\`\`
+
 Verified by: tests/acceptance/cap.test.js
 `);
   const v = validateChange(sb, "c7", "draft");
@@ -400,6 +424,9 @@ Verified by: tests/acceptance/cap.test.js
 
 const g = sandbox();
 initStore(g.root, REPO, { ci: "none", hooks: true });
+fs.writeFileSync(path.join(g.root, ".gitignore"), "node_modules\n");
+// door 3 re-parses fences with @cucumber/gherkin — model the installed dependency
+fs.symlinkSync(path.join(REPO, "node_modules"), path.join(g.root, "node_modules"), "dir");
 git(g.root, "init", "-q");
 git(g.root, "config", "user.email", "t@t");
 git(g.root, "config", "user.name", "t");
@@ -408,7 +435,7 @@ const w = (rel, t) => { fs.mkdirSync(path.dirname(path.join(g.root, rel)), { rec
 w("cdd/changes/add-cap/proposal.md", `# add-cap\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: src/**\n`);
 w(
   "cdd/changes/add-cap/specs/cap/spec.md",
-  `## ADDED Requirements\n\n### Requirement: R1\n\nP.\n\nCode: src/**\n\n#### Scenario: S1\n\nProse.\nVerified by: tests/acceptance/cap-s1.test.js\n`,
+  `## ADDED Requirements\n\n### Requirement: R1\n\nP.\n\nCode: src/**\n\n#### Scenario: S1\n\n\`\`\`gherkin\nScenario: S1\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n\nVerified by: tests/acceptance/cap-s1.test.js\n`,
 );
 w(
   "cdd/changes/add-cap/tasks.md",
@@ -456,7 +483,13 @@ Code: src/**
 
 #### Scenario: S1
 
-Prose.
+\`\`\`gherkin
+Scenario: S1
+Given a fixture
+When it runs
+Then it works
+\`\`\`
+
 Verified by: tests/acceptance/cap-s1.test.js
 `);
   git(g.root, "add", "-A");
@@ -505,7 +538,7 @@ if (process.env.RUN_PI_LOOP === "1") {
   check("S19", "isolated pi via CLI: tools registered and callable headless", () => {
     const out = execFileSync(
       "pi",
-      ["--print", "--extension", REPO, "-p", "Call the cdd tool with op status and reply with exactly the JSON it returned."],
+      ["--print", "--no-extensions", "--extension", REPO, "-p", "Call the cdd tool with op status and reply with exactly the JSON it returned."],
       { encoding: "utf8", cwd: g.root, timeout: 300_000 },
     );
     assert(/openChanges/.test(out) && /add-cap/.test(out), `unexpected output:\n${out.slice(0, 800)}`);
@@ -513,7 +546,7 @@ if (process.env.RUN_PI_LOOP === "1") {
   check("S19b", "isolated pi via CLI: ambient block injected into context (transcripts cannot show it)", () => {
     const out = execFileSync(
       "pi",
-      ["--print", "--extension", REPO, "-p", "Without calling any tools: quote the exact heading of the contract-driven-development block in your context, and the open changes it lists."],
+      ["--print", "--no-extensions", "--extension", REPO, "-p", "Without calling any tools: quote the exact heading of the contract-driven-development block in your context, and the open changes it lists."],
       { encoding: "utf8", cwd: g.root, timeout: 300_000 },
     );
     assert(out.includes("## cdd — contract-driven development"), `ambient block not in context:\n${out.slice(0, 800)}`);
@@ -529,7 +562,7 @@ check("S27", "commit-msg door: mechanical passes honestly, bare code fails with 
   git(s.root, "config", "user.name", "t");
   const wf = (rel, t) => fs.writeFileSync(path.join(s.root, rel), t);
   fs.mkdirSync(path.join(s.root, "cdd", "specs", "cap"), { recursive: true });
-  wf("cdd/specs/cap/spec.md", "### Requirement: R1\n\nP.\n\nCode: src/**\n\n#### Scenario: S1\n\nProse.\nVerified by: tests/acceptance/cap.test.js\n");
+  wf("cdd/specs/cap/spec.md", "### Requirement: R1\n\nP.\n\nCode: src/**\n\n#### Scenario: S1\n\n\`\`\`gherkin\nScenario: S1\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n\nVerified by: tests/acceptance/cap.test.js\n");
   fs.mkdirSync(path.join(s.root, "tests", "acceptance"), { recursive: true });
   wf("tests/acceptance/cap.test.js", "// pin\n");
   fs.mkdirSync(path.join(s.root, "src"), { recursive: true });
@@ -558,7 +591,7 @@ check("S27", "commit-msg door: mechanical passes honestly, bare code fails with 
   const mech = run(["--commit-msg", msg("chore: codestyle sweep\n\nMechanical-Change: lint --fix over src\n")]);
   assert(mech.code === 0, `mechanical commit must pass the commit-msg door:\n${mech.out}`);
   // (c) mechanical claim but stages the contract layer -> M red with the split remedy
-  wf("cdd/specs/cap/spec.md", "### Requirement: R1\n\nP. changed.\n\nCode: src/**\n\n#### Scenario: S1\n\nProse.\nVerified by: tests/acceptance/cap.test.js\n");
+  wf("cdd/specs/cap/spec.md", "### Requirement: R1\n\nP. changed.\n\nCode: src/**\n\n#### Scenario: S1\n\n\`\`\`gherkin\nScenario: S1\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n\nVerified by: tests/acceptance/cap.test.js\n");
   git(s.root, "add", "-A");
   const smuggle = run(["--commit-msg", msg("chore: sweep\n\nMechanical-Change: rename\n")]);
   assert(smuggle.code !== 0 && /\[M\]/.test(smuggle.out), `expected M smuggling rejection:\n${smuggle.out}`);

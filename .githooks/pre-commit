@@ -1,0 +1,3 @@
+#!/bin/sh
+# door 2a — the drift guard on every commit (message-independent checks)
+node cdd/scripts/spec-drift.mjs --staged

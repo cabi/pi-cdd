@@ -1,0 +1,10 @@
+stages: [verify]
+
+cdd:guard:
+  stage: verify
+  image: node:20
+  # door 3 — full scan: the same guard the pre-commit hook runs
+  script:
+    - node cdd/scripts/spec-drift.mjs
+    # the project's own tests (adjust to your runner)
+    - npm test --if-present

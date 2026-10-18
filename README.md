@@ -22,8 +22,10 @@ pi remove git:github.com/cabi/pi-cdd            # uninstall again
   --extensions` picks up a newer tag when you ask it to.
 - To try it once without touching settings: `pi -e git:github.com/cabi/pi-cdd`
   (or, from a checkout, `pi --extension /path/to/pi-cdd`).
-- Requires Node ≥ 20 (the runtime pi already uses; the extension itself is
-  zero-dependency).
+- Requires Node ≥ 20 (the runtime pi already uses). The extension carries
+  one vendored runtime dependency — the official `@cucumber/gherkin` parser
+  (ADR-0005) — so `cdd validate` parses scenario fences with the real
+  Gherkin grammar, no install step in the adopting project.
 - Then, in the adopting project, run `/cdd-init` once to scaffold the `cdd/`
   store and the git hooks.
 
@@ -44,8 +46,11 @@ door 3 · CI             guard + acceptance suite, machine verdicts only
 `commit-msg` hooks (git hands the second one the composed message — that is
 what makes the `Mechanical-Change:` lane pass the door honestly, no
 `--no-verify` ever),
-writes is zero-dependency Node + git — uninstall the extension and every
-door keeps working (ADR-0003).
+writes is plain Node + git. Doors 1–2 (staged, commit-msg) stay
+zero-dependency; door 3 (full scan) re-parses fences and needs the project's
+own `@cucumber/gherkin` devDependency, failing loudly with the exact install
+command when absent (ADR-0005). Uninstall the extension and every door keeps
+working (ADR-0003).
 
 ## Why it works without a counterparty tool
 

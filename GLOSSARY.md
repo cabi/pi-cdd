@@ -20,6 +20,10 @@ deltas → tasks) that produces one change folder under
 **delta** — the spec excerpt inside a change folder that will merge into the
 capability spec on archive. _Avoid_: diff, patch.
 
+**gherkin fence** — the fenced ```gherkin block holding a scenario body;
+the official parser is the arbiter of what is valid inside it, while the
+`Verified by:` pin stays markdown outside the fence (ADR-0005).
+
 **acceptance test** — the committed test that pins a scenario, named under
 `tests/acceptance/`; the reason a spec line can be trusted. _Avoid_: e2e
 test, integration test (those are kinds of tests, not the pin itself).
