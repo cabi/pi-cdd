@@ -84,7 +84,7 @@ All nine archived artifacts (`cdd/archive/2026-10-{initial-homepage-impressum,so
 | Acceptance tests (5 files, 23 tests) | 10 | 23/23 green; mutation-kill exact; zero flake; counts written as *exact* (`exactly 1`), not ≥ — drift-detecting, not presence-detecting |
 | M-lane (37d619b) | — | `Mechanical-Change:` trailer, behavior-preserving cleanup, guard green, no spec aged — the uncoached correct lane |
 
-**Method lesson worth engraving upstream:** scenario verb choice is the strictness dial — "contains exactly N" makes drift detectable, "contains" defines a floor. The schema's authoring rules could name this distinction explicitly (candidate for openspec-cdd rules, not pi-cdd).
+**Method lesson (engraved in the product):** scenario verb choice is the strictness dial — "contains exactly N" makes drift detectable, "contains N" is ambiguous between that and a floor. Engraved in pi-cdd itself (`lib/validate.mjs` strictness-dial warning + delta-template rule + smoke check S26), not upstream: openspec-cdd is the forge that built the method against the real CLI counterparty and will be retired; pi-cdd is the surviving product and carries the whole corpus.
 
 ## What this validates about pi-cdd
 

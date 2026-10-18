@@ -353,6 +353,40 @@ check("S25", ">12 implementation subtasks fails strict unless split-considered",
   assert(!v.errors.some((e) => /> 12/.test(e)), formatVerdict(v));
 });
 
+check("S26", "unqualified scenario counts warn; qualified ones stay silent (strictness dial)", () => {
+  const sb = sandbox().root;
+  initStore(sb, REPO, { ci: "none", hooks: false });
+  createChange(sb, "c7", ["cap"]);
+  const w = (p, t) => fs.writeFileSync(path.join(sb, "cdd", "changes", "c7", p), t);
+  w("proposal.md", "# c7\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- s\n\n## Non-Goals\n\n- n\n\nDone-When: d\nCode: x.js\n");
+  w("tasks.md", "# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## Done When Traceability\n\n| d | 1.1 |\n");
+  w("specs/cap/spec.md", `## ADDED Requirements
+
+### Requirement: r
+
+p
+
+#### Scenario: bare
+
+The catalog contains 9 products.
+Verified by: tests/acceptance/cap.test.js
+
+#### Scenario: floor
+
+The catalog contains at least 9 products.
+Verified by: tests/acceptance/cap.test.js
+
+#### Scenario: exact
+
+The catalog contains exactly 9 products.
+Verified by: tests/acceptance/cap.test.js
+`);
+  const v = validateChange(sb, "c7", "draft");
+  const bare = v.warnings.some((x) => /exactness qualifier/.test(x) && /bare/.test(x));
+  const others = v.warnings.some((x) => /exactness qualifier/.test(x) && !/bare/.test(x));
+  assert(bare && !others, JSON.stringify(v.warnings));
+});
+
 // --- guard (doors 2/3) against a real git repo --------------------------------
 
 const g = sandbox();
