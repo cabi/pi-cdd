@@ -1,0 +1,15 @@
+---
+status: accepted
+code: lib/store.ts
+---
+# The store is plain markdown, owned by the method
+
+The artifact store lives at `cdd/` in the adopting project as ordinary markdown files — changes, spec deltas, living specs, archive, rules, glossary, decisions. No database, no index format, no tool-specific metadata beyond frontmatter the method itself defines.
+
+Reasons:
+
+1. **No reverse lock-in:** uninstall the extension and every door keeps working — the guard reads files, not an API. The store outlives the tool that scaffolded it.
+2. **Reviewability (critic C1):** specs are for humans first. Plain markdown in a visible root folder is readable, greppable, diffable in every code review.
+3. **Merge semantics stay textual:** the delta → spec merge on archive is a markdown section operation, reviewable in the archive commit.
+
+Consequence: the extension's store layer is a thin `fs` module, and any future format change is an ADR plus a migration note — never a silent version bump.
