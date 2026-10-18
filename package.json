@@ -1,6 +1,6 @@
 {
   "name": "pi-cdd",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Contract-driven development as a pi extension: cdd store, artifact validator, ambient method context, zero-dependency door scripts",
   "type": "module",
