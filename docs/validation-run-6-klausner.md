@@ -58,6 +58,34 @@ Palette and typography are uniform across all four pages (`system-ui` on `rgb(25
 
 Full-page screenshots archived in `docs/run-6-shots/` (index, katalog, kontakt, impressum).
 
+## Artifact-vs-result comparison (the run-5 style audit)
+
+All nine archived artifacts (`cdd/archive/2026-10-{initial-homepage-impressum,sortiment-catalog,kontakt-inquiry-form}/` — proposal, spec delta, tasks each) audited against the verified delivered site: tests re-run **23/23 green**, spec-pinned facts re-grepped from the pages, DOM audits + vision pass as ground truth.
+
+| feature | promised (spec) | delivered | delta |
+|---|---|---|---|
+| F1 homepage+Impressum | 1 h1, Allgäu + "seit 1962", "Die Werkstatt" section, 3 categories ≥40 chars, 1 footer link; GmbH identity, 4 Platzhalter fields, back link; hygiene + 0 external refs | all exact | **0** |
+| F2 catalog | 3 h2 in order (Bausteine/Fahrzeuge/Klangspielzeug), ≥9 cards, `00,00 €` regex, wood+finish enum, age line, MwSt note, nav counts | all exact (h2 greps confirm; vision3's "Klangezeug" was model OCR noise, objective grep wins) | **0** |
+| F3 kontakt form | mailto prefix + Platzhalter note, method/enctype, field set incl. radios + consent, textarea ≥5 rows (got 6), nav counts incl. "sprechen Sie uns an" link | all exact | **0** |
+
+**Ledger: zero promised-but-missing, zero contract-relevant delivered-but-unspecified, zero wording drift.** Unspecified-but-delivered polish (palette tokens, hero-compact shell, per-row grid stretch, single-column form) stays inside "no new visual language" — legitimate designer freedom, not drift.
+
+**Falsifiability (mutation test, scratch copy):** price `12,50 €` → `12.50 EUR` + stripping `required` attributes → suite fails **exactly 2 targeted tests** (21/23). The pins bite where the spec promises, nowhere else.
+
+**Traceability of the human amendment:** the PO's DSGVO-checkbox pushback (against the agent's "keep minimal") flowed verbatim through the chain — design-gate note in `tasks.md` → proposal Solutions Considered ("amended by the product owner") → spec scenario ("ausschließlich zur Beantwortung") → acceptance test → rendered checked-less checkbox on the page. Disagreement absorbed without drift.
+
+**Ratings** (same scale as run 5):
+
+| artifact | rating | evidence |
+|---|---|---|
+| Proposals (3) | 9.5 | every Done-When objectively checkable; non-goals held across all three (no JS, no photos, no backend, no English); solutions-considered with rejections and reasons |
+| Spec deltas (3) | 9.5 | every scenario pinned + countable; one honest looseness: "material line *containing* 1 finish" is a floor — delivered lines sometimes name two finishes ("geschliffen und geölt"), which "containing" allows and the test enforces correctly |
+| Tasks (3) | 9.5 | Done-When traceability tables complete; verify-by pin per task; context step records store state; design-gate answers transcribed |
+| Acceptance tests (5 files, 23 tests) | 10 | 23/23 green; mutation-kill exact; zero flake; counts written as *exact* (`exactly 1`), not ≥ — drift-detecting, not presence-detecting |
+| M-lane (37d619b) | — | `Mechanical-Change:` trailer, behavior-preserving cleanup, guard green, no spec aged — the uncoached correct lane |
+
+**Method lesson worth engraving upstream:** scenario verb choice is the strictness dial — "contains exactly N" makes drift detectable, "contains" defines a floor. The schema's authoring rules could name this distinction explicitly (candidate for openspec-cdd rules, not pi-cdd).
+
 ## What this validates about pi-cdd
 
 1. **Ambient injection** — agents followed the full method (phases, gates, trailer lanes, archive pairing) without ever being handed the corpus; it arrived via `before_agent_start` context.
