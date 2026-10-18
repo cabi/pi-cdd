@@ -115,6 +115,8 @@ phase machine; your prompt is the requirement input.
 
 | You say / do | Phase | Gate that says "enough" |
 |---|---|---|
+| `"arch-extract"` | brownfield Phase 0 — induce the as-built architecture | agent runs `cdd/scripts/arch-extract.mjs`, fills the interpreted section, drafts ADRs in `cdd/decisions/` (four-criterion test) — machines detect, **you resolve** |
+| `"spec-extract"` | brownfield — map unowned territory | agent runs `cdd/scripts/spec-extract.mjs`: extraction candidates (tests pinned by no spec) + burn-down; specs are drafted via the change loop — approval asks *is this what we WANT?* |
 | `"New change: <what and why>"` | design gate → proposal → deltas → tasks | `cdd validate` **draft green** (placeholders replaced, every scenario ends with a `Verified by:` pin, every task carries `verify by`) |
 | `"implement <change>"` | test-first ticking | the acceptance test exists before the task ticks |
 | *(nothing — automatic at green)* | archive | strict green + guard green → `cdd archive`; or you: `/cdd-archive <name>` |
