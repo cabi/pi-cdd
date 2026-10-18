@@ -18,6 +18,7 @@ import { initStore, createChange, archiveChange } from "./lib/store.mjs";
 import { validateChange, validateStore, formatVerdict } from "./lib/validate.mjs";
 import { buildAmbientBlock } from "./lib/context.mjs";
 import { status, statusTable } from "./lib/status.mjs";
+import { helpText, renderHelp } from "./lib/help.mjs";
 
 const EXT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -71,6 +72,16 @@ export default function cddExtension(pi: ExtensionAPI) {
     description: "All changes — open with progress/verdicts/next step, plus archived — as a table",
     handler: async (_args: string, ctx) => {
       console.log(statusTable(status(ctx.cwd)));
+    },
+  });
+
+  pi.registerCommand("cdd-help", {
+    description: "How to drive the cdd loop — your prompts, the gates, the commands",
+    handler: async (_args: string, ctx) => {
+      // themed rendering with the session's own theme (accent/success/muted tokens)
+      const themed = ctx.hasUI && ctx.ui?.theme ? renderHelp(ctx.ui.theme) : helpText();
+      if (ctx.hasUI) ctx.ui.notify(themed, "info");
+      else console.log(themed);
     },
   });
 

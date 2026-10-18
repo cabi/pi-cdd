@@ -45,13 +45,33 @@ lib/context.mjs   ambient block builder
 lib/templates.mjs  rules.md, CI files, hook, artifact scaffolds
 cdd-src/          the files copied into adopting projects
 scripts/          standalone ports (spec-drift, spec-extract, arch-extract)
-tests/smoke.mjs   21 checks — `npm test` runs 19; RUN_PI_LOOP=1 adds the two
-                  isolated-pi check that spends tokens)
+tests/smoke.mjs   22 checks — `npm test` runs 20; RUN_PI_LOOP=1 adds the two
+                  isolated-pi checks that spend tokens)
 decisions/        ADRs 0001–0005
 GLOSSARY.md       canonical language
 PRODUCT.md        bird's-eye map from the factory
 ```
 
+
+## Driving the loop — your prompts are the triggers
+
+There are no phase skills to invoke. The ambient block (injected into every
+request) tells the agent which loop to run; the validator's red/green is the
+phase machine; your prompt is the requirement input.
+
+| You say / do | Phase | Gate that says "enough" |
+|---|---|---|
+| `"New change: <what and why>"` | design gate → proposal → deltas → tasks | `cdd_validate` **draft green** (placeholders replaced, every scenario ends with a `Verified by:` pin, every task carries `verify by`) |
+| `"implement <change>"` | test-first ticking | the acceptance test exists before the task ticks |
+| *(nothing — automatic at green)* | archive | strict green + guard green → `cdd_archive`; or you: `/cdd-archive <name>` |
+| `/cdd-status` | any time | — table of open + archived changes with verdicts and next step |
+| `/cdd-help` | any time | — the themed version of this section, in the TUI |
+
+"Enough" is mechanical, never a feeling: authoring is done when draft
+validation turns green; the change is done when your `Done-When:` line is
+demonstrably true and strict + guard are green. Batch-creating several
+changes and implementing them later is fine — creation scaffolds, it never
+starts work; `/cdd-status` keeps the queue visible.
 ## Validation
 
 Three fresh headless `pi` processes (no session memory between them)

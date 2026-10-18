@@ -14,6 +14,7 @@ const lib = await import(path.join(REPO, "lib", "store.mjs"));
 const val = await import(path.join(REPO, "lib", "validate.mjs"));
 const ctx = await import(path.join(REPO, "lib", "context.mjs"));
 const { status, statusTable } = await import(path.join(REPO, "lib", "status.mjs"));
+const { helpText, renderHelp } = await import(path.join(REPO, "lib", "help.mjs"));
 
 let pass = 0;
 let fail = 0;
@@ -258,6 +259,20 @@ check("S20", "strict blocks unchecked work; archive auto-ticks the Close section
   assert(/Change\s+│/.test(tbl) && /archived \d{8}/.test(tbl) && /frozen history/.test(tbl) && /fresh-change/.test(tbl), tbl);
 });
 sb4.dispose();
+
+// --- S21: /cdd-help content (README documents the same workflow) ----------------
+check("S21", "/cdd-help renders the driving workflow (prompts, gates, commands)", () => {
+  // helpText/renderHelp imported at module top (S21 uses them directly)
+  const txt = helpText();
+  for (const needle of ['"New change: <what and why>"', '"implement <change>"', "Done-When", "draft green", "/cdd-status", "cdd_new_change", "Mechanical-Change", "no spec markers"]) {
+    assert(txt.includes(needle), `help text missing: ${needle}\n${txt}`);
+  }
+  assert(!txt.includes("\x1b["), "helpText must stay plain (no ANSI)");
+  // themed rendering: passthrough theme must reproduce the same visible content
+  const fake = { style: (t) => t, fg: (_c, t) => t, bg: (_c, t) => t };
+  const themed = renderHelp(fake);
+  for (const needle of ['"New change: <what and why>"', "Done-When", "/cdd-help"]) assert(themed.includes(needle), `themed missing: ${needle}`);
+});
 // --- guard (doors 2/3) against a real git repo --------------------------------
 
 const g = sandbox();
