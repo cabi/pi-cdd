@@ -265,6 +265,15 @@ if (preCommit && isRepo) {
 // ==============================================================================
 // L2 — staleness: code matching Code: globs must not out-commit its spec
 // ==============================================================================
+// ==============================================================================
+// H — hook health: this script knows --commit-msg. If the repo still runs the
+// old single-hook scaffold, upgrading the script alone would silently drop
+// the L2 travel check from the commit door (and without CI, from anywhere).
+// ==============================================================================
+if (isRepo && fs.existsSync(path.join(root, '.githooks', 'pre-commit')) && !fs.existsSync(path.join(root, '.githooks', 'commit-msg'))) {
+  issues.push(`[H] .githooks has pre-commit but no commit-msg — the guard is newer than its hooks; re-run cdd_init (or add .githooks/commit-msg) so code-and-spec travel and the mechanical lane stay enforced`);
+}
+
 const tracked = isRepo ? (git(['ls-files']) ?? '').split('\n').filter(Boolean) : [];
 
 if (isRepo) {

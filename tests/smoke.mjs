@@ -563,6 +563,33 @@ check("S27", "commit-msg door: mechanical passes honestly, bare code fails with 
   git(s.root, "commit", "-qm", "chore: codestyle sweep\n\nMechanical-Change: lint --fix over src");
   s.dispose();
 });
+check("S28", "hook health: half-upgraded scaffold goes red, hooks:false stays silent", () => {
+  const s = sandbox();
+  initStore(s.root, REPO, { ci: "none", hooks: true });
+  git(s.root, "init", "-q");
+  git(s.root, "config", "user.email", "t@t");
+  git(s.root, "config", "user.name", "t");
+  const run = () => {
+    try {
+      return { code: 0, out: execFileSync("node", [path.join(s.root, "cdd", "scripts", "spec-drift.mjs")], { encoding: "utf8", cwd: s.root }) };
+    } catch (e) {
+      return { code: e.status ?? 1, out: (e.stdout ?? "") + (e.stderr ?? "") };
+    }
+  };
+  // complete scaffold: silent
+  let r = run();
+  assert(r.code === 0, `complete scaffold must be silent:\n${r.out}`);
+  // half-upgrade simulation: new script, old hook set
+  fs.rmSync(path.join(s.root, ".githooks", "commit-msg"));
+  r = run();
+  assert(r.code !== 0 && /\[H\]/.test(r.out), `expected [H] hook-health red:\n${r.out}`);
+  // deliberate no-hooks project: silent
+  fs.rmSync(path.join(s.root, ".githooks", "pre-commit"));
+  r = run();
+  assert(r.code === 0 && !/\[H\]/.test(r.out), `hooks:false project must not warn:\n${r.out}`);
+  s.dispose();
+});
+
 // --- report ---------------------------------------------------------------------
 
 sb.dispose();
