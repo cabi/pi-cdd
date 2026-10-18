@@ -93,3 +93,11 @@ agent mistake on the way (a `Mechanical-Change:` trailer on an archive
 commit touching `cdd/specs/`, rejected by the M check, amended away).
 Final state verified from outside: guard clean, living spec merged, pin
 green. See `PRODUCT.md` → validation criteria.
+
+**Run 6 — human PO, three cold agents:** a product owner drove three
+one-sentence feature prompts through intercom gate answers; cold agents
+built homepage, catalog, and contact form for a real site, uncoached —
+including choosing the `Mechanical-Change:` lane for a stray-tag fix and
+absorbing two mid-flight PO amendments (card material/age lines, DSGVO
+checkbox). 23/23 acceptance green, guard clean after every feature, three
+frozen archives. Full report: `docs/validation-run-6-klausner.md`.
