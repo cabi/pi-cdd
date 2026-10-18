@@ -45,7 +45,7 @@ lib/context.mjs   ambient block builder
 lib/templates.mjs  rules.md, CI files, hook, artifact scaffolds
 cdd-src/          the files copied into adopting projects
 scripts/          standalone ports (spec-drift, spec-extract, arch-extract)
-tests/smoke.mjs   19 checks — run with `npm test` (RUN_PI_LOOP=1 adds the
+tests/smoke.mjs   21 checks — `npm test` runs 19; RUN_PI_LOOP=1 adds the two
                   isolated-pi check that spends tokens)
 decisions/        ADRs 0001–0005
 GLOSSARY.md       canonical language

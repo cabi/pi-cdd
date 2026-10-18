@@ -122,7 +122,7 @@ fill("cdd/changes/add-greeting/tasks.md", `# Tasks — add-greeting
 
 ## 3. Implementation
 
-- [ ] 3.1 write cli.js greeting — verify by tests/acceptance/greeting-prints.test.js
+- [x] 3.1 write cli.js greeting — verify by tests/acceptance/greeting-prints.test.js
 
 ## 4. Close
 
@@ -197,7 +197,7 @@ fs.writeFileSync(
 );
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "louder-greeting", "tasks.md"),
-  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 louder — verify by tests/acceptance/greeting-prints.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
+  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 louder — verify by tests/acceptance/greeting-prints.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
 );
 check("S11", "MODIFIED replaces the living requirement", () => {
   const v = validateChange(sb.root, "louder-greeting", "strict");
@@ -218,7 +218,7 @@ fs.writeFileSync(
 );
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "drop-greeting", "tasks.md"),
-  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 drop — verify by tests/acceptance/greeting-prints.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
+  `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 drop — verify by tests/acceptance/greeting-prints.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`,
 );
 check("S12", "REMOVED deletes the living requirement", () => {
   const v = validateChange(sb.root, "drop-greeting", "strict");
@@ -229,6 +229,27 @@ check("S12", "REMOVED deletes the living requirement", () => {
   assert(!/### Requirement:/.test(living), "requirement not removed");
 });
 
+
+const sb4 = sandbox();
+initStore(sb4.root, REPO, { ci: "none", hooks: false });
+createChange(sb4.root, "close-tick", ["x"]);
+const f4 = (rel, t) => fs.writeFileSync(path.join(sb4.root, "cdd", "changes", "close-tick", rel), t);
+f4("proposal.md", `# close-tick\n\n## Why\n\np\n\n## What Changes\n\n- b\n\nDone-When: d\nCode: x.js\n`);
+f4("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\nP.\n\n#### Scenario: S\n\nProse.\nVerified by: tests/acceptance/close-tick.test.js\n`);
+fs.writeFileSync(path.join(sb4.root, "tests", "acceptance", "close-tick.test.js"), "// pin\n");
+check("S20", "strict blocks unchecked work; archive auto-ticks the Close section", () => {
+  f4("tasks.md", `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 impl — verify by tests/acceptance/close-tick.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
+  const red = validateChange(sb4.root, "close-tick", "strict");
+  assert(!red.ok && red.errors.some((e) => /unchecked task/.test(e)), formatVerdict(red));
+  f4("tasks.md", `# T\n\n## 1. Context\n\n- [x] 1.1 c\n\n## 2. Design\n\n- [x] 2.1 d\n\n## 3. Implementation\n\n- [x] 3.1 impl — verify by tests/acceptance/close-tick.test.js\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
+  const green = validateChange(sb4.root, "close-tick", "strict");
+  assert(green.ok, formatVerdict(green));
+  const r = archiveChange(sb4.root, "close-tick");
+  assert(r.ok && r.autoTicked >= 1, JSON.stringify(r));
+  const archived = fs.readFileSync(path.join(sb4.root, r.archivedTo, "tasks.md"), "utf8");
+  assert(!/- \[ \]/.test(archived), "archived tasks.md still has unchecked boxes");
+});
+sb4.dispose();
 // --- guard (doors 2/3) against a real git repo --------------------------------
 
 const g = sandbox();
@@ -342,6 +363,15 @@ if (process.env.RUN_PI_LOOP === "1") {
       { encoding: "utf8", cwd: g.root, timeout: 300_000 },
     );
     assert(/openChanges/.test(out) && /add-cap/.test(out), `unexpected output:\n${out.slice(0, 800)}`);
+  });
+  check("S19b", "isolated pi via CLI: ambient block injected into context (transcripts cannot show it)", () => {
+    const out = execFileSync(
+      "pi",
+      ["--print", "--extension", REPO, "-p", "Without calling any tools: quote the exact heading of the contract-driven-development block in your context, and the open changes it lists."],
+      { encoding: "utf8", cwd: g.root, timeout: 300_000 },
+    );
+    assert(out.includes("## cdd — contract-driven development"), `ambient block not in context:\n${out.slice(0, 800)}`);
+    assert(/add-cap/.test(out), `open change not listed in ambient block:\n${out.slice(0, 800)}`);
   });
 }
 
