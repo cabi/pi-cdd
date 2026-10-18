@@ -638,6 +638,14 @@ if (CddStatusView) {
     view.handleInput("\t"); // back to open tab
     view.handleInput("\r");
     assert(plain(view).some((l) => /Updated ↑/.test(l)), "enter flips sort direction");
+    view.handleInput("\x1b[D"); // ← switches tab
+    assert(plain(view).some((l) => /Archived \(0\)/.test(l)), "left arrow switches to archived tab");
+    view.handleInput("\x1b[C"); // → switches back
+    assert(plain(view).some((l) => /Updated ↑/.test(l)), "right arrow switches to open tab");
+    view.handleInput("1"); // sort by first column (Change)
+    assert(plain(view).some((l) => /Change ↑/.test(l)), "digit 1 sorts by Change column");
+    view.handleInput("1"); // same digit again flips direction
+    assert(plain(view).some((l) => /Change ↓/.test(l)), "pressing the digit again flips direction");
     view.handleInput("\x1b");
     assert(events.includes("closed"), "esc closes the window");
     const max = Math.max(...plain(view, 40).map((l) => l.length), 0);

@@ -114,7 +114,6 @@ export class CddStatusView {
   private readonly tables: [Table, Table];
   private tab = 0;
   private rowCursor = 0;
-  private colCursor = 0;
   private sortCol: [number, number];
   private sortDir: [1 | -1, 1 | -1];
   private cachedWidth?: number;
@@ -139,30 +138,38 @@ export class CddStatusView {
     }
     const t = this.tables[this.tab];
     if (matchesKey(data, "tab") || matchesKey(data, "shift+tab")) {
-      this.tab = 1 - this.tab;
-      this.rowCursor = 0;
-      this.colCursor = this.sortCol[this.tab];
+      this.switchTab();
     } else if (matchesKey(data, "up") || data === "k" || data === "K") {
       this.rowCursor = Math.max(0, this.rowCursor - 1);
     } else if (matchesKey(data, "down") || data === "j" || data === "J") {
       this.rowCursor = Math.min(Math.max(0, t.rows.length - 1), this.rowCursor + 1);
     } else if (matchesKey(data, "left") || data === "h" || data === "H") {
-      this.colCursor = Math.max(0, this.colCursor - 1);
+      this.switchTab(); // ← prev tab
     } else if (matchesKey(data, "right") || data === "l" || data === "L") {
-      this.colCursor = Math.min(t.columns.length - 1, this.colCursor + 1);
-    } else if (data === "s" || data === "S" || matchesKey(data, "enter") || matchesKey(data, "return")) {
-      if (this.sortCol[this.tab] === this.colCursor) {
+      this.switchTab(); // → next tab
+    } else if (data >= "1" && data <= "9") {
+      const col = Number(data) - 1;
+      if (col >= t.columns.length) return; // no such column on this tab
+      if (this.sortCol[this.tab] === col) {
         this.sortDir[this.tab] = this.sortDir[this.tab] === 1 ? -1 : 1;
       } else {
-        this.sortCol[this.tab] = this.colCursor;
-        this.sortDir[this.tab] = this.tables[this.tab].defaultDir[this.colCursor];
+        this.sortCol[this.tab] = col;
+        this.sortDir[this.tab] = t.defaultDir[col];
       }
+      this.rowCursor = 0;
+    } else if (data === "s" || data === "S" || matchesKey(data, "enter") || matchesKey(data, "return")) {
+      this.sortDir[this.tab] = this.sortDir[this.tab] === 1 ? -1 : 1; // flip current column
       this.rowCursor = 0;
     } else {
       return; // unhandled key — no state change, no re-render
     }
     this.invalidate();
     this.requestRender();
+  }
+
+  private switchTab(): void {
+    this.tab = 1 - this.tab;
+    this.rowCursor = 0;
   }
 
   invalidate(): void {
@@ -231,7 +238,7 @@ export class CddStatusView {
       // cursor (what enter/s will sort) is underlined
       lines.push(
         truncateToWidth(
-          "  " + header.map((h, i) => th.style(pad(h, widths[i]), { fg: "accent", bold: true, underline: i === this.colCursor })).join("  "),
+          "  " + header.map((h, i) => th.style(pad(h, widths[i]), { fg: "accent", bold: true, underline: i === this.sortCol[this.tab] })).join("  "),
           width,
         ),
       );
@@ -268,7 +275,7 @@ export class CddStatusView {
     lines.push("");
     lines.push(
       truncateToWidth(
-        `  ${th.fg("dim", "tab switch · ↑↓ row · ←→ column · enter/s sort · in-process highlighted · esc close")}`,
+        `  ${th.fg("dim", "tab/←→ switch · ↑↓ row · 1-9 sort column · enter/s flip direction · in-process highlighted · esc close")}`,
         width,
       ),
     );
