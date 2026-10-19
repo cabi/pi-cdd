@@ -27,5 +27,5 @@
 | validate/door-3 accept nothing else | 3.1, 3.2, 3.4 |
 
 ## 4. Close
-- [ ] 4.1 cdd validate strict green, guard green
-- [ ] 4.2 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.1 cdd validate strict green, guard green
+- [x] 4.2 Archive — pair-commit: feature commit, then archive commit
