@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // gherkin-style-guidance — declarative style is door-1 law in the corpus, and
-// the validator carries exactly 0 style heuristics. Red until templates.mjs,
-// instructions.mjs, and rules.md carry the clauses.
+// the validator carries exactly 0 style heuristics (ADR-0006). Red until
+// templates.mjs, instructions.mjs, and rules.md carry the clauses.
 
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -13,6 +13,8 @@ const lib = await import(path.join(REPO, "lib", "store.mjs"));
 const val = await import(path.join(REPO, "lib", "validate.mjs"));
 const tpl = await import(path.join(REPO, "lib", "templates.mjs"));
 const insMod = await import(path.join(REPO, "lib", "instructions.mjs"));
+const ghPath = path.join(REPO, "lib", "gherkin.mjs");
+const gh = fs.existsSync(ghPath) ? await import(ghPath) : null;
 
 let pass = 0;
 let fail = 0;
@@ -34,22 +36,24 @@ const assert = (cond, msg) => {
 
 // --- 1. the three corpus surfaces teach the format ---------------------------
 
-check("T1", "delta template scaffolds a fenced scenario with the pin outside", () => {
+check("T1", "delta template scaffolds a Feature fence with the pin inside as a comment", () => {
   const t = tpl.deltaTemplate("style");
   assert(t.includes("```gherkin"), "template lacks a ```gherkin fence");
+  assert(/^Feature: /m.test(t), "template fence lacks a Feature: line");
   const fenceStart = t.indexOf("```gherkin");
   const fenceEnd = t.indexOf("```", fenceStart + 3);
-  const pinLine = t.split("\n").find((l) => /^Verified by:/.test(l.trim()));
-  assert(pinLine, "template lacks a Verified by pin");
-  const pinIdx = t.indexOf(pinLine);
-  assert(pinIdx > fenceEnd, "pin sits inside the fence");
+  const pinIdx = t.indexOf("# Verified by:");
+  assert(pinIdx > fenceStart && pinIdx < fenceEnd, "pin comment is not inside the fence");
+  assert(!/^#### Scenario:/m.test(t), "template still scaffolds #### Scenario headings");
+  assert(!/^Verified by:/m.test(t), "template still carries a markdown pin outside the fence");
 });
 
-check("T2", "DELTA_INSTRUCTION names fence, pin placement, declarative clause", () => {
+check("T2", "DELTA_INSTRUCTION names the fence, pin placement, declarative clause", () => {
   const src = fs.readFileSync(path.join(REPO, "lib", "instructions.mjs"), "utf8");
   const text = src + "\n" + insMod.DELTA_INSTRUCTION;
   assert(text.includes("```gherkin"), "no fenced-gherkin mention");
-  assert(/outside the fence/.test(text), "no pin-outside-fence clause");
+  assert(text.includes("# Verified by:"), "no pin-inside-fence clause");
+  assert(/no other comments/.test(text), "no comment-law clause");
   assert(/declarative/i.test(text), "no declarative-style clause");
   assert(/keystrokes|widgets|selectors|interaction mechanics/.test(text), "no interaction-mechanics ban");
 });
@@ -57,18 +61,26 @@ check("T2", "DELTA_INSTRUCTION names fence, pin placement, declarative clause", 
 check("T3", "RULES_MD rule 4 carries the fence law and declarative clause", () => {
   const rules = tpl.RULES_MD ?? fs.readFileSync(path.join(REPO, "cdd", "rules.md"), "utf8");
   assert(/```gherkin/.test(rules), "rules.md lacks fenced-gherkin law");
-  assert(/outside the fence/.test(rules), "rules.md lacks pin placement law");
+  assert(/# Verified by:/.test(rules), "rules.md lacks pin-inside-fence law");
   assert(/declarative/i.test(rules), "rules.md lacks declarative clause");
 });
 
-// --- 2. version 0.3.0 ---------------------------------------------------------
+// --- 2. version 0.4.0 ---------------------------------------------------------
 
-check("T4", "package.json is at 0.3.0", () => {
+check("T4", "package.json is at 0.4.0", () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(REPO, "package.json"), "utf8"));
-  assert(pkg.version === "0.3.0", `expected 0.3.0, got ${pkg.version}`);
+  assert(pkg.version === "0.4.0", `expected 0.4.0, got ${pkg.version}`);
 });
 
 // --- 3. style is never machine-checked ----------------------------------------
+
+const IMPERATIVE_BODY = `Feature: Style requirement
+
+Scenario: Imperative scenario
+  Given the settings page is open
+  When the user clicks the Save button and types esc into the search field
+  Then the toast widget shows 1 confirmation
+  # Verified by: tests/acceptance/gherkin-style-guidance.test.js`;
 
 check("T5", "imperative step prose stays green — style is door-1 judgment", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "cdd-sty-"));
@@ -85,16 +97,11 @@ check("T5", "imperative step prose stays green — style is door-1 judgment", ()
       "",
       "### Requirement: Style requirement",
       "",
-      "#### Scenario: Imperative scenario",
+      "Prose stays outside the fence.",
       "",
       "```gherkin",
-      "Scenario: Imperative scenario",
-      "Given the settings page is open",
-      "When the user clicks the Save button and types esc into the search field",
-      "Then the toast widget shows 1 confirmation",
+      IMPERATIVE_BODY,
       "```",
-      "",
-      "Verified by: tests/acceptance/gherkin-style-guidance.test.js",
       "",
     ].join("\n")
   );
@@ -104,10 +111,12 @@ check("T5", "imperative step prose stays green — style is door-1 judgment", ()
 });
 
 check("T6", "lib/gherkin.mjs exports no style-checking surface", () => {
-  const ghPath = path.join(REPO, "lib", "gherkin.mjs");
   assert(fs.existsSync(ghPath), "lib/gherkin.mjs missing");
+  assert(gh && JSON.stringify(Object.keys(gh).sort()) === JSON.stringify(["checkFence", "extractFences"]), `unexpected export surface: ${gh ? Object.keys(gh).sort() : "module missing"}`);
   const src = fs.readFileSync(ghPath, "utf8");
-  assert(!/(click|keystroke|typing|selector|imperative).{0,40}lexicon|STYLE/i.test(src), "style heuristics found in lib/gherkin.mjs");
+  assert(!/STYLE_LEXICON|checkStyle|styleCheck|IMPERATIVE_|imperative\(/i.test(src), "style machinery found in lib/gherkin.mjs");
+  const { errors } = gh.checkFence(IMPERATIVE_BODY);
+  assert(errors.length === 0, `checkFence flagged prose style:\n${errors.map((e) => e.message).join("\n")}`);
 });
 
 console.log(fail === 0 ? `\nPASS ${pass}` : `\nFAIL ${pass} passed, ${fail} failed`);

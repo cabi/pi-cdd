@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded (format rulings) by 0006-feature-block-consolidation.md — parser-arbiter, subset, and door-1 phrasing verdicts stand
 code: lib/gherkin.mjs, lib/validate.mjs, lib/templates.mjs, lib/instructions.mjs, scripts/spec-drift.mjs
 ---
 # Gherkin is the scenario language; the official parser is the arbiter

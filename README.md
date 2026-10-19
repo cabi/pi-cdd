@@ -94,7 +94,7 @@ scripts/          standalone ports (spec-drift, spec-extract, arch-extract)
 tests/            smoke.mjs (libs, ambient, guard) + tools.mjs (merged-tool
                   suite: every op, fill-ins, help, static list); npm test runs
                   both; RUN_PI_LOOP=1 adds the isolated-pi checks (spends tokens)
-decisions/        ADRs 0001–0005
+decisions/        ADRs 0001–0006
 GLOSSARY.md       canonical language
 PRODUCT.md        bird's-eye map from the factory
 ```
@@ -122,7 +122,7 @@ phase machine; your prompt is the requirement input.
 |---|---|---|
 | `"arch-extract"` | brownfield Phase 0 — induce the as-built architecture | agent runs `cdd/scripts/arch-extract.mjs`, fills the interpreted section, drafts ADRs in `cdd/decisions/` (four-criterion test) — machines detect, **you resolve** |
 | `"spec-extract"` | brownfield — map unowned territory | agent runs `cdd/scripts/spec-extract.mjs`: extraction candidates (tests pinned by no spec) + burn-down; specs are drafted via the change loop — approval asks *is this what we WANT?* |
-| `"New change: <what and why>"` | design gate → proposal → deltas → tasks | `cdd validate` **draft green** (placeholders replaced, every scenario ends with a `Verified by:` pin, every task carries `verify by`) |
+| `"New change: <what and why>"` | design gate → proposal → deltas → tasks | `cdd validate` **draft green** (placeholders replaced, every requirement carries one fenced Gherkin Feature document whose scenarios end with `# Verified by:` pin comments (ADR-0006), every task carries `verify by`) |
 | `"implement <change>"` | test-first ticking | the acceptance test exists before the task ticks |
 | *(nothing — automatic at green)* | archive | strict green + guard green → `cdd archive`; or you: `/cdd-archive <name>` |
 | `/cdd-status` | any time | — TUI window: **Open** / **Archived** tabs as sortable tables (newest first, in-process highlighted; `tab`/`←→` switch tabs, `↑↓` rows, `1-9` sort column, `enter` flips direction, `esc` closes); plain table outside the TUI |

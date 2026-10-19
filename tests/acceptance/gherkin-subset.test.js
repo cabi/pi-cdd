@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// gherkin-subset — the cdd dialect is a closed subset of Gherkin. Exactly one
-// When, at least 1 Then, English keywords, no Background/Rule/tags, fence name
-// equals heading, names unique per requirement. Red until the ruleset layer
-// lands in lib/gherkin.mjs + lib/validate.mjs.
+// gherkin-subset — the cdd Gherkin subset laws (ADR-0006): English
+// Given/When/Then/And/But only, exactly one When, at least one Then,
+// no Background/Rule/tags/outlines/tables/doc strings, prose stays outside
+// the fence, and the only comment is the "# Verified by:" pin.
+// Pins: gherkin-subset scenarios in the gherkin-feature-blocks delta.
 
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -31,157 +32,161 @@ const assert = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
 
-const sandboxes = [];
 function freshStore() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "cdd-sub-"));
-  sandboxes.push(root);
   lib.initStore(root, REPO, {});
+  lib.createChange(root, "t-sub", ["sub"]);
+  fs.writeFileSync(
+    path.join(root, "cdd", "changes", "t-sub", "proposal.md"),
+    "## Why\n\nFixture.\n\n## What Changes\n\nFixture.\n\n## Solutions Considered\n\nFixture.\n\n## Non-Goals\n\nFixture.\n\nDone-When: fixture passes\nCode: lib/none.mjs\n"
+  );
+  fs.writeFileSync(
+    path.join(root, "cdd", "changes", "t-sub", "tasks.md"),
+    "## 1. Context\n\n- [x] 1.1 Fixture\n\n## 2. Design\n\n- [x] 2.1 Fixture\n\n## 3. Implementation\n\n- [x] 3.1 Fixture — verify by tests/acceptance/fixture.test.js\n\n## 4. Close\n\n## Done When Traceability\n\n| criterion | task ids |\n|---|---|\n| fixture | 3.1 |\n"
+  );
   return root;
 }
 
-function fillScaffolding(root) {
-  const dir = path.join(root, "cdd", "changes", "t-sub");
-  fs.writeFileSync(path.join(dir, "proposal.md"), "## Why\n\nFixture.\n\n## What Changes\n\nFixture.\n\n## Solutions Considered\n\nFixture.\n\n## Non-Goals\n\nFixture.\n\nDone-When: fixture passes\nCode: lib/none.mjs\n");
-  fs.writeFileSync(path.join(dir, "tasks.md"), "## 1. Context\n\n- [x] 1.1 Fixture\n\n## 2. Design\n\n- [x] 2.1 Fixture\n\n## 3. Implementation\n\n- [x] 3.1 Fixture — verify by tests/acceptance/fixture.test.js\n\n## 4. Close\n\n## Done When Traceability\n\n| criterion | task ids |\n|---|---|\n| fixture | 3.1 |\n");
-}
+const PIN = "tests/acceptance/gherkin-subset.test.js";
+const REQ = "Subset requirement";
 
-// One requirement, one scenario with the given fenced body (heading "Sub case").
-function oneScenario(body, { heading = "Sub case" } = {}) {
+// One-requirement delta whose fence body is `featureBody`.
+function deltaWith(featureBody) {
   const root = freshStore();
-  lib.createChange(root, "t-sub", ["sub"]);
-  fillScaffolding(root);
   const dir = path.join(root, "cdd", "changes", "t-sub", "specs", "sub");
-  const text = [
-    "## ADDED Requirements",
-    "",
-    "### Requirement: Subset requirement",
-    "",
-    `#### Scenario: ${heading}`,
-    "",
-    "```gherkin",
-    body.trimEnd(),
-    "```",
-    "",
-    "Verified by: tests/acceptance/gherkin-subset.test.js",
-    "",
-  ].join("\n");
-  fs.writeFileSync(path.join(dir, "spec.md"), text);
-  return { root, text };
-}
-const validate = (root) => val.validateChange(root, "t-sub", "draft");
-
-// --- legal core: the full allowed grammar passes -----------------------------
-
-check("U1", "outline + Examples + data table + And/But pass untouched", () => {
-  const { root } = oneScenario(`Scenario Outline: Sub case
-Given a delta with a scenario using <construct>
-When cdd validate runs in draft mode
-Then the verdict is green
-And exactly 0 errors are raised
-But no warnings appear
-
-Examples:
-  | construct |
-  | table     |`);
-  const v = validate(root);
-  assert(v.ok, `expected ok, got:\n${v.errors.join("\n")}`);
-});
-
-// --- rejected constructs ------------------------------------------------------
-
-const rejects = [
-  ["Background", `Scenario: Sub case
-Given x
-When y
-Then z
-
-Background:
-Given a shared given`],
-  ["Rule", `Scenario: Sub case
-Given x
-When y
-Then z
-
-Rule: no rules here`],
-  ["@", `@wip
-Scenario: Sub case
-Given x
-When y
-Then z`],
-  ["Gegeben", `Scenario: Sub case
-Gegeben ein Delta
-
-Wenn validiert wird
-Dann rot`],
-];
-for (const [construct, body] of rejects) {
-  check(`U2:${construct}`, `"${construct}" fails naming the construct`, () => {
-    const { root } = oneScenario(body);
-    const v = validate(root);
-    assert(!v.ok, "expected red, got ok");
-    const hit = v.errors.find((e) => e.toLowerCase().includes(construct.toLowerCase()));
-    assert(hit, `no error names "${construct}":\n${v.errors.join("\n")}`);
-  });
-}
-
-// --- step-count rules ---------------------------------------------------------
-
-check("U3", "second When fails with exactly-one-When error", () => {
-  const { root } = oneScenario(`Scenario: Sub case
-Given a delta
-When cdd validate runs
-When it validates again
-Then the verdict is red`);
-  const v = validate(root);
-  assert(!v.ok, "expected red, got ok");
-  assert(v.errors.some((e) => /exactly one When/i.test(e)), `no exactly-one-When error:\n${v.errors.join("\n")}`);
-});
-
-check("U4", "missing Then fails with at-least-one-Then error", () => {
-  const { root } = oneScenario(`Scenario: Sub case
-Given a delta
-When cdd validate runs`);
-  const v = validate(root);
-  assert(!v.ok, "expected red, got ok");
-  assert(v.errors.some((e) => /at least 1 Then/i.test(e)), `no at-least-one-Then error:\n${v.errors.join("\n")}`);
-});
-
-check("U5", "fence name differing from heading fails naming both", () => {
-  const { root } = oneScenario(`Scenario: A different name
-Given a delta
-When cdd validate runs
-Then the verdict is red`);
-  const v = validate(root);
-  assert(!v.ok, "expected red, got ok");
-  const hit = v.errors.find((e) => e.includes("Sub case") && /A different name|fence/i.test(e));
-  assert(hit, `no heading-vs-fence error naming both:\n${v.errors.join("\n")}`);
-});
-
-check("U6", "duplicate scenario names within one requirement fail", () => {
-  const root = freshStore();
-  lib.createChange(root, "t-sub", ["sub"]);
-  fillScaffolding(root);
-  const dir = path.join(root, "cdd", "changes", "t-sub", "specs", "sub");
-  const scenario = (n) => [
-    `#### Scenario: ${n}`,
-    "",
-    "```gherkin",
-    `Scenario: ${n}`,
-    "Given a delta",
-    "When cdd validate runs",
-    "Then the verdict is red",
-    "```",
-    "",
-    "Verified by: tests/acceptance/gherkin-subset.test.js",
-    "",
-  ].join("\n");
   fs.writeFileSync(
     path.join(dir, "spec.md"),
-    ["## ADDED Requirements", "", "### Requirement: Subset requirement", "", scenario("Twice"), scenario("Twice")].join("\n")
+    `## ADDED Requirements\n\n### Requirement: ${REQ}\n\nRequirement prose stays outside the fence.\n\n\`\`\`gherkin\n${featureBody.trimEnd()}\n\`\`\`\n`
   );
-  const v = validate(root);
-  assert(!v.ok, "expected red, got ok");
-  assert(v.errors.some((e) => /unique|duplicate/i.test(e)), `no uniqueness error:\n${v.errors.join("\n")}`);
+  return val.validateChange(root, "t-sub", "draft");
+}
+
+const scenario = (name, { given = "a change delta", when = "cdd validate runs", then = "the verdict is red", extra = "", pin = PIN } = {}) =>
+  [`Scenario: ${name}`, `  Given ${given}`, `  When ${when}`, `  Then ${then}`, ...(extra ? [extra] : []), ...(pin ? [`  # Verified by: ${pin}`] : [])].join("\n");
+
+const baseline = [`Feature: ${REQ}`, "", scenario("First case"), "", scenario("Second case")].join("\n");
+
+// --- baseline -----------------------------------------------------------------
+
+check("S1", "a two-scenario Feature with pins on both passes", () => {
+  const v = deltaWith(baseline);
+  assert(v.ok, `expected ok:\n${v.errors.join("\n")}`);
+});
+
+// --- step-shape laws -----------------------------------------------------------
+
+check("S2", "two When steps fail", () => {
+  const v = deltaWith([`Feature: ${REQ}`, "", scenario("Double when", { extra: "  When cdd validate runs twice" })].join("\n"));
+  assert(!v.ok && v.errors.some((e) => e.includes("exactly one When step — found 2")), `missing When error:\n${v.errors.join("\n")}`);
+});
+
+check("S3", "zero Then steps fails", () => {
+  const body = [`Feature: ${REQ}`, "", "Scenario: No then", "  Given a change delta", "  When cdd validate runs", `  # Verified by: ${PIN}`].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("at least 1 Then step")), `missing Then error:\n${v.errors.join("\n")}`);
+});
+
+check("S4", "a scenario starting with And fails", () => {
+  const body = [`Feature: ${REQ}`, "", "Scenario: Starts with And", "  And a prior step that does not exist", "  When cdd validate runs", "  Then the verdict is red", `  # Verified by: ${PIN}`].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("cannot start with And")), `missing start error:\n${v.errors.join("\n")}`);
+});
+
+check("S5", "a * step is outside the subset", () => {
+  const v = deltaWith([`Feature: ${REQ}`, "", scenario("Star step", { given: "a change delta", extra: "  * a step in asterisk form" })].join("\n"));
+  assert(!v.ok && v.errors.some((e) => e.includes(`keyword "*" is outside the cdd subset`)), `missing keyword error:\n${v.errors.join("\n")}`);
+});
+
+// --- document-shape laws ---------------------------------------------------------
+
+check("S6", "Background is outside the subset", () => {
+  const body = [`Feature: ${REQ}`, "", "Background:", "  Given shared context", "", scenario("With background")].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("Background is outside the cdd subset")), `missing Background error:\n${v.errors.join("\n")}`);
+});
+
+check("S7", "Rule blocks are outside the subset", () => {
+  const body = [`Feature: ${REQ}`, "", "Rule: Grouping", "", "  Scenario: Inside a rule", "    Given a change delta", "    When cdd validate runs", "    Then the verdict is red", `    # Verified by: ${PIN}`].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("Rule is outside the cdd subset")), `missing Rule error:\n${v.errors.join("\n")}`);
+});
+
+check("S8", "@tags are outside the subset", () => {
+  const body = [`Feature: ${REQ}`, "", "@smoke", scenario("Tagged")].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes(`tag "@smoke" is outside the cdd subset`)), `missing tag error:\n${v.errors.join("\n")}`);
+});
+
+check("S9", "Scenario Outline with Examples is outside the subset", () => {
+  const body = [
+    `Feature: ${REQ}`,
+    "",
+    "Scenario Outline: Outlined",
+    "  Given a <thing> delta",
+    "  When cdd validate runs",
+    "  Then the verdict is red",
+    `  # Verified by: ${PIN}`,
+    "Examples:",
+    "  | thing |",
+    "  | small |",
+  ].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("Scenario Outline/Examples are outside the cdd subset")), `missing Outline error:\n${v.errors.join("\n")}`);
+});
+
+check("S10", "data tables are outside the subset", () => {
+  const body = [`Feature: ${REQ}`, "", "Scenario: Tabular", "  Given a change delta:", "    | col |", "    | 1 |", "  When cdd validate runs", "  Then the verdict is red", `  # Verified by: ${PIN}`].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("doc strings and data tables are outside the cdd subset")), `missing table error:\n${v.errors.join("\n")}`);
+});
+
+// --- prose placement -------------------------------------------------------------
+
+check("S11", "prose between Feature and the first Scenario fails", () => {
+  const body = [`Feature: ${REQ}`, "This prose explains the feature.", "", scenario("First case")].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("prose between Feature and the first Scenario")), `missing prose error:\n${v.errors.join("\n")}`);
+});
+
+check("S12", "prose between Scenario and its steps fails", () => {
+  const body = [`Feature: ${REQ}`, "", "Scenario: Explained", "This prose explains the scenario.", "  Given a change delta", "  When cdd validate runs", "  Then the verdict is red", `  # Verified by: ${PIN}`].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("prose between Scenario and its steps")), `missing prose error:\n${v.errors.join("\n")}`);
+});
+
+// --- comment law -------------------------------------------------------------------
+
+check("S13", "comments other than the pin fail", () => {
+  const v = deltaWith([`Feature: ${REQ}`, "", scenario("Commented", { extra: "  # TODO revisit this" })].join("\n"));
+  assert(!v.ok && v.errors.some((e) => e.includes("the only legal comment is the scenario's")), `missing comment error:\n${v.errors.join("\n")}`);
+});
+
+check("S14", "a scenario without a pin fails by name", () => {
+  const v = deltaWith([`Feature: ${REQ}`, "", scenario("First case"), "", scenario("Unpinned case", { pin: null })].join("\n"));
+  assert(!v.ok && v.errors.some((e) => e.includes('scenario "Unpinned case" does not end with a "# Verified by: <path>" pin comment')), `missing pin error:\n${v.errors.join("\n")}`);
+});
+
+check("S15", "two pins on one scenario fail", () => {
+  const v = deltaWith([`Feature: ${REQ}`, "", scenario("Double pin", { extra: `  # Verified by: ${PIN}` })].join("\n"));
+  assert(!v.ok && v.errors.some((e) => e.includes("carries 2 pin comments — exactly one")), `missing double-pin error:\n${v.errors.join("\n")}`);
+});
+
+// --- requirement-level laws ----------------------------------------------------------
+
+check("S16", "duplicate scenario names within a requirement fail", () => {
+  const v = deltaWith([`Feature: ${REQ}`, "", scenario("Same name"), "", scenario("Same name")].join("\n"));
+  assert(!v.ok && v.errors.some((e) => e.includes('scenario name "Same name" must be unique within the requirement')), `missing uniqueness error:\n${v.errors.join("\n")}`);
+});
+
+check("S17", "two fences in one requirement fail", () => {
+  const root = freshStore();
+  const dir = path.join(root, "cdd", "changes", "t-sub", "specs", "sub");
+  fs.writeFileSync(
+    path.join(dir, "spec.md"),
+    `## ADDED Requirements\n\n### Requirement: ${REQ}\n\nProse.\n\n\`\`\`gherkin\nFeature: ${REQ}\n\n${scenario("First case")}\n\`\`\`\n\n\`\`\`gherkin\nFeature: ${REQ}\n\n${scenario("Second case")}\n\`\`\`\n`
+  );
+  const v = val.validateChange(root, "t-sub", "draft");
+  assert(!v.ok && v.errors.some((e) => e.includes("holds 2 gherkin fences — exactly one Feature document per requirement")), `missing fence-count error:\n${v.errors.join("\n")}`);
 });
 
 console.log(fail === 0 ? `\nPASS ${pass}` : `\nFAIL ${pass} passed, ${fail} failed`);

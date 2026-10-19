@@ -120,7 +120,7 @@ function lastCommit(file) {
 
 // --- collect specs: pins + code globs -------------------------------------------
 const issues = [];
-const pinRe = /^Verified by[*:]*\s*`?([^\s`]+)`?/gm;
+const pinRe = /^\s*#\s*Verified by[*:]*\s*`?([^\s`]+)`?/gm;
 const codeRe = /^\s*(?:-\s+)?Code:\s*(.+)$/gm;
 
 function specsIn(dir, acc = []) {
@@ -158,21 +158,22 @@ const pinsOf = new Map(); // specRel -> [{ pin, resolved }]
 const codeGlobs = new Map(); // specRel -> [globs]
 for (const specRel of allSpecs) {
   const text = fs.readFileSync(path.join(root, specRel), 'utf8');
-  // Pins live outside the gherkin fences: fence bodies are parser territory
-  // (a scenario may legitimately quote the phrase), so blank them first.
+  // Pins live inside the gherkin fences as "# Verified by:" comments
+  // (ADR-0006); markdown outside fences is blanked so a quoted phrase
+  // cannot pose as a pin.
   let inFence = false;
   const masked = text
     .split('\n')
     .map((l) => {
       if (!inFence && /^\s*```\s*gherkin\s*$/.test(l)) {
         inFence = true;
-        return l;
+        return '';
       }
       if (inFence) {
         if (/^\s*```\s*$/.test(l)) inFence = false;
-        return '';
+        return l;
       }
-      return l;
+      return '';
     })
     .join('\n');
   pinsOf.set(
@@ -427,16 +428,16 @@ if (isRepo && !staged && !msgFile && allSpecs.length) {
         issues.push(`[G] ${specRel}: line ${f.line}: unterminated gherkin fence`);
         continue;
       }
-      if (/^Verified by:/m.test(f.body)) {
-        issues.push(`[G] ${specRel}: line ${f.line}: the Verified by pin must stay markdown outside the fence`);
+      if (/^\s*Verified by[*:]/m.test(f.body)) {
+        issues.push(`[G] ${specRel}: line ${f.line}: markdown "Verified by:" pins are gone (ADR-0006) — the pin is a "# Verified by:" comment on the scenario's last line`);
         continue;
       }
       try {
-        mkParser().parse(`Feature: cdd\n${f.body}`);
+        mkParser().parse(f.body);
       } catch (e) {
         const items = Array.isArray(e.errors) && e.errors.length ? e.errors : [{ location: { line: 1 }, message: String(e.message).split('\n')[0] }];
         for (const it of items.slice(0, 3)) {
-          const line = Math.max(1, (it.location?.line ?? 1) - 1);
+          const line = Math.max(1, it.location?.line ?? 1);
           issues.push(`[G] ${specRel}: line ${f.line + line - 1}: invalid gherkin — ${it.message.split('\n')[0]}`);
         }
       }
