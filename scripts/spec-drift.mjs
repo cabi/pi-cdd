@@ -383,6 +383,68 @@ if (isRepo && !staged) {
 }
 
 // ==============================================================================
+// G — gherkin fences: door 3 (full scan) re-parses every scenario fence with
+// the official parser, the same arbiter as `cdd validate`. Doors 1-2 (staged/
+// commit-msg) stay zero-dependency: they never import it.
+// ==============================================================================
+function fencesOf(text) {
+  const lines = text.split('\n');
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    if (/^\s*```\s*gherkin\s*$/.test(lines[i])) {
+      const first = i + 2; // 1-based line of the first body line
+      const body = [];
+      i++;
+      while (i < lines.length && !/^\s*```\s*$/.test(lines[i])) {
+        body.push(lines[i]);
+        i++;
+      }
+      i++; // closing fence (or EOF: unterminated — flagged below)
+      out.push({ body: body.join('\n'), line: first, closed: i <= lines.length && /^\s*```\s*$/.test(lines[i - 1] ?? '') });
+    } else {
+      i++;
+    }
+  }
+  return out;
+}
+
+if (isRepo && !staged && !msgFile && allSpecs.length) {
+  let Gherkin;
+  try {
+    Gherkin = await import('@cucumber/gherkin');
+  } catch {
+    console.error('spec-drift: door 3 re-parses scenario fences with @cucumber/gherkin, which is not installed in this repository.');
+    console.error('spec-drift: npm install --save-dev @cucumber/gherkin');
+    process.exit(1);
+  }
+  const mkParser = () =>
+    new Gherkin.Parser(new Gherkin.AstBuilder(() => 'cdd'), new Gherkin.GherkinClassicTokenMatcher());
+  for (const specRel of allSpecs) {
+    const text = fs.readFileSync(path.join(root, specRel), 'utf8');
+    for (const f of fencesOf(text)) {
+      if (!f.closed) {
+        issues.push(`[G] ${specRel}: line ${f.line}: unterminated gherkin fence`);
+        continue;
+      }
+      if (/^Verified by:/m.test(f.body)) {
+        issues.push(`[G] ${specRel}: line ${f.line}: the Verified by pin must stay markdown outside the fence`);
+        continue;
+      }
+      try {
+        mkParser().parse(`Feature: cdd\n${f.body}`);
+      } catch (e) {
+        const items = Array.isArray(e.errors) && e.errors.length ? e.errors : [{ location: { line: 1 }, message: String(e.message).split('\n')[0] }];
+        for (const it of items.slice(0, 3)) {
+          const line = Math.max(1, (it.location?.line ?? 1) - 1);
+          issues.push(`[G] ${specRel}: line ${f.line + line - 1}: invalid gherkin — ${it.message.split('\n')[0]}`);
+        }
+      }
+    }
+  }
+}
+
+// ==============================================================================
 // O — single owner, capability-aware: a file claimed by two capabilities'
 // Code: globs is an unowned helper. A living spec and its own open delta
 // overlapping is the mechanism (in-flight update), not drift. Two open
