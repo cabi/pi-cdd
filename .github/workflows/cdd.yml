@@ -13,6 +13,9 @@ jobs:
         with:
           node-version: 20
       # door 3 — full scan: the same guard the pre-commit hook runs
+      # door 3 and the suites import @cucumber/gherkin from node_modules
+      # (the vendored copy under vendor/ serves pi installs only)
+      - run: npm ci
       - run: node cdd/scripts/spec-drift.mjs
       # the project's own tests (adjust to your runner)
       - run: npm test --if-present
