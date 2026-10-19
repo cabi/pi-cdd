@@ -27,5 +27,5 @@
 | smoke + tools suites exit 0 with the gate active; strict green on this change; gherkin-*.test.js demonstrate the six red verdicts | 3.1, 3.2, 3.3, 3.6, 3.7 |
 | door 3 exits non-zero on a broken living-spec fence and on a missing parser with the install command | 3.5 |
 
-- [ ] 4.1 cdd validate strict green, guard green
-- [ ] 4.2 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.1 cdd validate strict green, guard green
+- [x] 4.2 Archive — pair-commit: feature commit, then archive commit
