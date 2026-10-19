@@ -71,6 +71,22 @@ Verified against pi `1.3.0` (`@earendil-works/pi-coding-agent` dist):
    parameters (see `docs/session-format.md`). Ambient text is the
    `before_agent_start` block from `lib/context.mjs`.
 
+## Vendored parser (`vendor/`)
+
+pi clones the repo and never runs `npm install`, so every runtime import
+must resolve from committed files. `vendor/@cucumber/gherkin` is the
+parser; its only external dependency, `@cucumber/messages`, sits in
+`vendor/node_modules/` so Node's module resolution finds it from the
+vendored `dist/` files. The root `.gitignore` anchors `node_modules/` to
+the repo root (`/node_modules/`) — keep it that way, or a fresh clone
+silently loses `@cucumber/messages` and the extension fails to load.
+
+To upgrade the parser: `npm i -D @cucumber/gherkin@NEW`, then copy
+`node_modules/@cucumber/gherkin/{package.json,LICENSE,dist}` and
+`node_modules/@cucumber/messages/{package.json,LICENSE,dist}` over the
+vendor copies, trim each copied `package.json` to
+`name/version/type/main/license`, and commit both packages together.
+
 ## How to upgrade / evolve
 
 When changing what a tool does, treat `OPS_DOC` as the contract:

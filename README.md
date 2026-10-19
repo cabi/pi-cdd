@@ -23,8 +23,10 @@ pi remove git:github.com/cabi/pi-cdd            # uninstall again
 - To try it once without touching settings: `pi -e git:github.com/cabi/pi-cdd`
   (or, from a checkout, `pi --extension /path/to/pi-cdd`).
 - Requires Node ≥ 20 (the runtime pi already uses). The extension carries
-  one vendored runtime dependency — the official `@cucumber/gherkin` parser
-  (ADR-0005) — so `cdd validate` parses scenario fences with the real
+- Requires Node ≥ 20 (the runtime pi already uses). The extension carries
+  two vendored runtime packages — the official `@cucumber/gherkin` parser
+  (ADR-0005) and its `@cucumber/messages` dependency, both committed under
+  `vendor/` — so `cdd validate` parses scenario fences with the real
   Gherkin grammar, no install step in the adopting project.
 - Then, in the adopting project, run `/cdd-init` once to scaffold the `cdd/`
   store and the git hooks.
