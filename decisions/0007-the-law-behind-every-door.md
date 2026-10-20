@@ -35,6 +35,8 @@ tests that copy scripts into sandboxes must copy the set, since the
 guard and extractors import the law.
 
 `validateBoth` in `lib/validate.mjs` derives the draft and strict
-verdicts from one evaluation — strict gates tag their errors, and the
-draft projection filters them, with the subset invariant asserted in
-code so a mislabeled gate fails loudly.
+verdicts from one evaluation — strict-only checks tag their errors, and the
+draft projection filters them. The draft ⊆ strict subset holds by
+construction — the draft verdict is the strict run minus the tagged
+errors — and the acceptance tests pin it from the outside (smoke S31,
+extension-door1 E2), so a mislabeled check fails loudly there.

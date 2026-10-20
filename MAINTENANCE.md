@@ -121,7 +121,7 @@ When changing what a tool does, treat `OPS_DOC` as the contract:
 | T1 | one tool, six ops, static list, ≤700-char declaration, no OPS_DOC duplication in the description |
 | T2a–d | fill-ins fire for legacy names/params; never misfire on ambiguous input |
 | T3a–g | every op round-trips the real libs in a sandbox; help returns full parameters |
-| T4a–b | clear errors for the ambiguous cases (missing name, unknown option, bad JSON, conflicting name, red archive) |
+| T4a–c | clear errors for the ambiguous cases (missing name, unknown option, bad JSON, conflicting name, red archive) |
 
 ## Door-script sync (the law, ADR-0007)
 
@@ -151,3 +151,6 @@ copied verbatim into adopting stores (`DOOR_SCRIPTS` in
   `lib/validate.mjs` encode one concept twice. Harmless today — the guards
   decide what a run evaluates, the tag decides how a run projects — but a
   single-mechanism refactor could drop `mode` from `runValidation`.
+- The archive refusal render is written twice in `index.ts` (command
+  handler and tool case). Extraction awaits a second caller; T4b/T4c pin
+  the byte-identical text meanwhile.
