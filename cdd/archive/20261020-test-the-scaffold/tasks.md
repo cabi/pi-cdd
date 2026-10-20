@@ -26,5 +26,5 @@ Grilling record (2026-10-21): scope = full chain, not per-template pairs; fill s
 
 ## 4. Close
 
-- [ ] 4.1 cdd validate strict green, guard green
-- [ ] 4.2 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.1 cdd validate strict green, guard green
+- [x] 4.2 Archive — pair-commit: feature commit, then archive commit
