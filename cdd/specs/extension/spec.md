@@ -56,6 +56,12 @@ Scenario: The close refuses a red change itself
   And the change folder stays in place with no spec merged
   # Verified by: tests/acceptance/extension-door1.test.js
 
+Scenario: A missing change refuses identically
+  Given a store holding no change of the name asked for
+  When the cdd tool runs op archive on that name
+  Then the tool answers with the same refusal text and staged payload as a red change
+  # Verified by: tests/tools.mjs
+
 Scenario: The close moves a green change atomically
   Given a strict-green change holding exactly 1 ADDED requirement
   When the archive library call runs on that change

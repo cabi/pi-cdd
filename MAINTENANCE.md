@@ -137,3 +137,17 @@ copied verbatim into adopting stores (`DOOR_SCRIPTS` in
   together — the guard treats them as a set.
 - Tests that copy door scripts into a sandbox copy the whole set
   (`law.mjs` is an import, not a standalone).
+
+## Known debts (one-pass-one-close review, 2026-10-20)
+
+- `lib/store.mjs` ↔ `lib/validate.mjs` import cycle: `archiveChange` gates
+  on `validateChange`, which reads the store. Both call lazily, so ESM
+  resolves it; unwinding it means folding validation into the store layer —
+  not worth it yet.
+- `stage: "strict-validation"` is a string literal, not a type. Justified
+  by the one-pass-one-close proposal: future stages (merge, move) get a
+  home without a union Node consumers must parse.
+- The `strictOnly` tag and the `mode === "strict"` guards in
+  `lib/validate.mjs` encode one concept twice. Harmless today — the guards
+  decide what a run evaluates, the tag decides how a run projects — but a
+  single-mechanism refactor could drop `mode` from `runValidation`.

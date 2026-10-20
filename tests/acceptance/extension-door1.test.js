@@ -68,6 +68,8 @@ check("E1", "one evaluation returns both verdicts", () => {
   assert(Object.keys(pair).length === 2, `pair must hold exactly 2 verdicts: ${Object.keys(pair)}`);
   assert(pair.draft.ok, `draft must be ok: ${JSON.stringify(pair.draft.errors)}`);
   assert(!pair.strict.ok, "strict must be red on a strict-only defect");
+  assert(pair.strict.errors.length === 1, `fixture holds exactly 1 strict error: ${JSON.stringify(pair.strict.errors)}`);
+  assert(/unchecked task/.test(pair.strict.errors[0]), "the strict error must be the unchecked-task gate");
 });
 
 check("E2", "draft errors are a subset of strict errors", () => {

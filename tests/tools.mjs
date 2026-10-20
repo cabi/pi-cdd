@@ -246,6 +246,11 @@ await check("T3e", "op status reports open changes as JSON ≡ the view payload"
   assert(!r.isError && /add-x/.test(textOf(r)) && /openChanges/.test(textOf(r)), textOf(r));
   const parsed = JSON.parse(textOf(r));
   assert(JSON.stringify(parsed) === JSON.stringify(r.details), "JSON payload must equal the view payload exactly");
+  // exactly 1 status() call: both payloads must come from one call, pinned on the handler source
+  const src = fs.readFileSync(path.join(REPO, "index.ts"), "utf8");
+  const opCase = src.split('case "status":')[1].split('case "')[0];
+  const calls = [...opCase.matchAll(/\bstatus\(/g)].length;
+  assert(calls === 1, `op status must call status() exactly once (found ${calls})`);
 });
 
 await check("T3f", "op archive merges deltas and moves the folder", async () => {
@@ -294,6 +299,14 @@ await check("T4b", "archive refuses while strict is red: staged verdict, nothing
   assert(r.details?.stage === "strict-validation", `staged refusal expected: ${JSON.stringify(r.details)}`);
   assert(r.details?.validation?.ok === false, "refusal must carry the strict verdict");
   assert(fs.existsSync(path.join(sb.root, "cdd", "changes", "half-done")), "a red change must not move");
+});
+
+await check("T4c", "op archive on a missing change refuses with the same shape and text", async () => {
+  const r = await call({ op: "archive", name: "no-such-change" }, sb.root);
+  assert(r.isError, "must be an error");
+  assert(/archive refused — strict validation failed:/.test(textOf(r)), textOf(r));
+  assert(/change "no-such-change" not found/.test(textOf(r)), textOf(r));
+  assert(r.details?.stage === "strict-validation" && r.details?.validation?.ok === false, JSON.stringify(r.details));
 });
 
 sb.dispose();
