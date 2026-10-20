@@ -20,8 +20,9 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
 5. **MODIFIED and REMOVED** only name requirements that exist in the
    living spec. ADDED must not duplicate a living requirement.
 6. **Tasks** — four steps (context → design → implementation → close);
-   every implementation subtask carries `verify by <test>`; ends with
-   `## Done When Traceability` (criterion → task ids). More than 8
+   every implementation subtask carries `verify by <test>`; the
+   `## Done When Traceability` table (criterion → task ids) follows the
+   implementation steps, before the Close section. More than 8
    implementation subtasks is the split signal — split at the design gate,
    more than 12 fails strict; record `split-considered:` if kept whole.
 7. **Test-first** — the acceptance test a subtask names exists before the

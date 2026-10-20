@@ -19,17 +19,12 @@
 
 ## 3. Implementation
 
-- [ ] 3.1 The tasks grammar gets an owner — law.mjs tasks primitives + parseTasks in lib/store.mjs, template double "## 4. Close" fixed, consumers switched, template-pinning test — verify by node tests/smoke.mjs
+- [x] 3.1 The tasks grammar gets an owner — law.mjs tasks primitives + parseTasks in lib/store.mjs, template double "## 4. Close" fixed, consumers switched, template-pinning test — verify by node tests/smoke.mjs
 - [ ] 3.2 The fence law moves into law.mjs — scanner/mask/pin dialect/error-shaping/subset predicates, lib/gherkin.mjs + lib/validate.mjs as door-1 adapter — verify by node tests/smoke.mjs
 - [ ] 3.3 Door scripts adopt the law — guard full scan enforces the subset, spec-extract counts strict pins, arch-extract strict frontmatter, L3 via law.mjs — verify by node tests/smoke.mjs
 - [ ] 3.4 Acceptance: door-3 subset scenario and pin-dialect scenario red/green as specified — verify by node tests/acceptance/gherkin-door3.test.js
 - [ ] 3.5 Refresh path — cdd init re-copies cdd/scripts/* on existing stores, truthful [H] advice, LAW_VERSION marker; dogfood on this store — verify by node tests/tools.mjs and git status showing cdd/scripts/law.mjs
 - [ ] 3.6 Records — ADR-0007, GLOSSARY "the law", MAINTENANCE sync flow, ADR-0003 glob fix — verify by node cdd/scripts/arch-extract.mjs exiting 0
-
-## 4. Close
-
-- [ ] 4.1 cdd validate strict green, guard green
-- [ ] 4.2 Archive — pair-commit: feature commit, then archive commit
 
 ## Done When Traceability
 
@@ -39,3 +34,8 @@
 | the pin dialect is defined exactly once in scripts/law.mjs and no second copy remains under scripts/ | 3.2, 3.3 |
 | cdd init on this existing store re-copies cdd/scripts/* and lists the refreshed files | 3.5 |
 | npm test is green with a test pinning the scaffolded tasks template to the parser | 3.1 |
+
+## 4. Close
+
+- [ ] 4.1 cdd validate strict green, guard green
+- [ ] 4.2 Archive — pair-commit: feature commit, then archive commit

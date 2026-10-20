@@ -206,7 +206,7 @@ w("cdd/changes/add-x/tasks.md", `# Tasks — add-x
 
 - [x] 1.1 Read the living spec and every file matching the proposal's Code: globs
 
-## 2. Design gate
+## 2. Design
 
 - [x] 2.1 Design gate: single scenario, one task — no split needed
 

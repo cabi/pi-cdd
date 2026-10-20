@@ -65,11 +65,11 @@ check("T3", "RULES_MD rule 4 carries the fence law and declarative clause", () =
   assert(/declarative/i.test(rules), "rules.md lacks declarative clause");
 });
 
-// --- 2. version 0.4.0 ---------------------------------------------------------
+// --- 2. version 0.4.1 -----------------------------------------------------------
 
-check("T4", "package.json is at 0.4.0", () => {
+check("T4", "package.json is at 0.4.1", () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(REPO, "package.json"), "utf8"));
-  assert(pkg.version === "0.4.0", `expected 0.4.0, got ${pkg.version}`);
+  assert(pkg.version === "0.4.1", `expected 0.4.1, got ${pkg.version}`);
 });
 
 // --- 3. style is never machine-checked ----------------------------------------

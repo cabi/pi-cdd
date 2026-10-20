@@ -21,6 +21,8 @@ const { loadViaPi } = await import(path.join(REPO, "tests", "pi-jiti.mjs"));
 const statusUiMod = await loadViaPi(path.join(REPO, "lib", "status-ui.ts"));
 const CddStatusView = statusUiMod?.CddStatusView ?? null;
 
+const { tasksTemplate } = await import(path.join(REPO, "lib", "templates.mjs"));
+const law = await import(path.join(REPO, "scripts", "law.mjs"));
 let pass = 0;
 let fail = 0;
 const failures = [];
@@ -366,6 +368,27 @@ check("S25", ">12 implementation subtasks fails strict unless split-considered",
   w("tasks.md", tasks.join("\n").replace("## Done When Traceability", "split-considered: kept whole — atomic migration\n\n## Done When Traceability"));
   v = validateChange(sb, "c6", "strict");
   assert(!v.errors.some((e) => /> 12/.test(e)), formatVerdict(v));
+});
+
+check("S30", "law.mjs owns the tasks grammar: template parses, duplicates fail, primitives shared", () => {
+  // template ↔ parser pin: the scaffolded tasks.md parses as the canonical shape
+  const t = lib.parseTasks(tasksTemplate("x"));
+  assert(JSON.stringify(t.sections.map((s) => s.num)) === "[1,2,3,4]", `skeleton wrong: ${JSON.stringify(t.sections.map((s) => s.num))}`);
+  assert(t.close && t.close.items.length === 2 && t.close.items.every((i) => i.box === " "), "Close section must hold the two unticked closing boxes");
+  assert(t.implementation && t.implementation.items.length === 1, "one scaffolded implementation task");
+  // regression: the old template's duplicated Close header now fails validation
+  const dup = tasksTemplate("x").replace("## Done When Traceability\n\n| criterion |", "## 4. Close\n\n## Done When Traceability\n\n| criterion |");
+  assert(lib.parseTasks(dup).sections.filter((s) => s.num === 4).length === 2, "fixture must carry the duplicate Close");
+  const sbd = sandbox().root;
+  initStore(sbd, REPO, { ci: "none", hooks: false });
+  createChange(sbd, "dup-close", ["cap"]);
+  fs.writeFileSync(path.join(sbd, "cdd", "changes", "dup-close", "tasks.md"), dup);
+  const v = validateChange(sbd, "dup-close", "draft");
+  assert(v.errors.some((e) => /four-step skeleton/.test(e)), formatVerdict(v));
+  // primitives: ids parsed, X counts as done, limits live in the law
+  const p = lib.parseTasks(`# T\n\n## 1. Context\n\n- [X] 1.1 c\n\n## 3. Implementation\n\n- [ ] 3.1 t — verify by x.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
+  assert(p.implementation.items[0].id === "3.1" && p.itemsBeforeClose.length === 2 && p.itemsBeforeClose[0].box === "X", JSON.stringify(p));
+  assert(law.TASK_LIMIT === 12 && law.SPLIT_SIGNAL === 8, "limits must live in law.mjs");
 });
 
 check("S26", "unqualified scenario counts warn; qualified ones stay silent (strictness dial)", () => {
