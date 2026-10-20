@@ -483,7 +483,7 @@ git(g.root, "config", "user.email", "t@t");
 git(g.root, "config", "user.name", "t");
 createChange(g.root, "add-cap", ["cap"]);
 const w = (rel, t) => { fs.mkdirSync(path.dirname(path.join(g.root, rel)), { recursive: true }); fs.writeFileSync(path.join(g.root, rel), t); };
-w("cdd/changes/add-cap/proposal.md", `# add-cap\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: src/**\n`);
+w("cdd/changes/add-cap/proposal.md", fixtureProposal("add-cap", "b", "src/**"));
 w(
   "cdd/changes/add-cap/specs/cap/spec.md",
   `## ADDED Requirements\n\n### Requirement: R1\n\nP.\n\nCode: src/**\n\`\`\`gherkin\nFeature: R1\n\nScenario: S1\nGiven a fixture\nWhen it runs\nThen it works\n  # Verified by: tests/acceptance/cap-s1.test.js\n\`\`\`\n`,
@@ -618,10 +618,10 @@ check("S32", "the scaffold round-trips: what the harness emits, the harness acce
   const d0 = val.validateChange(s.root, "rt", "draft");
   assert(!d0.ok && d0.errors.length === 3 && d0.errors.every((e) => /placeholders still unfilled/.test(e)), JSON.stringify(d0.errors));
   // leg 2 — minimal fill, as in-place edits relative to the template output
-  const de = (t) => t.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>\n]+>/g, "x");
-  put("proposal.md", de(read("proposal.md")));
-  put("tasks.md", de(read("tasks.md")).replace(/- \[ \]/g, "- [x]"));
-  put("specs/gherkin/spec.md", de(read("specs/gherkin/spec.md")));
+  const fillPlaceholders = (t) => t.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>\n]+>/g, "x");
+  put("proposal.md", fillPlaceholders(read("proposal.md")));
+  put("tasks.md", fillPlaceholders(read("tasks.md")).replace(/- \[ \]/g, "- [x]"));
+  put("specs/gherkin/spec.md", fillPlaceholders(read("specs/gherkin/spec.md")));
   fs.mkdirSync(path.join(s.root, "tests", "acceptance"), { recursive: true });
   fs.writeFileSync(path.join(s.root, "tests", "acceptance", "gherkin-x.test.js"), "// pin\n");
   const s1 = val.validateChange(s.root, "rt", "strict");
