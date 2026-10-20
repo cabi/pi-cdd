@@ -64,7 +64,7 @@ Scenario: One Feature fence per requirement
 Scenario: Door 3 enforces the subset on living fences
   Given a repository whose living spec holds exactly 1 fence whose scenario carries 2 When steps
   When the door 3 full scan runs
-  Then the scan exits non-zero with exactly 1 error naming the living spec file and the two-When defect
+  Then the scan exits non-zero with exactly 1 error in door 1's exact wording, naming the living spec file and the two-When defect
   # Verified by: tests/acceptance/gherkin-door3.test.js
 
 Scenario: Exactly one pin dialect at the extractors

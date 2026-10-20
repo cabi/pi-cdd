@@ -30,6 +30,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { CODE_LINE, PIN_COMMENT } from './law.mjs';
 
 // --- args -----------------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -89,9 +90,8 @@ const files = isRepo
   : walk(root);
 // the contract itself (cdd/) is not territory; .git/node_modules never are
 
-// --- collect specs: pins + code globs (same grammar as spec-drift.mjs) ----------
-const pinRe = /Verified by[*:]*\s*`?([^\s`]+)`?/g;
-const codeRe = /^\s*(?:-\s+)?Code:\s*(.+)$/gm;
+// --- collect specs: pins + code globs (the grammar lives in law.mjs) ------------
+const pinRe = new RegExp(PIN_COMMENT.source, 'gm'); // the one pin dialect — strict pins only
 
 function specsIn(dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -134,7 +134,7 @@ for (const specRel of [...livingSpecs, ...deltaSpecs]) {
     const r = pinResolve(m[1], specRel);
     if (r) pinned.add(r);
   }
-  for (const m of text.matchAll(codeRe)) {
+  for (const m of text.matchAll(CODE_LINE)) {
     for (const g of m[1].split(/[,\s]+/).filter(Boolean)) globRes.push(globToRe(g.replace(/`/g, '')));
   }
 }

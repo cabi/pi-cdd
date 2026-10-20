@@ -176,6 +176,7 @@ check("D4", "unresolvable parser: exactly 1 message with the install command", (
   // Copy the script somewhere with no resolvable @cucumber/gherkin.
   const iso = fs.mkdtempSync(path.join(os.tmpdir(), "cdd-d3-iso-"));
   fs.copyFileSync(path.join(root, "cdd", "scripts", "spec-drift.mjs"), path.join(iso, "spec-drift.mjs"));
+  fs.copyFileSync(path.join(root, "cdd", "scripts", "law.mjs"), path.join(iso, "law.mjs"));
   const r = runScan(root, path.join(iso, "spec-drift.mjs"));
   assert(r.code !== 0, `expected non-zero exit, got 0:\n${r.out}`);
   const lines = r.out.split("\n").filter((l) => /gherkin/i.test(l) && /install|import|cannot|resolve|missing/i.test(l));
@@ -190,11 +191,91 @@ check("D5", "--staged runs without a resolvable parser", () => {
   const root = gitRepo();
   const iso = fs.mkdtempSync(path.join(os.tmpdir(), "cdd-d3-iso-"));
   fs.copyFileSync(path.join(root, "cdd", "scripts", "spec-drift.mjs"), path.join(iso, "spec-drift.mjs"));
+  fs.copyFileSync(path.join(root, "cdd", "scripts", "law.mjs"), path.join(iso, "law.mjs"));
   fs.writeFileSync(path.join(root, "touch.txt"), "x");
   execFileSync("git", ["-C", root, "add", "touch.txt"]);
   const r = runScan(root, path.join(iso, "spec-drift.mjs"), ["--staged"]);
   assert(r.code === 0, `--staged must not need the parser, got ${r.code}:\n${r.out}`);
   fs.rmSync(iso, { recursive: true, force: true });
+});
+
+// --- D6: door 3 enforces the subset; the commit door stays parser-free ----------
+
+check("D6", "two-When fence: full scan red with the subset law, --staged green", () => {
+  const root = gitRepo();
+  const specDir = path.join(root, "cdd", "specs", "cap");
+  fs.mkdirSync(specDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(specDir, "spec.md"),
+    [
+      "### Requirement: Living requirement",
+      "",
+      "```gherkin",
+      "Feature: Living requirement",
+      "",
+      "Scenario: Two whens",
+      "Given a living spec",
+      "When the scan runs",
+      "When it runs again",
+      "Then it fails",
+      "  # Verified by: tests/acceptance/gherkin-door3.test.js",
+      "```",
+      "",
+      "",
+    ].join("\n")
+  );
+  const r = runScan(root);
+  assert(r.code !== 0, `expected non-zero exit, got 0:\n${r.out}`);
+  assert(/\[G\].*exactly one When step/.test(r.out), `no subset finding:\n${r.out}`);
+  // the commit door is parser-free by contract (ADR-0005): the same fence,
+  // staged scan stays green — door 2 never imports the parser
+  fs.writeFileSync(path.join(root, "touch.txt"), "x");
+  execFileSync("git", ["-C", root, "add", "touch.txt"]);
+  const staged = runScan(root, path.join(root, "cdd", "scripts", "spec-drift.mjs"), ["--staged"]);
+  assert(staged.code === 0, `--staged must stay parser-free:\n${staged.out}`);
+});
+
+// --- D7: one pin dialect at the extractors --------------------------------------
+
+check("D7", "markdown Verified-by outside a fence pins nothing; the strict fence pin does", () => {
+  const root = gitRepo();
+  const specDir = path.join(root, "cdd", "specs", "cap");
+  fs.mkdirSync(specDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(specDir, "spec.md"),
+    [
+      "### Requirement: Living requirement",
+      "",
+      "```gherkin",
+      "Feature: Living requirement",
+      "",
+      "Scenario: Strictly pinned scenario",
+      "Given a living spec",
+      "When the extractor runs",
+      "Then only the strict fence pin counts",
+      "  # Verified by: tests/acceptance/pin-strict.test.js",
+      "```",
+      "",
+      "Verified by: tests/acceptance/pin-loose.test.js",
+      "",
+      "",
+    ].join("\n")
+  );
+  fs.writeFileSync(path.join(root, "tests", "acceptance", "pin-strict.test.js"), "// strict-pinned\n");
+  fs.writeFileSync(path.join(root, "tests", "acceptance", "pin-loose.test.js"), "// loose markdown pin\n");
+  execFileSync("git", ["-C", root, "add", "."]);
+  execFileSync("git", ["-C", root, "commit", "-qm", "spec + tests"]);
+  const r = runScan(root, path.join(root, "cdd", "scripts", "spec-extract.mjs"), ["--json"]);
+  assert(r.code === 0, `expected exit 0, got ${r.code}:\n${r.out}`);
+  const report = JSON.parse(r.out);
+  assert(
+    report.extractionCandidates.includes("tests/acceptance/pin-loose.test.js"),
+    `the markdown line outside the fence must pin nothing:\n${r.out}`
+  );
+  assert(
+    !report.extractionCandidates.includes("tests/acceptance/pin-strict.test.js"),
+    `the strict fence pin must pin its test:\n${r.out}`
+  );
 });
 
 console.log(fail === 0 ? `\nPASS ${pass}` : `\nFAIL ${pass} passed, ${fail} failed`);

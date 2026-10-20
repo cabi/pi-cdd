@@ -66,7 +66,15 @@ const OPEN_FENCE = /^\s*```\s*gherkin\s*$/;
 const CLOSE_FENCE = /^\s*```\s*$/;
 
 /** The one pin dialect: a `# Verified by: <path>` comment (ADR-0006). */
-export const PIN_COMMENT = /^#\s*Verified by[*:]*\s*(\S+)\s*$/;
+/**
+ * The one pin dialect: a `# Verified by: <path>` comment (ADR-0006) —
+ * indent-tolerant (it sits at step depth inside the fence), never markdown,
+ * never backticked. Every door builds its line scanner from this source.
+ */
+export const PIN_COMMENT = /^\s*#\s*Verified by[*:]*\s*(\S+)\s*$/;
+
+/** The Code-glob line: `Code: <globs>` (optionally a list item). Global — use with matchAll. */
+export const CODE_LINE = /^\s*(?:-\s+)?Code:\s*(.+)$/gm;
 
 /**
  * Extract every `gherkin` fence from markdown text.
@@ -231,4 +239,27 @@ export function checkFenceBody(body, parse) {
   });
 
   return { name: feature.name, scenarios: out, errors };
+}
+
+//
+// Chapter: decision frontmatter — the strict dialect for cdd/decisions/*.md.
+// status and code live in the --- block, nowhere else; a key outside the
+// block is not a decision header.
+
+export const ADR_STATUSES = ["accepted", "superseded", "draft", "proposed"];
+
+/**
+ * Parse the --- frontmatter block of a decision file: { header, status }.
+ * `status` falls back to defaultStatus when the block is missing or silent —
+ * the caller decides what silence means ('accepted' for the guard's
+ * lifecycle checks, 'unknown' for report-only extractors).
+ */
+export function parseDecisionFrontmatter(text, defaultStatus = "accepted") {
+  const fm = String(text).match(/^---\n([\s\S]*?)\n---/);
+  const header = {};
+  for (const line of (fm ? fm[1] : "").split("\n")) {
+    const kv = line.match(/^([\w-]+):\s*(.+)$/);
+    if (kv) header[kv[1]] = kv[2].trim();
+  }
+  return { header, status: (header.status ?? defaultStatus).toLowerCase() };
 }

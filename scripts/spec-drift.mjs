@@ -59,6 +59,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { ADR_STATUSES, CODE_LINE, PIN_COMMENT, TASK_LIMIT, checkFenceBody, extractFences, parseDecisionFrontmatter, splitTaskSections } from './law.mjs';
 
 const argv = process.argv.slice(2);
 const msgIdx = argv.indexOf('--commit-msg');
@@ -120,8 +121,7 @@ function lastCommit(file) {
 
 // --- collect specs: pins + code globs -------------------------------------------
 const issues = [];
-const pinRe = /^\s*#\s*Verified by[*:]*\s*`?([^\s`]+)`?/gm;
-const codeRe = /^\s*(?:-\s+)?Code:\s*(.+)$/gm;
+const pinRe = new RegExp(PIN_COMMENT.source, 'gm'); // the one pin dialect (law.mjs)
 
 function specsIn(dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -183,7 +183,7 @@ for (const specRel of allSpecs) {
   for (const p of pinsOf.get(specRel)) p.resolved = pinResolve(p.pin, specRel);
   codeGlobs.set(
     specRel,
-    [...text.matchAll(codeRe)].flatMap((m) =>
+    [...text.matchAll(CODE_LINE)].flatMap((m) =>
       m[1]
         .split(/[,\s]+/)
         .filter(Boolean)
@@ -385,30 +385,11 @@ if (isRepo && !staged) {
 
 // ==============================================================================
 // G — gherkin fences: door 3 (full scan) re-parses every scenario fence with
-// the official parser, the same arbiter as `cdd validate`. Doors 1-2 (staged/
-// commit-msg) stay zero-dependency: they never import it.
+// G — gherkin fences: door 3 (full scan) re-parses every scenario fence with
+// the official parser and enforces the full cdd subset — the same law and the
+// same wording as `cdd validate` (law.mjs). Doors 1-2 (staged/commit-msg)
+// stay zero-dependency: they never import it.
 // ==============================================================================
-function fencesOf(text) {
-  const lines = text.split('\n');
-  const out = [];
-  let i = 0;
-  while (i < lines.length) {
-    if (/^\s*```\s*gherkin\s*$/.test(lines[i])) {
-      const first = i + 2; // 1-based line of the first body line
-      const body = [];
-      i++;
-      while (i < lines.length && !/^\s*```\s*$/.test(lines[i])) {
-        body.push(lines[i]);
-        i++;
-      }
-      i++; // closing fence (or EOF: unterminated — flagged below)
-      out.push({ body: body.join('\n'), line: first, closed: i <= lines.length && /^\s*```\s*$/.test(lines[i - 1] ?? '') });
-    } else {
-      i++;
-    }
-  }
-  return out;
-}
 
 if (isRepo && !staged && !msgFile && allSpecs.length) {
   let Gherkin;
@@ -423,7 +404,7 @@ if (isRepo && !staged && !msgFile && allSpecs.length) {
     new Gherkin.Parser(new Gherkin.AstBuilder(() => 'cdd'), new Gherkin.GherkinClassicTokenMatcher());
   for (const specRel of allSpecs) {
     const text = fs.readFileSync(path.join(root, specRel), 'utf8');
-    for (const f of fencesOf(text)) {
+    for (const f of extractFences(text)) {
       if (!f.closed) {
         issues.push(`[G] ${specRel}: line ${f.line}: unterminated gherkin fence`);
         continue;
@@ -432,14 +413,9 @@ if (isRepo && !staged && !msgFile && allSpecs.length) {
         issues.push(`[G] ${specRel}: line ${f.line}: markdown "Verified by:" pins are gone (ADR-0006) — the pin is a "# Verified by:" comment on the scenario's last line`);
         continue;
       }
-      try {
-        mkParser().parse(f.body);
-      } catch (e) {
-        const items = Array.isArray(e.errors) && e.errors.length ? e.errors : [{ location: { line: 1 }, message: String(e.message).split('\n')[0] }];
-        for (const it of items.slice(0, 3)) {
-          const line = Math.max(1, it.location?.line ?? 1);
-          issues.push(`[G] ${specRel}: line ${f.line + line - 1}: invalid gherkin — ${it.message.split('\n')[0]}`);
-        }
+      const res = checkFenceBody(f.body, (b) => mkParser().parse(b));
+      for (const fe of res.errors.slice(0, 3)) {
+        issues.push(`[G] ${specRel}: line ${f.line + fe.line - 1}: ${fe.message}`);
       }
     }
   }
@@ -485,7 +461,6 @@ if (isRepo) {
 // was skipped or wrong. The exception is explicit, not silent: a recorded
 // split-considered decision passes, matching the skip-record pattern.
 // ==============================================================================
-const TASK_LIMIT = 12;
 const changesDir = path.join(root, 'cdd', 'changes');
 if (fs.existsSync(changesDir)) {
   for (const e of fs.readdirSync(changesDir, { withFileTypes: true })) {
@@ -494,7 +469,7 @@ if (fs.existsSync(changesDir)) {
     if (!fs.existsSync(path.join(root, tasksRel))) continue;
     if (staged && !stagedSet.has(tasksRel)) continue;
     const text = fs.readFileSync(path.join(root, tasksRel), 'utf8');
-    const n = (text.match(/^\s*-\s+\[[ xX]\]/gm) ?? []).length;
+    const n = splitTaskSections(text).reduce((a, s) => a + s.items.length, 0);
     if (n > TASK_LIMIT && !/split-considered:/i.test(text)) {
       issues.push(`[L3] ${tasksRel} holds ${n} tracked tasks (> ${TASK_LIMIT}) — a long task file is a decomposition signal, not a work plan; split the proposal (the Done When Traceability table shows the cut lines) or record "<!-- split-considered: kept whole because <reason> -->"`);
     }
@@ -514,16 +489,11 @@ if (fs.existsSync(decisionsDir)) {
     if (!num) continue;
     const fileRel = `cdd/decisions/${e.name}`;
     const text = fs.readFileSync(path.join(root, fileRel), 'utf8');
-    const fm = text.match(/^---\n([\s\S]*?)\n---/);
-    const header = {};
-    for (const line of (fm ? fm[1] : '').split('\n')) {
-      const kv = line.match(/^([\w-]+):\s*(.+)$/);
-      if (kv) header[kv[1]] = kv[2].trim();
-    }
+    const { header, status } = parseDecisionFrontmatter(text);
     adrs.push({
       id: `ADR-${num[1]}`,
       fileRel,
-      status: (header.status ?? 'accepted').toLowerCase(),
+      status,
       supersedes: header.supersedes ?? null,
       globs: (header.code ?? '').split(/[,\s]+/).filter(Boolean).map((g) => g.replace(/`/g, '')),
     });
@@ -534,7 +504,7 @@ const adrByNum = new Map(adrs.map((a) => [a.id.replace(/^ADR-/, ''), a]));
 if (adrs.length) {
   // A0 — lifecycle integrity
   for (const a of adrs) {
-    if (!['accepted', 'superseded', 'draft', 'proposed'].includes(a.status)) {
+    if (!ADR_STATUSES.includes(a.status)) {
       issues.push(`[A0] ${a.fileRel} has unknown status "${a.status}" — use accepted, superseded, draft, or proposed`);
     }
     if (a.supersedes) {

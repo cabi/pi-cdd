@@ -20,6 +20,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseDecisionFrontmatter } from './law.mjs';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
@@ -149,8 +150,8 @@ function scanDecisions() {
     for (const e of fs.readdirSync(base, { withFileTypes: true }).filter((e) => e.isFile() && e.name.endsWith('.md'))) {
       if (!e.isFile() || !e.name.endsWith('.md')) continue;
       const text = fs.readFileSync(path.join(base, e.name), 'utf8');
-      const status = text.match(/^status:\s*(\w+)/m)?.[1] ?? 'unknown';
-      const code = text.match(/^code:\s*(.+)$/m)?.[1]?.trim() ?? '';
+      const { header, status } = parseDecisionFrontmatter(text, 'unknown');
+      const code = header.code ?? '';
       const title = text.match(/^#\s+(.+)$/m)?.[1] ?? e.name;
       found.push({ location: `${dir}/${e.name}`, status, code, title });
     }
