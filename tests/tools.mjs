@@ -241,9 +241,11 @@ await check("T3d", "op validate without a name validates the whole store", async
   assert(none.isError && /no cdd store/.test(textOf(none)), textOf(none));
 });
 
-await check("T3e", "op status reports open changes as JSON", async () => {
+await check("T3e", "op status reports open changes as JSON ≡ the view payload", async () => {
   const r = await call({ op: "status" }, sb.root);
   assert(!r.isError && /add-x/.test(textOf(r)) && /openChanges/.test(textOf(r)), textOf(r));
+  const parsed = JSON.parse(textOf(r));
+  assert(JSON.stringify(parsed) === JSON.stringify(r.details), "JSON payload must equal the view payload exactly");
 });
 
 await check("T3f", "op archive merges deltas and moves the folder", async () => {
@@ -285,10 +287,13 @@ await check("T4a", "missing name, unknown options, bad JSON, duplicate names →
   assert(r.isError && /unknown op/.test(textOf(r)), textOf(r));
 });
 
-await check("T4b", "archive refuses while strict is red", async () => {
+await check("T4b", "archive refuses while strict is red: staged verdict, nothing moves", async () => {
   await call({ op: "new", name: "half-done" }, sb.root);
   const r = await call({ op: "archive", name: "half-done" }, sb.root);
   assert(r.isError && /archive refused — strict validation failed/.test(textOf(r)), textOf(r));
+  assert(r.details?.stage === "strict-validation", `staged refusal expected: ${JSON.stringify(r.details)}`);
+  assert(r.details?.validation?.ok === false, "refusal must carry the strict verdict");
+  assert(fs.existsSync(path.join(sb.root, "cdd", "changes", "half-done")), "a red change must not move");
 });
 
 sb.dispose();

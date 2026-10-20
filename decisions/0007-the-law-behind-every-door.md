@@ -33,3 +33,8 @@ door 3's verdict matches door 1's wording exactly. `law.mjs` carries a
 `LAW_VERSION` marker — bump it when the grammar changes. Door-side
 tests that copy scripts into sandboxes must copy the set, since the
 guard and extractors import the law.
+
+`validateBoth` in `lib/validate.mjs` derives the draft and strict
+verdicts from one evaluation — strict gates tag their errors, and the
+draft projection filters them, with the subset invariant asserted in
+code so a mislabeled gate fails loudly.

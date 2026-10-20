@@ -561,6 +561,30 @@ check("S18", "validateStore aggregates per-change verdicts", () => {
   assert(v.ok && v.changes.includes("add-cap"), JSON.stringify(v.errors));
 });
 
+check("S31", "validateBoth: one evaluation, draft ⊆ strict by construction", () => {
+  // fixture state: task 3.1 unticked → strict-only defect, draft otherwise green
+  const { draft, strict } = val.validateBoth(g.root, "add-cap");
+  assert(draft.ok && !strict.ok, JSON.stringify({ draft: draft.errors, strict: strict.errors }));
+  assert(strict.errors.some((e) => /unchecked task/.test(e)), "strict verdict must name the unchecked task");
+  assert(!draft.errors.some((e) => /unchecked task/.test(e)), "draft dial stays silent about strict-only gates");
+  for (const d of draft.errors) assert(strict.errors.includes(d), `draft error missing from strict: ${d}`);
+  // flip the defect: tick the task, break the pin — the dials split the other way
+  const tasksPath = path.join(g.root, "cdd", "changes", "add-cap", "tasks.md");
+  const deltaPath = path.join(g.root, "cdd", "changes", "add-cap", "specs", "cap", "spec.md");
+  const tasksRaw = fs.readFileSync(tasksPath, "utf8");
+  const deltaRaw = fs.readFileSync(deltaPath, "utf8");
+  try {
+    fs.writeFileSync(tasksPath, tasksRaw.replace("- [ ] 3.1", "- [x] 3.1"));
+    fs.writeFileSync(deltaPath, deltaRaw.replace("# Verified by: tests/acceptance/cap-s1.test.js", "# Verified by: tests/definitely-missing-pin.test.js"));
+    const again = val.validateBoth(g.root, "add-cap");
+    assert(!again.strict.ok && again.draft.ok, `strict-only gate leaked into draft: ${JSON.stringify(again.draft.errors)}`);
+    assert(again.strict.errors.some((e) => e.includes("definitely-missing-pin")), "strict verdict must name the missing pin");
+  } finally {
+    fs.writeFileSync(tasksPath, tasksRaw);
+    fs.writeFileSync(deltaPath, deltaRaw);
+  }
+});
+
 // --- the isolated-pi loop (spends tokens; opt-in) ------------------------------
 
 if (process.env.RUN_PI_LOOP === "1") {

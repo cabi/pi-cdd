@@ -222,13 +222,12 @@ export default function cddExtension(pi: ExtensionAPI) {
         console.log("usage: /cdd-archive <name>");
         return;
       }
-      const v = validateChange(ctx.cwd, name, "strict");
-      if (!v.ok) {
-        console.log(`archive refused — strict validation failed:\n${formatVerdict(v)}`);
+      const r = archiveChange(ctx.cwd, name);
+      if (!r.ok && r.stage) {
+        console.log(`archive refused — strict validation failed:\n${formatVerdict(r.validation)}`);
         if (ctx.hasUI) ctx.ui.notify("archive refused: strict validation failed", "error");
         return;
       }
-      const r = archiveChange(ctx.cwd, name);
       const text = r.ok
         ? `archived.\n${json(r)}\nPair-commit: feature commit, then this archive commit.`
         : json(r);
@@ -288,21 +287,25 @@ export default function cddExtension(pi: ExtensionAPI) {
           return { ...result(formatVerdict(v), v), isError: !v.ok };
         }
         case "status":
-          return result(json(status(ctx.cwd)), status(ctx.cwd));
+          const s = status(ctx.cwd);
+          return result(json(s), s);
         case "archive": {
           const o = parseOptions(params.options, ["name"]);
           if (!o.ok) return fail(o.error);
           const name = pickName(params.name, o.value.name);
           if (!name.ok) return fail(name.error);
           if (!name.value) return fail('op "archive" requires "name"');
-          const v = validateChange(ctx.cwd, name.value, "strict");
-          if (!v.ok) {
+          const r = archiveChange(ctx.cwd, name.value);
+          if (!r.ok && r.stage) {
             return {
-              ...result(`archive refused — strict validation failed:\n${formatVerdict(v)}`, { ok: false, validation: v }),
+              ...result(`archive refused — strict validation failed:\n${formatVerdict(r.validation)}`, {
+                ok: false,
+                stage: r.stage,
+                validation: r.validation,
+              }),
               isError: true,
             };
           }
-          const r = archiveChange(ctx.cwd, name.value);
           return { ...result(r.ok ? `archived:\n${json(r)}\nPair-commit: feature commit, then this archive commit.` : json(r), r), isError: !r.ok };
         }
         case "help":
