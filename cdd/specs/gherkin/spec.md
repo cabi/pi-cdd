@@ -48,7 +48,7 @@ Scenario: Strict mode flags a pin whose file does not exist
 
 ### Requirement: Gherkin subset limits
 
-The cdd dialect is a closed subset of Gherkin: the step keywords `Given`, `When`, `Then`, `And`, `But` in English, exactly one `When` per scenario, at least 1 `Then`, and `And`/`But` only continuing a prior step. Scenario names are unique within a requirement and each requirement holds exactly one fence. Anything else the grammar allows — `Background`, `Rule`, tags, `Scenario Outline` with `Examples`, data tables, doc strings, asterisk or localized keywords, prose inside the fence, comments other than the pin — is a validation error naming the rejected construct.
+The cdd dialect is a closed subset of Gherkin: the step keywords `Given`, `When`, `Then`, `And`, `But` in English, exactly one `When` per scenario, at least 1 `Then`, and `And`/`But` only continuing a prior step. Scenario names are unique within a requirement and each requirement holds exactly one fence. Anything else the grammar allows — `Background`, `Rule`, tags, `Scenario Outline` with `Examples`, data tables, doc strings, asterisk or localized keywords, prose inside the fence, comments other than the pin — is an error naming the rejected construct. The subset laws are defined exactly once, in the law module, and enforced by every parser-bearing door: `cdd validate` and the door 3 full scan. The pin grammar exists in exactly one dialect: the strict `# Verified by:` fence comment.
 
 ```gherkin
 Feature: Gherkin subset limits
@@ -106,6 +106,18 @@ Scenario: One Feature fence per requirement
   When cdd validate runs on the change in draft mode
   Then the verdict is red with exactly 1 error demanding exactly one Feature document per requirement
   # Verified by: tests/acceptance/gherkin-subset.test.js
+
+Scenario: Door 3 enforces the subset on living fences
+  Given a repository whose living spec holds exactly 1 fence whose scenario carries 2 When steps
+  When the door 3 full scan runs
+  Then the scan exits non-zero with exactly 1 error in door 1's exact wording, naming the living spec file and the two-When defect
+  # Verified by: tests/acceptance/gherkin-door3.test.js
+
+Scenario: Exactly one pin dialect at the extractors
+  Given a repository whose living spec holds exactly 1 strict fence-comment pin and exactly 1 markdown Verified by line outside any fence
+  When the spec extractor runs
+  Then it reports exactly 1 pin — the strict fence comment
+  # Verified by: tests/acceptance/gherkin-door3.test.js
 ```
 
 ### Requirement: Declarative style is door-1 law
@@ -116,7 +128,7 @@ The authoring corpus and rule 4 prescribe declarative scenarios — observable b
 Feature: Declarative style is door-1 law
 
 Scenario: Corpus teaches the fenced declarative format
-  Given the extension at version 0.4.0
+  Given the extension at version 0.4.1
   When the delta template, the delta authoring instruction, and cdd rule 4 are read
   Then each of the 3 names the fenced Feature document with the pin comment inside, and the declarative style clause banning interaction mechanics
   # Verified by: tests/acceptance/gherkin-style-guidance.test.js
@@ -134,9 +146,11 @@ Scenario: The validator exports no style-checking surface
   # Verified by: tests/acceptance/gherkin-style-guidance.test.js
 ```
 
+Code: scripts/law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, lib/gherkin.mjs, lib/validate.mjs, lib/templates.mjs, lib/instructions.mjs, lib/store.mjs, lib/status.mjs, tests/**, cdd/scripts/**
+
 ### Requirement: Door 3 re-lints every fence
 
-The door 3 full scan parses every fence in living specs and open deltas with the same arbiter as `cdd validate`. When `@cucumber/gherkin` cannot be imported in the adopting project, the scan exits non-zero with exactly 1 actionable message containing the install command. Door 2 pre-commit checks stay zero-dependency and never import the parser.
+The door 3 full scan parses every fence in living specs and open deltas with the same arbiter as `cdd validate`, and enforces the same subset laws — one law module defines them, and its copy travels inside `cdd/scripts/` beside the guard. When `@cucumber/gherkin` cannot be imported in the adopting project, the scan exits non-zero with exactly 1 actionable message containing the install command. Door 2 pre-commit checks stay zero-dependency and never import the parser. `cdd init` refreshes the `cdd/scripts/*` copies on an existing store so a frozen store can catch up to the law it is held to.
 
 ```gherkin
 Feature: Door 3 re-lints every fence
@@ -152,6 +166,17 @@ Scenario: Missing parser fails loudly at door 3
   When the door 3 full scan runs
   Then the scan exits non-zero with exactly 1 message containing the exact devDependency install command
   # Verified by: tests/acceptance/gherkin-door3.test.js
-```
 
-Code: lib/gherkin.mjs, lib/validate.mjs, lib/templates.mjs, lib/instructions.mjs, scripts/spec-drift.mjs
+Scenario: An existing store refreshes its door scripts at init
+  Given a repository with an existing cdd store whose cdd/scripts/ copies differ from the extension's
+  When cdd init runs on that store
+  Then the store's cdd/scripts/* files are re-copied and the refreshed files are listed in the output
+  Then missing git hooks are installed and existing hooks are left untouched
+  # Verified by: tests/acceptance/gherkin-door3.test.js
+
+Scenario: Hook-health advice names a command that works on existing stores
+  Given a repository whose git hooks wiring is stale
+  When the door 3 full scan runs
+  Then the hook-health finding advises a command that succeeds on a repository that already has a store
+  # Verified by: tests/acceptance/gherkin-door3.test.js
+```
