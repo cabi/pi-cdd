@@ -179,9 +179,8 @@ check("D4", "unresolvable parser: exactly 1 message with the install command", (
   fs.copyFileSync(path.join(root, "cdd", "scripts", "law.mjs"), path.join(iso, "law.mjs"));
   const r = runScan(root, path.join(iso, "spec-drift.mjs"));
   assert(r.code !== 0, `expected non-zero exit, got 0:\n${r.out}`);
-  const lines = r.out.split("\n").filter((l) => /gherkin/i.test(l) && /install|import|cannot|resolve|missing/i.test(l));
-  assert(lines.length >= 1, `no actionable parser message:\n${r.out}`);
-  assert(/npm install --save-dev @cucumber\/gherkin/.test(r.out), `no install command:\n${r.out}`);
+  const lines = r.out.split("\n").filter((l) => /npm install --save-dev @cucumber\/gherkin/.test(l));
+  assert(lines.length === 1, `expected exactly 1 message with the install command, got ${lines.length}:\n${r.out}`);
   fs.rmSync(iso, { recursive: true, force: true });
 });
 
@@ -226,7 +225,8 @@ check("D6", "two-When fence: full scan red with the subset law, --staged green",
   );
   const r = runScan(root);
   assert(r.code !== 0, `expected non-zero exit, got 0:\n${r.out}`);
-  assert(/\[G\].*exactly one When step/.test(r.out), `no subset finding:\n${r.out}`);
+  const g = r.out.split("\n").filter((l) => l.includes("[G]"));
+  assert(g.length === 1 && g[0].includes("cdd/specs/cap/spec.md") && g[0].includes("exactly one When step"), `expected exactly 1 [G] finding naming the spec file and the defect:\n${r.out}`);
   // the commit door is parser-free by contract (ADR-0005): the same fence,
   // staged scan stays green — door 2 never imports the parser
   fs.writeFileSync(path.join(root, "touch.txt"), "x");

@@ -385,7 +385,6 @@ if (isRepo && !staged) {
 
 // ==============================================================================
 // G — gherkin fences: door 3 (full scan) re-parses every scenario fence with
-// G — gherkin fences: door 3 (full scan) re-parses every scenario fence with
 // the official parser and enforces the full cdd subset — the same law and the
 // same wording as `cdd validate` (law.mjs). Doors 1-2 (staged/commit-msg)
 // stay zero-dependency: they never import it.

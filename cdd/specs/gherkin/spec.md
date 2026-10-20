@@ -146,7 +146,7 @@ Scenario: The validator exports no style-checking surface
   # Verified by: tests/acceptance/gherkin-style-guidance.test.js
 ```
 
-Code: scripts/law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, lib/gherkin.mjs, lib/validate.mjs, lib/templates.mjs, lib/instructions.mjs, lib/store.mjs, lib/status.mjs, tests/**, cdd/scripts/**
+Code: scripts/law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, lib/gherkin.mjs, lib/validate.mjs, lib/templates.mjs, lib/instructions.mjs, lib/store.mjs, lib/status.mjs, index.ts, tests/**, cdd/scripts/**
 
 ### Requirement: Door 3 re-lints every fence
 

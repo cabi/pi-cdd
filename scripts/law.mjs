@@ -49,12 +49,6 @@ export function splitTaskSections(text) {
     }
     offset += line.length + 1;
   }
-  for (const s of sections) {
-    for (const it of s.items) {
-      const id = it.text.match(/^(\d+)\.(\d+)\s/);
-      it.id = id ? `${id[1]}.${id[2]}` : null;
-    }
-  }
   return sections;
 }
 
@@ -68,7 +62,6 @@ export function splitTaskSections(text) {
 const OPEN_FENCE = /^\s*```\s*gherkin\s*$/;
 const CLOSE_FENCE = /^\s*```\s*$/;
 
-/** The one pin dialect: a `# Verified by: <path>` comment (ADR-0006). */
 /**
  * The one pin dialect: a `# Verified by: <path>` comment (ADR-0006) —
  * indent-tolerant (it sits at step depth inside the fence), never markdown,

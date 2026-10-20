@@ -1,6 +1,6 @@
 ---
 status: accepted
-code: scripts/law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, lib/gherkin.mjs, lib/validate.mjs, lib/store.mjs, lib/templates.mjs
+code: scripts/law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, lib/gherkin.mjs, lib/validate.mjs, lib/store.mjs, lib/templates.mjs, index.ts
 ---
 # The law: one grammar module behind every door
 

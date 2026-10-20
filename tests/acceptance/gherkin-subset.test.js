@@ -92,6 +92,12 @@ check("S4", "a scenario starting with And fails", () => {
   assert(!v.ok && v.errors.some((e) => e.includes("cannot start with And")), `missing start error:\n${v.errors.join("\n")}`);
 });
 
+check("S5b", "a localized (non-English) keyword line is rejected, named in the error", () => {
+  const body = [`Feature: ${REQ}`, "", "Scenario: Lokalisiert", "  Angenommen eine Änderung", "  When cdd validate runs", "  Then the verdict is red", `  # Verified by: ${PIN}`].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes('prose between Scenario and its steps ("Angenommen eine Änderung")')), `missing localized-keyword rejection:\n${v.errors.join("\n")}`);
+});
+
 check("S5", "a * step is outside the subset", () => {
   const v = deltaWith([`Feature: ${REQ}`, "", scenario("Star step", { given: "a change delta", extra: "  * a step in asterisk form" })].join("\n"));
   assert(!v.ok && v.errors.some((e) => e.includes(`keyword "*" is outside the cdd subset`)), `missing keyword error:\n${v.errors.join("\n")}`);
@@ -138,6 +144,12 @@ check("S10", "data tables are outside the subset", () => {
   const body = [`Feature: ${REQ}`, "", "Scenario: Tabular", "  Given a change delta:", "    | col |", "    | 1 |", "  When cdd validate runs", "  Then the verdict is red", `  # Verified by: ${PIN}`].join("\n");
   const v = deltaWith(body);
   assert(!v.ok && v.errors.some((e) => e.includes("doc strings and data tables are outside the cdd subset")), `missing table error:\n${v.errors.join("\n")}`);
+});
+
+check("S10b", "doc strings are outside the subset", () => {
+  const body = [`Feature: ${REQ}`, "", "Scenario: Documented", "  Given a change delta", "    \"\"\"", "    some doc string", "    \"\"\"", "  When cdd validate runs", "  Then the verdict is red", `  # Verified by: ${PIN}`].join("\n");
+  const v = deltaWith(body);
+  assert(!v.ok && v.errors.some((e) => e.includes("doc strings and data tables are outside the cdd subset")), `missing doc-string error:\n${v.errors.join("\n")}`);
 });
 
 // --- prose placement -------------------------------------------------------------

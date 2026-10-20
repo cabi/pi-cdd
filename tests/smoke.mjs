@@ -399,7 +399,7 @@ check("S30", "law.mjs owns the tasks grammar: template parses, duplicates fail, 
   assert(v.errors.some((e) => /four-step skeleton/.test(e)), formatVerdict(v));
   // primitives: ids parsed, X counts as done, limits live in the law
   const p = lib.parseTasks(`# T\n\n## 1. Context\n\n- [X] 1.1 c\n\n## 3. Implementation\n\n- [ ] 3.1 t — verify by x.js\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
-  assert(p.implementation.items[0].id === "3.1" && p.itemsBeforeClose.length === 2 && p.itemsBeforeClose[0].box === "X", JSON.stringify(p));
+  assert(p.implementation.items[0].text.startsWith("3.1 ") && p.itemsBeforeClose.length === 2 && p.itemsBeforeClose[0].box === "X", JSON.stringify(p));
   assert(law.TASK_LIMIT === 12 && law.SPLIT_SIGNAL === 8, "limits must live in law.mjs");
 });
 
