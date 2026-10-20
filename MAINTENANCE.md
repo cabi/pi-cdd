@@ -122,3 +122,18 @@ When changing what a tool does, treat `OPS_DOC` as the contract:
 | T2a–d | fill-ins fire for legacy names/params; never misfire on ambiguous input |
 | T3a–g | every op round-trips the real libs in a sandbox; help returns full parameters |
 | T4a–b | clear errors for the ambiguous cases (missing name, unknown option, bad JSON, conflicting name, red archive) |
+
+## Door-script sync (the law, ADR-0007)
+
+`scripts/law.mjs` states every door-side grammar; `spec-drift.mjs`,
+`spec-extract.mjs`, and `arch-extract.mjs` import it. The four files are
+copied verbatim into adopting stores (`DOOR_SCRIPTS` in
+`lib/templates.mjs`).
+
+- Edit grammars in `scripts/law.mjs`, never in `cdd/scripts/` — copies
+  are refreshed, not merged. Bump `LAW_VERSION` when the grammar changes.
+- After touching any door script, refresh this repo's own copies
+  (`cdd init` on the repo) and commit extension copy + store copy
+  together — the guard treats them as a set.
+- Tests that copy door scripts into a sandbox copy the whole set
+  (`law.mjs` is an import, not a standalone).

@@ -1,6 +1,6 @@
 ---
 status: accepted
-code: lib/store.ts
+code: lib/store.mjs
 ---
 # The store is plain markdown, owned by the method
 

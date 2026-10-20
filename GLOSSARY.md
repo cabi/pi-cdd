@@ -21,8 +21,10 @@ deltas → tasks) that produces one change folder under
 capability spec on archive. _Avoid_: diff, patch.
 
 **gherkin fence** — the fenced ```gherkin block holding a scenario body;
-the official parser is the arbiter of what is valid inside it, while the
-`Verified by:` pin stays markdown outside the fence (ADR-0005).
+the official parser is the arbiter of what is valid inside it, and the
+`# Verified by:` pin is its one legal comment (ADR-0006).
+
+**the law** — the single, zero-dependency statement of every machine-checked format in the store: what a legal fence, pin, tasks file, or decision header looks like. Every door reads the same law; adopting projects hold a copy that `cdd init` refreshes (ADR-0007). _Avoid_: rules file, schema, validation config.
 
 **acceptance test** — the committed test that pins a scenario, named under
 `tests/acceptance/`; the reason a spec line can be trusted. _Avoid_: e2e

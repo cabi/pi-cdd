@@ -97,6 +97,7 @@ Scenario: An existing store refreshes its door scripts at init
   Given a repository with an existing cdd store whose cdd/scripts/ copies differ from the extension's
   When cdd init runs on that store
   Then the store's cdd/scripts/* files are re-copied and the refreshed files are listed in the output
+  Then missing git hooks are installed and existing hooks are left untouched
   # Verified by: tests/acceptance/gherkin-door3.test.js
 
 Scenario: Hook-health advice names a command that works on existing stores
