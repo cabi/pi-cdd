@@ -23,7 +23,7 @@
 - [x] 3.2 The fence law moves into law.mjs — scanner/mask/pin dialect/error-shaping/subset predicates, lib/gherkin.mjs + lib/validate.mjs as door-1 adapter — verify by node tests/smoke.mjs
 - [x] 3.3 Door scripts adopt the law — guard full scan enforces the subset, spec-extract counts strict pins, arch-extract strict frontmatter, L3 via law.mjs — verify by node tests/smoke.mjs
 - [x] 3.4 Acceptance: door-3 subset scenario and pin-dialect scenario red/green as specified — verify by node tests/acceptance/gherkin-door3.test.js
-- [ ] 3.5 Refresh path — cdd init re-copies cdd/scripts/* on existing stores, truthful [H] advice, LAW_VERSION marker; dogfood on this store — verify by node tests/tools.mjs and git status showing cdd/scripts/law.mjs
+- [x] 3.5 Refresh path — cdd init re-copies cdd/scripts/* on existing stores, truthful [H] advice, LAW_VERSION marker; dogfood on this store — verify by node tests/tools.mjs and git status showing cdd/scripts/law.mjs
 - [ ] 3.6 Records — ADR-0007, GLOSSARY "the law", MAINTENANCE sync flow, ADR-0003 glob fix — verify by node cdd/scripts/arch-extract.mjs exiting 0
 
 ## Done When Traceability

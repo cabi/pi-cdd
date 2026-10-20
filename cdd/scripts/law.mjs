@@ -6,6 +6,9 @@
 //
 // Chapter: tasks.md — the four-step skeleton and its checkboxes.
 
+/** Law grammar version — bump when the grammar changes; cdd init refreshes adopting copies. */
+export const LAW_VERSION = 1;
+
 /** Implementation subtasks above this warn — the design-gate split signal (rule 6). */
 export const SPLIT_SIGNAL = 8;
 

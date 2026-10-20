@@ -74,9 +74,21 @@ check("S1", "init scaffolds the full store", () => {
   assert(mode & 0o111, "pre-commit not executable");
 });
 
-check("S2", "init is idempotent-refusing", () => {
+check("S2", "init on an existing store refreshes door scripts, never hooks or rules", () => {
+  const rules = fs.readFileSync(path.join(sb.root, "cdd", "rules.md"), "utf8");
+  const driftPath = path.join(sb.root, "cdd", "scripts", "spec-drift.mjs");
+  fs.writeFileSync(driftPath, "// stale local edit\n");
+  const hookPath = path.join(sb.root, ".githooks", "pre-commit");
+  const hookOrig = fs.readFileSync(hookPath, "utf8");
+  fs.writeFileSync(hookPath, "#!/bin/sh\n# local hook edit\n", { mode: 0o755 });
   const again = initStore(sb.root, REPO, {});
-  assert(!again.ok && /already has a store/.test(again.error), JSON.stringify(again));
+  assert(again.ok, JSON.stringify(again));
+  assert(Array.isArray(again.refreshed) && again.refreshed.includes("cdd/scripts/spec-drift.mjs"), `refreshed list must name the door scripts: ${JSON.stringify(again)}`);
+  assert(fs.readFileSync(driftPath, "utf8") === fs.readFileSync(path.join(REPO, "scripts", "spec-drift.mjs"), "utf8"), "door scripts must re-copy from the extension");
+  assert(fs.readFileSync(hookPath, "utf8").includes("local hook edit"), "existing hooks must never be overwritten");
+  assert(again.written.length === 0, `both hooks exist, nothing to install: ${JSON.stringify(again.written)}`);
+  assert(fs.readFileSync(path.join(sb.root, "cdd", "rules.md"), "utf8") === rules, "rules.md must survive a refresh");
+  fs.writeFileSync(hookPath, hookOrig, { mode: 0o755 });
 });
 
 const created = createChange(sb.root, "add-greeting", ["greeting"]);

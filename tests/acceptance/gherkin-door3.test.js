@@ -278,6 +278,36 @@ check("D7", "markdown Verified-by outside a fence pins nothing; the strict fence
   );
 });
 
+// --- D8: init refreshes an existing store's door scripts --------------------------
+
+check("D8", "cdd init on an existing store re-copies door scripts and lists them", () => {
+  const root = gitRepo();
+  const drift = path.join(root, "cdd", "scripts", "spec-drift.mjs");
+  fs.writeFileSync(drift, "// stale local edit\n");
+  const r = lib.initStore(root, REPO, {});
+  assert(r.ok, JSON.stringify(r));
+  assert(Array.isArray(r.refreshed) && r.refreshed.includes("cdd/scripts/spec-drift.mjs"), `refreshed list must name the door scripts: ${JSON.stringify(r)}`);
+  assert(fs.readFileSync(drift, "utf8") === fs.readFileSync(path.join(REPO, "scripts", "spec-drift.mjs"), "utf8"), "door scripts must match the extension after refresh");
+  assert(fs.existsSync(path.join(root, "cdd", "rules.md")), "rules.md must survive a refresh");
+});
+
+// --- D9: hook-health advice names a command that works on existing stores ----------
+
+check("D9", "[H] fires on a half-upgraded scaffold and cdd_init heals it", () => {
+  const root = gitRepo();
+  fs.rmSync(path.join(root, ".githooks", "commit-msg"));
+  const pre = path.join(root, ".githooks", "pre-commit");
+  const localHook = "#!/bin/sh\n# local edit\n";
+  fs.writeFileSync(pre, localHook, { mode: 0o755 });
+  const red = runScan(root);
+  assert(red.code !== 0 && /\[H\]/.test(red.out), `expected [H] red:\n${red.out}`);
+  assert(/cdd_init/.test(red.out), `advice must name the working command:\n${red.out}`);
+  const r = lib.initStore(root, REPO, {});
+  assert(r.ok, JSON.stringify(r));
+  assert(fs.existsSync(path.join(root, ".githooks", "commit-msg")), "refresh must install the missing hook");
+  assert(fs.readFileSync(pre, "utf8") === localHook, "refresh must never overwrite an existing hook");
+});
+
 console.log(fail === 0 ? `\nPASS ${pass}` : `\nFAIL ${pass} passed, ${fail} failed`);
 failures.forEach((f) => console.log(`  ${f}`));
 process.exitCode = fail === 0 ? 0 : 1;

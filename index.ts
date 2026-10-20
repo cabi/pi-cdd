@@ -169,7 +169,7 @@ export default function cddExtension(pi: ExtensionAPI) {
       const text = r.ok
         ? `cdd store initialized.\n${json(r)}\nNext: git config core.hooksPath .githooks && start a change with /cdd-new <name>`
         : json(r);
-      if (ctx.hasUI) ctx.ui.notify(r.ok ? "cdd store initialized" : `cdd-init failed: ${r.error}`, r.ok ? "info" : "error");
+      if (ctx.hasUI) ctx.ui.notify(r.ok ? (r.refreshed ? "cdd store refreshed" : "cdd store initialized") : `cdd-init failed: ${r.error}`, r.ok ? "info" : "error");
       else console.log(text);
     },
   });
@@ -261,7 +261,11 @@ export default function cddExtension(pi: ExtensionAPI) {
           if (!o.ok) return fail(o.error);
           const r = initStore(ctx.cwd, EXT_DIR, { ci: o.value.ci ?? "both", hooks: o.value.hooks ?? true });
           return result(
-            r.ok ? `cdd store initialized:\n${json(r)}\nTell the user to run: git config core.hooksPath .githooks` : json(r),
+            r.ok
+              ? r.refreshed
+                ? `cdd store refreshed — door scripts re-copied:\n${json(r)}`
+                : `cdd store initialized:\n${json(r)}\nTell the user to run: git config core.hooksPath .githooks`
+              : json(r),
             r,
           );
         }
