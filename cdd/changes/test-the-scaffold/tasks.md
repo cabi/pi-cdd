@@ -2,16 +2,16 @@
 
 ## 1. Context
 
-- [ ] 1.1 Read the living spec and every file matching the proposal's Code: globs
+- [x] 1.1 Read the living spec and every file matching the proposal's Code: globs
 
 ## 2. Design
 
-- [ ] 2.1 Design gate — T1 cross-cutting NO, T2 architecture bet NO, T3 shared seam NO, T4 invariant risk NO, T5 parallel work NO — verify by this line naming all five answers
+- [x] 2.1 Design gate — T1 cross-cutting NO, T2 architecture bet NO, T3 shared seam NO, T4 invariant risk NO, T5 parallel work NO — verify by this line naming all five answers
 
 ## 3. Implementation
 
-- [ ] 3.1 S32: the scaffold round-trips (createChange → draft red on placeholders → minimal fill relative to template output → strict green → archiveChange merges and moves) — verify by node tests/smoke.mjs
-- [ ] 3.2 fixtureProposal helper replaces the 5 duplicated canonical-proposal strings — verify by node tests/smoke.mjs
+- [x] 3.1 S32: the scaffold round-trips (createChange → draft red on placeholders → minimal fill relative to template output → strict green → archiveChange merges and moves) — verify by node tests/smoke.mjs
+- [x] 3.2 fixtureProposal helper replaces the 5 duplicated canonical-proposal strings — verify by node tests/smoke.mjs
 
 ## Design Notes
 

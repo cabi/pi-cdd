@@ -107,6 +107,28 @@ check("S4", "fresh scaffold is draft-RED (placeholders count as unfilled)", () =
 
 // fill the change properly
 const fill = (rel, text) => fs.writeFileSync(path.join(sb.root, rel), text);
+// minimal-valid proposal shared by validator fixtures (dedup only — the scaffold contract is S32's job)
+const fixtureProposal = (name, what = "b", code = "x.js") => `# ${name}
+
+## Why
+
+p
+
+## What Changes
+
+- ${what}
+
+## Solutions Considered
+
+- stdlib covers it
+
+## Non-Goals
+
+- none beyond scope
+
+Done-When: d
+Code: ${code}
+`;
 fill("cdd/changes/add-greeting/proposal.md", `# add-greeting
 
 ## Why
@@ -186,7 +208,7 @@ check("S6", "pin file exists -> strict green", () => {
 const sb2 = sandbox();
 initStore(sb2.root, REPO, { ci: "none", hooks: false });
 createChange(sb2.root, "bad-pin", ["x"]);
-fill2("proposal.md", `# bad-pin\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: x.js\n`);
+fill2("proposal.md", fixtureProposal("bad-pin"));
 fill2("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\n\`\`\`gherkin\nFeature: R\n\nScenario: S\nGiven a fixture\nWhen it runs\nThen it works\n\`\`\`\n`);
 fill2("tasks.md", `# T\n\n## 1. Context\n\n- [ ] 1.1 c\n\n## 2. Design\n\n- [ ] 2.1 d\n\n## 3. Implementation\n\n- [ ] 3.1 t\n\n## Done When Traceability\n\n| d | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 c\n`);
 function fill2(rel, text) {
@@ -208,7 +230,7 @@ const tasks = [`# T`, ``, `## 1. Context`, ``, `- [ ] 1.1 c`, ``, `## 2. Design`
 for (let i = 1; i <= 9; i++) tasks.push(`- [ ] 3.${i} t${i} — verify by tests/acceptance/t${i}.js`);
 tasks.push(``, `## 4. Close`, ``, `- [ ] 4.1 c`);
 fs.writeFileSync(path.join(sb3.root, "cdd", "changes", "many-tasks", "tasks.md"), tasks.join("\n"));
-fs.writeFileSync(path.join(sb3.root, "cdd", "changes", "many-tasks", "proposal.md"), `# many-tasks\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: x.js\n`);
+fs.writeFileSync(path.join(sb3.root, "cdd", "changes", "many-tasks", "proposal.md"), fixtureProposal("many-tasks"));
 check("S9", ">8 implementation subtasks -> split warning", () => {
   const v = validateChange(sb3.root, "many-tasks", "draft");
   assert(v.warnings.some((w) => /split signal/.test(w)), formatVerdict(v));
@@ -229,7 +251,7 @@ check("S10", "archive merges ADDED into living spec and moves folder", () => {
 
 // second change: MODIFIED
 createChange(sb.root, "louder-greeting", ["greeting"]);
-fs.writeFileSync(path.join(sb.root, "cdd", "changes", "louder-greeting", "proposal.md"), `# louder-greeting\n\n## Why\n\np\n\n## What Changes\n\n- louder\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: cli.js\n`);
+fs.writeFileSync(path.join(sb.root, "cdd", "changes", "louder-greeting", "proposal.md"), fixtureProposal("louder-greeting", "louder", "cli.js"));
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "louder-greeting", "specs", "greeting", "spec.md"),
   `## MODIFIED Requirements\n\n### Requirement: Startup greeting\n\nLouder.\n\`\`\`gherkin\nFeature: Startup greeting\n\nScenario: shouts greeting\nGiven the CLI is started\nWhen the CLI starts\nThen it shouts the greeting\n  # Verified by: tests/acceptance/greeting-prints.test.js\n\`\`\`\n`,
@@ -250,7 +272,7 @@ check("S11", "MODIFIED replaces the living requirement", () => {
 
 // third change: REMOVED
 createChange(sb.root, "drop-greeting", ["greeting"]);
-fs.writeFileSync(path.join(sb.root, "cdd", "changes", "drop-greeting", "proposal.md"), `# drop-greeting\n\n## Why\n\np\n\n## What Changes\n\n- drop\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: cli.js\n`);
+fs.writeFileSync(path.join(sb.root, "cdd", "changes", "drop-greeting", "proposal.md"), fixtureProposal("drop-greeting", "drop", "cli.js"));
 fs.writeFileSync(
   path.join(sb.root, "cdd", "changes", "drop-greeting", "specs", "greeting", "spec.md"),
   `## REMOVED Requirements\n\n### Requirement: Startup greeting\n\nRemoval marker.\nReason: the greeting was removed from the product.\n`,
@@ -273,7 +295,7 @@ const sb4 = sandbox();
 initStore(sb4.root, REPO, { ci: "none", hooks: false });
 createChange(sb4.root, "close-tick", ["x"]);
 const f4 = (rel, t) => fs.writeFileSync(path.join(sb4.root, "cdd", "changes", "close-tick", rel), t);
-f4("proposal.md", `# close-tick\n\n## Why\n\np\n\n## What Changes\n\n- b\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: d\nCode: x.js\n`);
+f4("proposal.md", fixtureProposal("close-tick"));
 f4("specs/x/spec.md", `## ADDED Requirements\n\n### Requirement: R\n\nP.\n\`\`\`gherkin\nFeature: R\n\nScenario: S\nGiven a fixture\nWhen it runs\nThen it works\n  # Verified by: tests/acceptance/close-tick.test.js\n\`\`\`\n`);
 fs.writeFileSync(path.join(sb4.root, "tests", "acceptance", "close-tick.test.js"), "// pin\n");
 check("S20", "strict blocks unchecked work; archive auto-ticks the Close section", () => {
@@ -583,6 +605,34 @@ check("S31", "validateBoth: one evaluation, draft ⊆ strict by construction", (
     fs.writeFileSync(tasksPath, tasksRaw);
     fs.writeFileSync(deltaPath, deltaRaw);
   }
+});
+
+check("S32", "the scaffold round-trips: what the harness emits, the harness accepts", () => {
+  const s = sandbox();
+  initStore(s.root, REPO, { ci: "none", hooks: false });
+  createChange(s.root, "rt", ["gherkin"]);
+  const dir = path.join(s.root, "cdd", "changes", "rt");
+  const read = (f) => fs.readFileSync(path.join(dir, f), "utf8");
+  const put = (f, t) => fs.writeFileSync(path.join(dir, f), t);
+  // leg 1 — a fresh scaffold is draft-red on placeholders only (never structure)
+  const d0 = val.validateChange(s.root, "rt", "draft");
+  assert(!d0.ok && d0.errors.length === 3 && d0.errors.every((e) => /placeholders still unfilled/.test(e)), JSON.stringify(d0.errors));
+  // leg 2 — minimal fill, as in-place edits relative to the template output
+  const de = (t) => t.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>\n]+>/g, "x");
+  put("proposal.md", de(read("proposal.md")));
+  put("tasks.md", de(read("tasks.md")).replace(/- \[ \]/g, "- [x]"));
+  put("specs/gherkin/spec.md", de(read("specs/gherkin/spec.md")));
+  fs.mkdirSync(path.join(s.root, "tests", "acceptance"), { recursive: true });
+  fs.writeFileSync(path.join(s.root, "tests", "acceptance", "gherkin-x.test.js"), "// pin\n");
+  const s1 = val.validateChange(s.root, "rt", "strict");
+  assert(s1.ok, formatVerdict(s1));
+  // leg 3 — the one-call close merges the requirement and moves the folder
+  const a = archiveChange(s.root, "rt");
+  assert(a.ok, JSON.stringify(a));
+  const living = fs.readFileSync(path.join(s.root, "cdd", "specs", "gherkin", "spec.md"), "utf8");
+  assert(/### Requirement: x/.test(living), "living spec must hold the scaffolded requirement");
+  assert(!fs.existsSync(dir), "change folder must move");
+  assert(fs.readdirSync(path.join(s.root, "cdd", "archive")).some((d) => d.endsWith("-rt")), "archive folder must exist");
 });
 
 // --- the isolated-pi loop (spends tokens; opt-in) ------------------------------

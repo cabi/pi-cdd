@@ -10,7 +10,7 @@ Feature: The scaffold passes its own doors
 Scenario: A fresh scaffold is draft-red on placeholders only
   Given a store holding 1 change scaffolded by createChange with capability gherkin
   When cdd validate runs on the change in draft mode
-  Then the verdict is red with exactly 3 errors and every error names template placeholders still unfilled
+  Then the verdict is red with exactly 3 errors, one per scaffolded artifact, and every error names template placeholders still unfilled
   # Verified by: tests/smoke.mjs
 
 Scenario: A minimally filled scaffold goes strict-green
