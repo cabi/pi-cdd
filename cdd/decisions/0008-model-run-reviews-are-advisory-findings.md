@@ -44,3 +44,8 @@ Reconfirmed by single-source-law on 2026-10-21: the review points this ADR
 ships now render from lib/loop-law.mjs (ADR-0009) into these same surfaces
 (templates, instructions, ambient, help); the advisory-findings contract is
 unchanged.
+
+Reconfirmed by reviewer-not-author on 2026-10-21: rule 2b governs who runs
+a review (a cold sub-agent, with the same-session re-read as the recorded
+fallback), not what a review may decide — the advisory-findings contract
+of this ADR is unchanged; findings stay advisory, never verdicts.

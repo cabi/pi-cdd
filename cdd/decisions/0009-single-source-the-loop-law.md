@@ -48,3 +48,9 @@ fragments byte-identical to `cdd/rules.md` — including its historical line
 wraps — or RW5 breaks; and the module is now a shared dependency of five
 surfaces (templates, instructions, context, help, tests), so renaming an
 export is no longer local.
+
+Reconfirmed by reviewer-not-author on 2026-10-21: rule 2b joins rules 2/2a
+as canonical text in lib/loop-law.mjs, byte-pinned to cdd/rules.md like the
+rest of the law; the reviewer-independence facts (REVIEWER_INDEPENDENCE,
+FINDINGS_GRAMMAR.reviewerForms) extend the module this ADR rules
+single-source, and the three skills cite the law without restating it.

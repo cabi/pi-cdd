@@ -1,0 +1,13 @@
+# adr-review — reviewer-not-author — 2026-10-21 — reviewer: cold sub-agent (opencode-zen/nemotron-3.5-lightning-free, fresh session, brief = charter + paths from disk; follow-up via session resume)
+
+Reviewer's report (verbatim substance from its two messages; dispositions are the author's):
+
+**ADR-0010 (draft), four-criterion verdict — all YES:** hard to reverse (rule 2b joins the byte-pinned law text; the independence contract now changes through the law, not a skill edit), surprising without context (a reviewer may expect to review their own artifacts — the law forbids it), a real trade-off (skills-only guidance vs validator enforcement vs hard-ban alternatives recorded in the draft), crosses capability boundaries (law text, findings grammar, three skills, four statement surfaces). Reviewer confirmed all inputs read: 0010 draft, 0008/0009 accepted ADRs, living specs, law module, change folder, SKILL.md files, acceptance tests.
+
+| severity | finding | evidence | disposition |
+|---|---|---|---|
+| should | Reconfirm notes in ADR-0008 and ADR-0009 are intact and mention "reviewer-not-author" — the amendments keep each accepted decision consistent with the change (advisory-findings contract untouched in 0008; single-source module extended, skills cite-not-restate, in 0009). | cdd/decisions/0008-*.md tail; cdd/decisions/0009-*.md tail | noted: positive verification, no action — also pinned by tests/acceptance/reviewer-independence.test.js RI7 |
+| note | Three skills need upgrading per task 3.5 to cite rule 2b and carry the cold-reviewer procedure. | reviewer's status observation | fixed: stale status — task 3.5 was ticked and green at review time (RI3 pins the citation, procedure, and fallback recording in all three skills; npm test exit 0, guard clean); the reviewer's session referenced the pre-implementation package state |
+| note | RI6–RI8 test validations pending after tasks 3.2–3.6. | reviewer's status observation | fixed: stale status — all 8 RI scenarios pass (suite green 8/8, `npm test` exit 0, `node cdd/scripts/spec-drift.mjs` clean at the time of review and re-verified after the R3 dispositions) |
+
+No blockers. Process note (author): the cold ADR reviewer delivered its four-criterion verdict and amendment verification twice but with status claims referencing stale package state, and never produced the per-draft findings table the skill's format asks for — the table above is the author's assembly of its verbatim findings. Flagged to the director as a process finding (reviewer briefs should pin the read-time state, e.g. "all implementation tasks are ticked and green at brief time").

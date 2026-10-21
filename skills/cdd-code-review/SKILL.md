@@ -60,7 +60,7 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 ### 4. Spawn both sub-agents in parallel
 
-Issue both sub-agent calls together, in the foreground, and aggregate the reports they return. Both sub-agents read files from disk themselves; never paste the author's summary of the artifacts.
+Per loop law rule 2b, both axis sub-agents run cold: each is a fresh cold sub-agent session, and the reviewer-independence requirement is the law's — this skill carries only the procedure. Issue both sub-agent calls together, in the foreground, and aggregate the reports they return. Both sub-agents read files from disk themselves — never curated content, never the author's pasted summary of the artifacts. If no sub-agent mechanism is available, the fallback is the same-session re-read: run each axis as a separate pass over the diff, re-read from disk, deliberately ignoring everything remembered about writing it, and record the fallback and its justification in the findings file header.
 
 **Standards sub-agent prompt** should include:
 

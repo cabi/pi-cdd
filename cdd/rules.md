@@ -26,6 +26,13 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
     or green verdicts; gate authority stays with the deterministic
     validators and the human. An open blocker stops the loop at that step
     until disposed.
+2b. **Reviews run cold** — the reviewer is not the author of the
+    artifacts under review; every model-run review runs as a cold
+    sub-agent session: a fresh session, briefed only from paths on
+    disk (charter plus artifact paths, never curated content). A
+    same-session re-read is the lawful but weaker fallback, used
+    only with recorded justification, and it records its form and
+    justification in the findings file header.
 3. **Proposal** — ## Why, ## What Changes, one `Done-When:` line, one
    `Code: <globs>` line naming the implementation surface.
 4. **Delta** — `## ADDED | MODIFIED | REMOVED Requirements` →

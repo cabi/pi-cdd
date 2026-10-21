@@ -17,7 +17,7 @@ The failure mode this skill exists for: three well-formed artifacts about three 
 ## Process
 
 1. **Locate the change.** The name the caller passed, or — with several open changes — ask. All artifacts are read **from disk**; never review from the author's summary or the conversation's memory of drafting.
-2. **Run cold.** Spawn a sub-agent whose prompt contains only: the mode's charter below, the change's paths, and the instruction to read them. The author does not curate, paste, or pre-summarize anything for the reviewer. If no sub-agent mechanism is available, run the review as a separate pass: re-read every listed file from disk, deliberately ignoring everything remembered about writing them — and say "same-session review" in the report header, since it is the weaker form.
+2. **Run cold — loop law rule 2b.** The reviewer-independence requirement is the law's; this skill carries only the procedure. Spawn a cold sub-agent: a fresh session whose prompt contains only the mode's charter below, the change's paths, and the instruction to read them — briefed from paths on disk, never curated content, nothing pasted or pre-summarized by the author. The same-session re-read is the lawful but weaker fallback, for when no sub-agent mechanism exists: run the review as a separate pass, re-reading every listed file from disk and deliberately ignoring everything remembered about writing them, and record the fallback and its justification in the findings file header.
 3. **Read**, per mode:
    - *proposal*: `cdd/changes/<name>/proposal.md`, plus `cdd/specs/` (capability inventory) and `cdd/changes/` (work in flight).
    - *package*: `proposal.md`, `tasks.md`, every `specs/*/spec.md` delta, every touched `cdd/specs/<capability>/spec.md` living spec, and `cdd/rules.md`.
@@ -63,7 +63,7 @@ Quality checks (advisory, severity `should` unless ambiguity breaks verification
 ## Findings grammar
 
 ```markdown
-# <rN>-<kind>-review — <change> — <date> — reviewer: cold sub-agent | same session
+# <rN>-<kind>-review — <change> — <date> — reviewer: cold sub-agent | same-session re-read — <justification if fallback>
 
 | severity | finding | evidence | disposition |
 |---|---|---|---|

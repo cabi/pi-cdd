@@ -10,7 +10,7 @@ The failure mode this skill exists for: ADR bloat and ADR blindness. A decision 
 ## Process
 
 1. **Collect from disk**: every draft under `cdd/decisions/` whose frontmatter `status` is not `accepted` (or the files the caller named), plus every already-accepted ADR for context. Never review from a summary of the drafts.
-2. **Run cold.** Spawn a sub-agent whose prompt contains only the charter, the file paths, and the instruction to read them. If no sub-agent mechanism is available, run a separate pass re-reading from disk and mark the report "same-session review" — the weaker form.
+2. **Run cold — loop law rule 2b.** The reviewer-independence requirement is the law's; this skill carries only the procedure. Spawn a cold sub-agent: a fresh session whose prompt contains only the charter, the file paths, and the instruction to read them — briefed from paths on disk, never curated content. The same-session re-read is the lawful but weaker fallback, for when no sub-agent mechanism exists: run a separate pass re-reading the drafts from disk and deliberately ignoring everything remembered about writing them, and record the fallback and its justification in the findings file header.
 3. **Read the surrounding evidence**: the arch-extract report if it exists (interpreted section, derived decision candidates), the living specs the decision touches, and the `code:` globs each ADR claims.
 4. **Report findings** with the shared grammar (severity `blocker` / `should` / `note`, finding, evidence, disposition). When the drafts belong to an open change, write them to `cdd/changes/<name>/reviews/adr-review.md`; otherwise `cdd/decisions/reviews/<date>-adr-review.md`.
 5. **Proceed rule**: before the human resolves the batch, every `blocker` carries a disposition other than `open`.
@@ -39,7 +39,7 @@ Consistency with accepted ADRs:
 ## Findings grammar
 
 ```markdown
-# adr-review — <date> — reviewer: cold sub-agent | same session
+# adr-review — <date> — reviewer: cold sub-agent | same-session re-read — <justification if fallback>
 
 | severity | finding | evidence | disposition |
 |---|---|---|---|
