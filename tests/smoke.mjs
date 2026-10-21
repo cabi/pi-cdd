@@ -792,6 +792,26 @@ if (CddStatusView) {
   console.log("  skip S29 (no pi install found — status-ui.ts not loadable)");
 }
 
+// --- S33: bundled review skills are loadable pi skills ---------------------------
+check("S33", "skills/ holds the three review skills, frontmatter valid, manifest registered", () => {
+  const skills = ["cdd-code-review", "cdd-spec-review", "cdd-adr-review"];
+  for (const s of skills) {
+    const file = path.join(REPO, "skills", s, "SKILL.md");
+    assert(fs.existsSync(file), `skills/${s}/SKILL.md missing`);
+    const text = fs.readFileSync(file, "utf8");
+    const fm = text.match(/^---\n([\s\S]*?)\n---\n/);
+    assert(fm, `skills/${s}: no frontmatter block`);
+    const name = fm[1].match(/^name:\s*(\S+)$/m);
+    assert(name?.[1] === s, `skills/${s}: frontmatter name "${name?.[1]}" must match the directory (portable form)`);
+    const desc = fm[1].match(/^description:\s*"([\s\S]*)"\s*$/m);
+    assert(desc && desc[1].length > 20 && desc[1].length <= 1024, `skills/${s}: description missing or out of spec bounds`);
+    assert(/cdd/.test(desc[1]), `skills/${s}: description must scope routing to cdd projects`);
+    // the findings grammar travels in every review skill
+    assert(/severity/.test(text) && /disposition/.test(text) && /blocker/.test(text), `skills/${s}: findings grammar (severity/disposition/blocker) missing`);
+  }
+  const spec = JSON.parse(fs.readFileSync(path.join(REPO, "package.json"), "utf8"));
+  assert(Array.isArray(spec.pi?.skills) && spec.pi.skills.includes("./skills"), "package.json pi.manifest must register ./skills");
+});
 // --- report ---------------------------------------------------------------------
 // --- report ---------------------------------------------------------------------
 

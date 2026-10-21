@@ -93,6 +93,7 @@ lib/context.mjs   ambient block builder
 lib/templates.mjs  rules.md, CI files, hook, artifact scaffolds
 cdd-src/          the files copied into adopting projects
 scripts/          standalone ports (spec-drift, spec-extract, arch-extract)
+skills/            bundled pi skills: cdd-code-review, cdd-spec-review (R1/R2), cdd-adr-review — model-run review procedures for the loop's review points
 tests/            smoke.mjs (libs, ambient, guard) + tools.mjs (merged-tool
                   suite: every op, fill-ins, help, static list); npm test runs
                   both; RUN_PI_LOOP=1 adds the isolated-pi checks (spends tokens)
