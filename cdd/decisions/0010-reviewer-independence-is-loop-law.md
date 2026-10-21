@@ -1,5 +1,5 @@
 ---
-status: draft
+status: accepted
 code: lib/loop-law.mjs, cdd/rules.md, skills/cdd-spec-review/SKILL.md, skills/cdd-code-review/SKILL.md, skills/cdd-adr-review/SKILL.md
 ---
 # Make reviewer independence loop law (rule 2b)
@@ -42,3 +42,8 @@ stays procedural and may evolve without an ADR, as long as it cites rule
 a fallback review carries its justification, so a reader can weigh it
 accordingly. Drafted `status: draft` for the human sponsor to resolve at
 Close.
+
+Resolved accepted by the human sponsor on 2026-10-21: reviewer
+independence is the permanent contract of the loop — a cold sub-agent
+reviewer by default, the recorded same-session fallback; a later change
+wanting same-session reviews as the default must supersede this ADR.
