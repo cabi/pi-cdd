@@ -104,4 +104,4 @@ Evidence held at gate time (feeds the proposal's Why): local Node 24.4.1 `npm te
 - [x] 4.2 ADR review — if this change drafted or amended ADRs under `cdd/decisions/`, run skill `cdd-adr-review` on them (findings at `reviews/adr-review.md` per that skill); if none, record the skip on this line, verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line
   - Skip recorded: no ADR drafted or amended — cdd/decisions/ untouched; the proposal cites ADR-0008/0009/0010 (following them, per guard A1), which is citation, not amendment.
 - [x] 4.3 cdd validate strict green, guard green
-- [ ] 4.4 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.4 Archive — pair-commit: feature commit, then archive commit
