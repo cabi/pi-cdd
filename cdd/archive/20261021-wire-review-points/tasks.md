@@ -82,7 +82,7 @@ Short design (T1/T2 = YES):
 
 ## 4. Close
 
-- [ ] 4.1 Change code review — run skill cdd-code-review over the feature diff; findings at reviews/r3-code-review.md; dispose every blocker with recorded dispositions, verify by reviews/r3-code-review.md holding no open blocker
-- [ ] 4.2 ADR review — this change drafted ADR-0008, so run skill cdd-adr-review on it; findings at reviews/adr-review.md per that skill; dispose every blocker, verify by reviews/adr-review.md holding no open blocker
-- [ ] 4.3 cdd validate strict green, guard green
-- [ ] 4.4 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.1 Change code review — run skill cdd-code-review over the feature diff; findings at reviews/r3-code-review.md; dispose every blocker with recorded dispositions, verify by reviews/r3-code-review.md holding no open blocker
+- [x] 4.2 ADR review — this change drafted ADR-0008, so run skill cdd-adr-review on it; findings at reviews/adr-review.md per that skill; dispose every blocker, verify by reviews/adr-review.md holding no open blocker
+- [x] 4.3 cdd validate strict green, guard green
+- [x] 4.4 Archive — pair-commit: feature commit, then archive commit
