@@ -408,8 +408,8 @@ check("S30", "law.mjs owns the tasks grammar: template parses, duplicates fail, 
   // template ↔ parser pin: the scaffolded tasks.md parses as the canonical shape
   const t = lib.parseTasks(tasksTemplate("x"));
   assert(JSON.stringify(t.sections.map((s) => s.num)) === "[1,2,3,4]", `skeleton wrong: ${JSON.stringify(t.sections.map((s) => s.num))}`);
-  assert(t.close && t.close.items.length === 2 && t.close.items.every((i) => i.box === " "), "Close section must hold the two unticked closing boxes");
-  assert(t.implementation && t.implementation.items.length === 1, "one scaffolded implementation task");
+  assert(t.close && t.close.items.length === 4 && t.close.items.every((i) => i.box === " "), "Close section must hold the four unticked closing boxes (code review, ADR review, validate, archive)");
+  assert(t.implementation && t.implementation.items.length === 2, "scaffolded implementation: task 3.1 Change review plus one placeholder task");
   // regression: the old template's duplicated Close header now fails validation
   const dup = tasksTemplate("x").replace("## Done When Traceability\n\n| criterion |", "## 4. Close\n\n## Done When Traceability\n\n| criterion |");
   assert(lib.parseTasks(dup).sections.filter((s) => s.num === 4).length === 2, "fixture must carry the duplicate Close");
@@ -812,8 +812,23 @@ check("S33", "skills/ holds the three review skills, frontmatter valid, manifest
   const spec = JSON.parse(fs.readFileSync(path.join(REPO, "package.json"), "utf8"));
   assert(Array.isArray(spec.pi?.skills) && spec.pi.skills.includes("./skills"), "package.json pi.manifest must register ./skills");
 });
-// --- report ---------------------------------------------------------------------
-// --- report ---------------------------------------------------------------------
+
+// --- S34: the loop law scaffolds its review points -------------------------------
+check("S34", "tasks template wires the review points into the scaffold", () => {
+  const t = tasksTemplate("x");
+  // R2: the Change review task precedes the first implementation placeholder
+  const r2 = t.indexOf("3.1 Change review");
+  assert(r2 !== -1 && r2 < t.indexOf("- [ ] 3.2 <task>"), "task 3.1 Change review must sit before the first implementation task");
+  assert(/package mode/.test(t) && /r2-change-review\.md/.test(t) && /no blocker is open/.test(t), "3.1 must run cdd-spec-review in package mode with a checkable no-blocker condition");
+  // R3 + ADR review: Close gates archive
+  const closeAt = t.indexOf("## 4. Close");
+  const reviewAt = t.indexOf("4.1 Change code review");
+  const adrAt = t.indexOf("4.2 ADR review");
+  const validateAt = t.indexOf("4.3 cdd validate strict green");
+  const archiveAt = t.indexOf("4.4 Archive");
+  assert(closeAt !== -1 && reviewAt > closeAt && adrAt > reviewAt && validateAt > adrAt && archiveAt > validateAt, "Close must order code review and ADR review before validate and archive");
+  assert(/r3-code-review\.md/.test(t) && /adr-review\.md/.test(t), "Close review tasks must name their findings files");
+});
 
 sb.dispose();
 sb2.dispose();
