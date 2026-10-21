@@ -59,7 +59,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ADR_STATUSES, CODE_LINE, PIN_COMMENT, TASK_LIMIT, checkFenceBody, extractFences, parseDecisionFrontmatter, splitTaskSections } from './law.mjs';
+import { ADR_STATUSES, CODE_LINE, PIN_COMMENT, TASK_LIMIT, checkFenceBody, extractFences, isPlaceholderPin, parseDecisionFrontmatter, splitTaskSections } from './law.mjs';
 
 const argv = process.argv.slice(2);
 const msgIdx = argv.indexOf('--commit-msg');
@@ -232,9 +232,20 @@ const stagedSet = new Set(
   staged && isRepo ? (git(['diff', '--cached', '--name-only']) ?? '').split('\n').filter(Boolean) : []
 );
 const specsToCheck = preCommit ? allSpecs.filter((s) => stagedSet.has(s)) : allSpecs;
+// A placeholder pin (scaffold marker, law.mjs) inside an OPEN delta is
+// template text, not a claim: skip it here and report the skip after the
+// verdict — a skip is never silent. Living specs (and archive = frozen
+// history, already excluded from deltaSpecs) keep full strictness, and an
+// unrecognized marker shape fails L1 everywhere.
+const placeholderSkips = new Map(); // open change name -> skipped pin count
 for (const specRel of specsToCheck) {
+  const openChange = specRel.match(/^cdd\/changes\/([^/]+)\//)?.[1] ?? null;
   for (const { pin, resolved } of pinsOf.get(specRel)) {
     if (!resolved) {
+      if (openChange && isPlaceholderPin(pin)) {
+        placeholderSkips.set(openChange, (placeholderSkips.get(openChange) ?? 0) + 1);
+        continue;
+      }
       issues.push(`[L1] ${specRel} pins "${pin}" but that file does not exist — restore the acceptance test or update the Verified by line`);
     }
   }
@@ -583,3 +594,7 @@ console.log(
     ? `spec-drift: clean (${allSpecs.length} spec${allSpecs.length > 1 ? 's' : ''}, ${accRel.length} acceptance test${accRel.length === 1 ? '' : 's'}, ${staged ? 'staged' : 'full'} scan)`
     : 'spec-drift: no specs found — nothing to guard'
 );
+// informational, never silent: skipped scaffold placeholders in open deltas
+for (const [change, n] of placeholderSkips) {
+  console.log(`spec-drift: ${n} placeholder pin(s) skipped in open delta ${change} — expected until implementation`);
+}

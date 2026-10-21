@@ -6,8 +6,9 @@
 //
 // Chapter: tasks.md — the four-step skeleton and its checkboxes.
 
-/** Law grammar version — bump when the grammar changes; cdd init refreshes adopting copies. */
-export const LAW_VERSION = 1;
+/** Law grammar version — bump when the grammar changes; cdd init refreshes adopting copies.
+ * v2: placeholder pins in open deltas are skip-reported, not L1 failures (isPlaceholderPin). */
+export const LAW_VERSION = 2;
 
 /** Implementation subtasks above this warn — the design-gate split signal (rule 6). */
 export const SPLIT_SIGNAL = 8;
@@ -68,6 +69,24 @@ const CLOSE_FENCE = /^\s*```\s*$/;
  * never backticked. Every door builds its line scanner from this source.
  */
 export const PIN_COMMENT = /^\s*#\s*Verified by[*:]*\s*(\S+)\s*$/;
+
+/**
+ * A scaffold placeholder pin: a `# Verified by:` pin whose path carries the
+ * scaffold's placeholder marker — the angle-bracket form of the words
+ * `scenario` or `name` (lib/templates.mjs), the same token family the draft
+ * door treats as unfilled (lib/validate.mjs). The guard skips such pins in
+ * OPEN deltas (template text, not a claim) and never skips them in living
+ * specs. Any other angle-bracket shape is not a placeholder: it fails L1
+ * everywhere, so the guard cannot silently green an unrecognized token.
+ */
+export const PLACEHOLDER_PIN = /<(?:scenario|name)>/;
+export const isPlaceholderPin = (pin) => PLACEHOLDER_PIN.test(pin);
+
+
+/** An indented, bracket-tagged guard issue line (`  [L1] …`): the stderr
+ * shape the pre-existing-red verdict collects (lib/store.mjs imports it;
+ * doors and tools never restate the shape). */
+export const ISSUE_LINE = /^\s*\[/;
 
 /** The Code-glob line: `Code: <globs>` (optionally a list item). Global — use with matchAll. */
 export const CODE_LINE = /^\s*(?:-\s+)?Code:\s*(.+)$/gm;

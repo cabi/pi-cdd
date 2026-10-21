@@ -24,6 +24,12 @@ import { helpText, renderHelp } from "./lib/help.mjs";
 const EXT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 
 const json = (v) => JSON.stringify(v, null, 2);
+/** Pre-existing-red warning block: a scaffold result's preexistingRed findings,
+ * marked as not the change's cause, with a fix-or-accept hint. Empty → silent. */
+const redBlock = (r) =>
+  r.preexistingRed?.length
+    ? `\npre-existing red — this change did not cause it:\n${r.preexistingRed.join("\n")}\nFix the store first, or knowingly accept the red (record it in proposal.md).`
+    : "";
 const result = (text, data) => ({
   content: [{ type: "text", text }],
   details: data,
@@ -185,9 +191,11 @@ export default function cddExtension(pi: ExtensionAPI) {
         return;
       }
       const r = createChange(ctx.cwd, name, caps);
-      const text = r.ok ? `change scaffolded.\n${json(r)}\nFill proposal.md, specs/*/spec.md, tasks.md — then validate via the cdd tool.` : json(r);
-      if (ctx.hasUI) ctx.ui.notify(r.ok ? `change ${name} scaffolded` : `cdd-new failed: ${r.error}`, r.ok ? "info" : "error");
-      else console.log(text);
+      const text = r.ok ? `change scaffolded.\n${json(r)}\nFill proposal.md, specs/*/spec.md, tasks.md — then validate via the cdd tool.${redBlock(r)}` : json(r);
+      if (ctx.hasUI) {
+        ctx.ui.notify(r.ok ? `change ${name} scaffolded` : `cdd-new failed: ${r.error}`, r.ok ? "info" : "error");
+        if (r.ok && r.preexistingRed?.length) ctx.ui.notify(`pre-existing red — this change did not cause it:\n${r.preexistingRed.join("\n")}\nFix the store first, or knowingly accept the red (record it in proposal.md).`, "error");
+      } else console.log(text);
     },
   });
 
@@ -275,7 +283,7 @@ export default function cddExtension(pi: ExtensionAPI) {
           if (!name.ok) return fail(name.error);
           if (!name.value) return fail('op "new" requires "name"');
           const r = createChange(ctx.cwd, name.value, o.value.capabilities);
-          return { ...result(r.ok ? `change scaffolded:\n${json(r)}` : json(r), r), isError: !r.ok };
+          return { ...result(r.ok ? `change scaffolded:\n${json(r)}${redBlock(r)}` : json(r), r), isError: !r.ok };
         }
         case "validate": {
           const o = parseOptions(params.options, ["change", "mode"]);
