@@ -125,18 +125,18 @@ When changing what a tool does, treat `OPS_DOC` as the contract:
 
 ## Door-script sync (the law, ADR-0007)
 
-`scripts/law.mjs` states every door-side grammar; `spec-drift.mjs`,
+`scripts/grammar-law.mjs` states every door-side grammar; `spec-drift.mjs`,
 `spec-extract.mjs`, and `arch-extract.mjs` import it. The four files are
 copied verbatim into adopting stores (`DOOR_SCRIPTS` in
 `lib/templates.mjs`).
 
-- Edit grammars in `scripts/law.mjs`, never in `cdd/scripts/` — copies
+- Edit grammars in `scripts/grammar-law.mjs`, never in `cdd/scripts/` — copies
   are refreshed, not merged. Bump `LAW_VERSION` when the grammar changes.
 - After touching any door script, refresh this repo's own copies
   (`cdd init` on the repo) and commit extension copy + store copy
   together — the guard treats them as a set.
 - Tests that copy door scripts into a sandbox copy the whole set
-  (`law.mjs` is an import, not a standalone).
+  (`grammar-law.mjs` is an import, not a standalone).
 
 ## Known debts (one-pass-one-close review, 2026-10-20)
 

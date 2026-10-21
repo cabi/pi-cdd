@@ -17,7 +17,7 @@ const ctx = await import(path.join(REPO, "lib", "context.mjs"));
 const storeMod = await import(path.join(REPO, "lib", "store.mjs"));
 const helpMod = await import(path.join(REPO, "lib", "help.mjs"));
 const lawMod = await import(path.join(REPO, "lib", "loop-law.mjs"));
-const lawPath = path.join(REPO, "scripts", "law.mjs");
+const lawPath = path.join(REPO, "scripts", "grammar-law.mjs");
 const law = fs.existsSync(lawPath) ? await import(lawPath) : null;
 
 let pass = 0;

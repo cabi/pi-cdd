@@ -59,7 +59,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ADR_STATUSES, CODE_LINE, PIN_COMMENT, TASK_LIMIT, checkFenceBody, extractFences, isPlaceholderPin, parseDecisionFrontmatter, splitTaskSections } from './law.mjs';
+import { ADR_STATUSES, CODE_LINE, PIN_COMMENT, TASK_LIMIT, checkFenceBody, extractFences, isPlaceholderPin, parseDecisionFrontmatter, splitTaskSections } from './grammar-law.mjs';
 
 const argv = process.argv.slice(2);
 const msgIdx = argv.indexOf('--commit-msg');
@@ -121,7 +121,7 @@ function lastCommit(file) {
 
 // --- collect specs: pins + code globs -------------------------------------------
 const issues = [];
-const pinRe = new RegExp(PIN_COMMENT.source, 'gm'); // the one pin dialect (law.mjs)
+const pinRe = new RegExp(PIN_COMMENT.source, 'gm'); // the one pin dialect (grammar-law.mjs)
 
 function specsIn(dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -232,7 +232,7 @@ const stagedSet = new Set(
   staged && isRepo ? (git(['diff', '--cached', '--name-only']) ?? '').split('\n').filter(Boolean) : []
 );
 const specsToCheck = preCommit ? allSpecs.filter((s) => stagedSet.has(s)) : allSpecs;
-// A placeholder pin (scaffold marker, law.mjs) inside an OPEN delta is
+// A placeholder pin (scaffold marker, grammar-law.mjs) inside an OPEN delta is
 // template text, not a claim: skip it here and report the skip after the
 // verdict — a skip is never silent. Living specs (and archive = frozen
 // history, already excluded from deltaSpecs) keep full strictness, and an
@@ -397,7 +397,7 @@ if (isRepo && !staged) {
 // ==============================================================================
 // G — gherkin fences: door 3 (full scan) re-parses every scenario fence with
 // the official parser and enforces the full cdd subset — the same law and the
-// same wording as `cdd validate` (law.mjs). Doors 1-2 (staged/commit-msg)
+// same wording as `cdd validate` (grammar-law.mjs). Doors 1-2 (staged/commit-msg)
 // stay zero-dependency: they never import it.
 // ==============================================================================
 

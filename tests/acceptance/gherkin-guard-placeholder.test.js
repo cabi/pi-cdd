@@ -128,7 +128,7 @@ await check("P4", "unrecognized marker shape in an open delta stays red", () => 
 
 await check("P5", "store copies stay byte-identical to the law sources", () => {
   const pairs = [
-    ["cdd/scripts/law.mjs", "scripts/law.mjs"],
+    ["cdd/scripts/grammar-law.mjs", "scripts/grammar-law.mjs"],
     ["cdd/scripts/spec-drift.mjs", "scripts/spec-drift.mjs"],
   ];
   for (const [storeCopy, source] of pairs) {
@@ -136,7 +136,7 @@ await check("P5", "store copies stay byte-identical to the law sources", () => {
     const b = fs.readFileSync(path.join(REPO, source));
     assert(a.equals(b), `${storeCopy} must be byte-identical to ${source}`);
   }
-  const law = fs.readFileSync(path.join(REPO, "scripts", "law.mjs"), "utf8");
+  const law = fs.readFileSync(path.join(REPO, "scripts", "grammar-law.mjs"), "utf8");
   assert(/LAW_VERSION = 2/.test(law), "the law must report LAW_VERSION 2");
 });
 

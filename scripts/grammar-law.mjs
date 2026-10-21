@@ -1,4 +1,4 @@
-// law.mjs — the one law behind every door. Zero dependencies, plain
+// grammar-law.mjs — the one law behind every door. Zero dependencies, plain
 // Node >= 20 (ADR-0001): lib (door 1) imports it from the extension tree,
 // the copied door scripts (cdd/scripts/) import their own copy. A grammar
 // defined here is defined exactly once — doors adapt it, they never restate

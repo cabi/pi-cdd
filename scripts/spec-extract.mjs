@@ -30,7 +30,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { CODE_LINE, PIN_COMMENT } from './law.mjs';
+import { CODE_LINE, PIN_COMMENT } from './grammar-law.mjs';
 
 // --- args -----------------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -90,7 +90,7 @@ const files = isRepo
   : walk(root);
 // the contract itself (cdd/) is not territory; .git/node_modules never are
 
-// --- collect specs: pins + code globs (the grammar lives in law.mjs) ------------
+// --- collect specs: pins + code globs (the grammar lives in grammar-law.mjs) ------------
 const pinRe = new RegExp(PIN_COMMENT.source, 'gm'); // the one pin dialect — strict pins only
 
 function specsIn(dir, acc = []) {

@@ -20,7 +20,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseDecisionFrontmatter } from './law.mjs';
+import { parseDecisionFrontmatter } from './grammar-law.mjs';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();

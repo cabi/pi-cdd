@@ -176,7 +176,7 @@ check("D4", "unresolvable parser: exactly 1 message with the install command", (
   // Copy the script somewhere with no resolvable @cucumber/gherkin.
   const iso = fs.mkdtempSync(path.join(os.tmpdir(), "cdd-d3-iso-"));
   fs.copyFileSync(path.join(root, "cdd", "scripts", "spec-drift.mjs"), path.join(iso, "spec-drift.mjs"));
-  fs.copyFileSync(path.join(root, "cdd", "scripts", "law.mjs"), path.join(iso, "law.mjs"));
+  fs.copyFileSync(path.join(root, "cdd", "scripts", "grammar-law.mjs"), path.join(iso, "grammar-law.mjs"));
   const r = runScan(root, path.join(iso, "spec-drift.mjs"));
   assert(r.code !== 0, `expected non-zero exit, got 0:\n${r.out}`);
   const lines = r.out.split("\n").filter((l) => /npm install --save-dev @cucumber\/gherkin/.test(l));
@@ -190,7 +190,7 @@ check("D5", "--staged runs without a resolvable parser", () => {
   const root = gitRepo();
   const iso = fs.mkdtempSync(path.join(os.tmpdir(), "cdd-d3-iso-"));
   fs.copyFileSync(path.join(root, "cdd", "scripts", "spec-drift.mjs"), path.join(iso, "spec-drift.mjs"));
-  fs.copyFileSync(path.join(root, "cdd", "scripts", "law.mjs"), path.join(iso, "law.mjs"));
+  fs.copyFileSync(path.join(root, "cdd", "scripts", "grammar-law.mjs"), path.join(iso, "grammar-law.mjs"));
   fs.writeFileSync(path.join(root, "touch.txt"), "x");
   execFileSync("git", ["-C", root, "add", "touch.txt"]);
   const r = runScan(root, path.join(iso, "spec-drift.mjs"), ["--staged"]);

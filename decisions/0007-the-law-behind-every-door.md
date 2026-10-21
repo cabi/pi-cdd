@@ -1,6 +1,6 @@
 ---
 status: accepted
-code: scripts/law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, lib/gherkin.mjs, lib/validate.mjs, lib/store.mjs, lib/templates.mjs, index.ts
+code: scripts/grammar-law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, lib/gherkin.mjs, lib/validate.mjs, lib/store.mjs, lib/templates.mjs, index.ts
 ---
 # The law: one grammar module behind every door
 
@@ -8,7 +8,7 @@ code: scripts/law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts
 grammar is defined. The fence scanner and mask, the pin dialect,
 parse-error shaping, the gherkin subset laws, the tasks skeleton, the
 `Code:` glob line, and decision frontmatter are stated exactly once, in
-`scripts/law.mjs`. Doors and tools import it; none restate it.
+`scripts/grammar-law.mjs`. Doors and tools import it; none restate it.
 
 **Why.** The grammar lived in three dialects and they drifted: the
 guard accepted backticked pins door 1 rejected, `spec-extract` counted
@@ -29,7 +29,7 @@ or vendored `@cucumber/gherkin`; the commit doors never import it
 
 **Consequences.** Amends 0006's consequences rather than superseding
 them: the subset laws are now enforced by every parser-bearing door, so
-door 3's verdict matches door 1's wording exactly. `law.mjs` carries a
+door 3's verdict matches door 1's wording exactly. `grammar-law.mjs` carries a
 `LAW_VERSION` marker — bump it when the grammar changes. Door-side
 tests that copy scripts into sandboxes must copy the set, since the
 guard and extractors import the law.
@@ -40,3 +40,7 @@ draft projection filters them. The draft ⊆ strict subset holds by
 construction — the draft verdict is the strict run minus the tagged
 errors — and the acceptance tests pin it from the outside (smoke S31,
 extension-door1 E2), so a mislabeled check fails loudly there.
+
+Amended by pin-law-rename on 2026-10-21: the law module is now
+`scripts/grammar-law.mjs` (self-describing rename, decision unchanged — one
+law behind every door).
