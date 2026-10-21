@@ -5,7 +5,7 @@
   "description": "Contract-driven development as a pi extension: cdd store, Gherkin-validated scenario specs, ambient method context, zero-dependency door scripts",
   "type": "module",
   "scripts": {
-    "test": "node tests/smoke.mjs && node tests/tools.mjs"
+    "test": "node tests/smoke.mjs && node tests/tools.mjs && node --test"
   },
   "engines": {
     "node": ">=20"

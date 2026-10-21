@@ -1,0 +1,26 @@
+# r3-code-review — run-acceptance-suites — 2026-10-21 — reviewer: cold sub-agent
+
+Fixed point: HEAD `1bfd4a2` (uncommitted work on main). Diff: `git diff HEAD` (package.json) plus untracked `tests/acceptance/run-acceptance.test.js` and the change folder. Spec source: `cdd/changes/run-acceptance-suites/` (proposal.md, specs/acceptance/spec.md, tasks.md, reviews/r2-change-review.md) plus living specs under `cdd/specs/`.
+
+## Standards
+
+| severity | finding | evidence | disposition |
+|---|---|---|---|
+| note | The new suite's `check(id, name, ok, detail)` helper takes a boolean + detail string, while the six existing suites share a `check(id, name, fn)` helper that throws on failure. A second harness shape is introduced where one convention already exists (proposal Non-Goals decline migrating harnesses, but do not call for a new shape). | tests/acceptance/run-acceptance.test.js:24 vs tests/acceptance/review-wiring.test.js:22 | won't-fix: boolean+detail shape serves the probe checks (values pre-computed); throw-style migration is churn no criterion demands, and the Non-Goal keeps each suite's harness its own concern |
+| note | RA2's probe spawns `node --test` over the whole repo, re-running all six other acceptance suites as a side effect — the pin suite takes ~800 ms and its runtime is coupled to the other suites' health. Inherent to the observable-sweep approach, but worth recording. | tests/acceptance/run-acceptance.test.js:44–56 | won't-fix: observing the sweep means running the sweep; ~800 ms, recursion-guarded; coupling to suite health is intended signal — a broken suite should fail the pin |
+
+## Spec
+
+| severity | finding | evidence | disposition |
+|---|---|---|---|
+| should | tasks.md 3.3 describes the entrypoint as `node --test tests/acceptance/` (a directory argument), but the proposal explicitly rejected directory arguments ("directory arguments are not discovery roots on any pinned version") and the implementation is bare `node --test`. The ticked task's verify-by text names a rejected approach. | tasks.md 3.3 vs proposal.md "Solutions Considered" vs package.json `"test"` | fixed: 3.3 re-worded to the bare `node --test` invocation with the rejection rationale inline |
+| note | Scenario "the sweep needs no per-suite registration" is pinned only by RA1's string check (the script holds a bare `node --test` segment), not by an observable "a new suite file executes without any other edit". The mechanism check is sound today (bare `node --test` implies recursive `*.test.js` discovery), but no check adds a file and observes discovery. | specs/acceptance/spec.md, Scenario: the sweep needs no per-suite registration; run-acceptance.test.js RA1 | won't-fix: RA2 enumerates the directory at run time and asserts every file present ran — a suite added tomorrow is a new readdir entry checked with no other edit; this suite itself landed with zero registration |
+| note | Scenario "npm test runs the whole acceptance sweep" — "a suite that fails makes npm test exit nonzero" is observed indirectly: RA3 asserts `node --test` exits nonzero on a temp failing suite, and RA1 asserts npm test ends with bare `node --test`; `npm test`'s own exit code is never observed directly. The chain covers it, but the scenario's literal outcome is not the thing measured. | specs/acceptance/spec.md, Scenario: npm test runs the whole acceptance sweep; run-acceptance.test.js RA1+RA3 | won't-fix: RA1 (npm test ends in bare node --test, && propagates) + RA3 (runner exits nonzero on a failing suite) compose the outcome; direct observation would require making npm test fail inside npm test |
+| note | Scenario "CI runs the project test entrypoint" is pinned only against `.github/workflows/cdd.yml` (RA4); the repo also carries `.gitlab-ci.yml`, which runs `npm test --if-present` and is not pinned. The scenario's "the repository's CI workflow" is ambiguous about which CI. | specs/acceptance/spec.md, Scenario: CI runs the project test entrypoint; run-acceptance.test.js RA4 | fixed: RA4 extended to pin both .github/workflows/cdd.yml and .gitlab-ci.yml run npm test |
+| note | The delta pins "every suite matching tests/acceptance/*.test.js executes", but bare `node --test` discovers `*.test.js` from the repo root — a superset of the stated surface. No other `*.test.js` files exist today, so behavior matches, but the sweep's scope is broader than the spec names (the proposal acknowledges "discovery of *.test.js from the repo root"). | specs/acceptance/spec.md, Requirement: Acceptance suites run with the project tests; proposal.md "Solutions Considered" | won't-fix: superset is the price of node-20 compatibility, recorded in Solutions Considered; no stray *.test.js exist (verified), and RA2's dynamic enumeration pins the spec-named surface regardless |
+
+## Summary
+
+Standards: 2 findings (0 blocker, 0 should, 2 note) — worst: a second `check()` harness shape diverges from the six existing suites. Spec: 5 findings (0 blocker, 1 should, 4 note) — worst: tasks.md 3.3 names a rejected directory-argument invocation that contradicts the proposal and the implemented bare `node --test`.
+
+No blocker is open. Archive may proceed; the one `should` (tasks.md 3.3 wording) is a documentation-coherence fix, not a gate.
