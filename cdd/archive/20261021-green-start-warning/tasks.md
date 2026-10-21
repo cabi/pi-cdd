@@ -46,4 +46,4 @@ Design (for T1/T3/T4):
 - [x] 4.1 Change code review — run skill `cdd-code-review` over the diff since the change branched; findings at `reviews/r3-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-code-review.md holding no open blocker
 - [x] 4.2 ADR review — if this change drafted or amended ADRs under `cdd/decisions/`, run skill `cdd-adr-review` on them (findings at `reviews/adr-review.md` per that skill); if none, record the skip on this line, verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line — SKIP: no ADRs drafted or amended (director-confirmed at milestone 3; the LAW_VERSION bump is law-internal, not a decision record)
 - [x] 4.3 cdd validate strict green, guard green
-- [ ] 4.4 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.4 Archive — pair-commit: feature commit, then archive commit
