@@ -19,9 +19,12 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
     implementation task, skill `cdd-spec-review` runs in package mode
     (findings: `reviews/r2-change-review.md`). R3: at Close before
     archive, skill `cdd-code-review` runs (findings:
-    `reviews/r3-code-review.md`), and if the change drafted or amended
-    ADRs, skill `cdd-adr-review` runs on them (findings:
-    `reviews/adr-review.md`). A review reports findings with severity
+    `reviews/r3-code-review.md`), and if the change drafted an ADR or amended one's decision content — a Reconfirmed-by paragraph or a typo fix does not count,
+    skill `cdd-adr-review` runs on them (findings:
+    `reviews/adr-review.md`). The two decisions directories are
+    split by role: root decisions/ holds ADRs 0001–0007, the product
+    decisions; cdd/decisions/ holds ADRs 0008 and later, the loop
+    decisions. A review reports findings with severity
     blocker/should/note and disposition fixed:/open/won't-fix:, never red
     or green verdicts; gate authority stays with the deterministic
     validators and the human. An open blocker stops the loop at that step

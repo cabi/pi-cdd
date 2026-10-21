@@ -56,3 +56,7 @@ Reconfirmed by runner-ergonomics on 2026-10-21: R3 ran as two cold
 sub-agent sessions (standards and spec separately) with briefs from disk;
 this change's text edits to rule 2a do not touch rule 2b, and the cold
 reviews were performed, not assumed.
+Reconfirmed by runner-ergonomics (archive pair-commit) on 2026-10-21: the
+cdd/rules.md mirror rewrite travels in this archive commit with the
+merged living spec — the mirror text is the law's own render, not a
+review-wiring change; rule 2b and the cold-review norm are untouched.

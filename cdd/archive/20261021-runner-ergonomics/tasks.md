@@ -49,7 +49,7 @@ Design Notes (per-item shape, director-confirmed at handshake):
 
 - [x] 4.1 Change code review — run skill `cdd-code-review` over the diff since the change branched; findings at `reviews/r3-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-code-review.md holding no open blocker
 - [x] 4.2 ADR review — this change rewords law text only and drafts/amends no ADR beyond citation (ADR-0007 is cited, not amended): skip recorded on this line per the reworded trigger (a decision-content change would fire; this is not one), verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line
-- [ ] 4.3 cdd validate strict green, guard green
-- [ ] 4.4 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.3 cdd validate strict green, guard green
+- [x] 4.4 Archive — pair-commit: feature commit, then archive commit
 
 <!-- split-considered: kept whole because the five traps are one ergonomics batch through one loop — the 14 boxes are the design-gate record (2), RED pin authoring (4), implementation (8, reusing the pin files), and Close (4) of a single scoped change; splitting would split the trap batch the mission scoped together -->
