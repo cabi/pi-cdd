@@ -124,6 +124,69 @@ await check("P4", "unrecognized marker shape in an open delta stays red", () => 
   assert(skipLines(r.out).length === 0, "an unrecognized shape is not a placeholder — no skip line");
 });
 
+// --- runner-ergonomics pins: clean line counts files; expected-L2 hint --------
+
+const l2Lines = (out) => out.split("\n").filter((l) => l.includes("[L2]"));
+const hintLines = (out) =>
+  out.split("\n").filter((l) => !l.includes("[L2]") && /expected mid-Close/.test(l));
+
+function l2Repo(deltaCode, stale = true) {
+  const root = gitRepo();
+  fs.writeFileSync(path.join(root, "tests", "acceptance", "cap.test.js"), "// cap pin target\n");
+  fs.mkdirSync(path.join(root, "cdd", "specs", "cap"), { recursive: true });
+  fs.writeFileSync(
+    path.join(root, "cdd", "specs", "cap", "spec.md"),
+    livingWithPin("tests/acceptance/cap.test.js") + "\nCode: src/thing.mjs\n"
+  );
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src", "thing.mjs"), "export const thing = 1;\n");
+  const git = (...a) => execFileSync("git", a, { cwd: root, encoding: "utf8" });
+  git("add", ".");
+  git("commit", "-qm", "spec and code in sync");
+  // code out-commits the spec — exactly one L2 staleness finding
+  if (stale) {
+    fs.writeFileSync(path.join(root, "src", "thing.mjs"), "export const thing = 2;\n");
+    git("add", "src/thing.mjs");
+    git("commit", "-qm", "code-only change");
+  }
+  if (deltaCode) {
+    const dir = path.join(root, "cdd", "changes", "fix-thing", "specs", "cap");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, "spec.md"),
+      `## ADDED Requirements\n\n### Requirement: Probe\n\n\`\`\`gherkin\nFeature: Probe\n\nScenario: Probe\n  Given a fixture delta\n  When the door 3 full scan runs\n  Then the probe pin is judged\n  # Verified by: tests/acceptance/cap.test.js\n\`\`\`\n\nCode: ${deltaCode}\n`
+    );
+  }
+  return root;
+}
+
+await check("W1", "the clean summary counts acceptance test files", () => {
+  const root = l2Repo(null, false); // spec, code, and pinned test all in sync
+  const r = runScan(root);
+  assert(r.code === 0, `scan must exit 0, got ${r.code}:\n${r.out}`);
+  assert(/1 acceptance test file,/.test(r.out), `clean line must count test FILES: ${JSON.stringify(r.out.split("\n").find((l) => l.includes("acceptance test")) || "")}`);
+});
+
+await check("H1", "an L2 red explained by an open change yields exactly one expected-mid-Close hint", () => {
+  const root = l2Repo("src/thing.mjs");
+  const r = runScan(root);
+  assert(r.code !== 0, "the L2 red must keep the scan red — a hint never greens it");
+  const l2 = l2Lines(r.out);
+  assert(l2.length === 1, `expected exactly 1 L2 line, got ${l2.length}: ${JSON.stringify(l2)}`);
+  const hints = hintLines(r.out);
+  assert(hints.length === 1, `expected exactly 1 hint line, got ${hints.length}: ${JSON.stringify(hints)}`);
+  assert(hints[0].includes("fix-thing"), `hint must name the open change: ${hints[0]}`);
+  assert(/archive pair-commit/.test(hints[0]), `hint must name the archive pair-commit as the clearing point: ${hints[0]}`);
+});
+
+await check("H2", "an L2 red with no matching open change yields no hint", () => {
+  const root = l2Repo("src/other.mjs");
+  const r = runScan(root);
+  assert(r.code !== 0, "the L2 red must stay red");
+  assert(l2Lines(r.out).length === 1, `expected exactly 1 L2 line, got ${JSON.stringify(l2Lines(r.out))}`);
+  assert(hintLines(r.out).length === 0, `no hint may fire when no open change explains the red: ${JSON.stringify(hintLines(r.out))}`);
+});
+
 // --- P5: store copies stay byte-identical to the law sources ------------------
 
 await check("P5", "store copies stay byte-identical to the law sources", () => {

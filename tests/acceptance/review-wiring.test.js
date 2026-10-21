@@ -73,6 +73,8 @@ check("RW1", "rule 2a names R1, R2, R3 and the ADR review with skills, modes, fi
   includes(r, "r3-code-review.md", "rule 2a");
   includes(r, "cdd-adr-review", "rule 2a");
   includes(r, "adr-review.md", "rule 2a");
+  includes(r, "decision content", "rule 2a");
+  includes(r, "Reconfirmed-by", "rule 2a");
 });
 
 check("RW2", "rule 2a states the advisory-findings grammar, never verdicts", () => {
@@ -147,6 +149,14 @@ check("RW9", "the tasks scaffold places 3.1 Change review before the placeholder
   includes(t, "package mode", "tasks scaffold");
   includes(t, "r2-change-review.md", "tasks scaffold");
   includes(t, "no blocker is open", "tasks scaffold");
+});
+
+check("RW16", "the scaffold's 4.2 line states the precise ADR-review trigger", () => {
+  const t = tpl.tasksTemplate("sample-change");
+  const line = t.split("\n").find((l) => l.includes("4.2 ADR review"));
+  assert(line, "no 4.2 ADR review line in the tasks scaffold");
+  includes(line, "decision content", "scaffold 4.2");
+  includes(line, "Reconfirmed-by", "scaffold 4.2");
 });
 
 check("RW10", "the Close scaffold gates archive on disposed R3 and ADR reviews", () => {

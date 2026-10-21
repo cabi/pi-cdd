@@ -64,3 +64,9 @@ points, grammar) exactly as this ADR draws it.
 Reconfirmed by pin-law-rename on 2026-10-21: the grammar-law module
 rename does not touch lib/loop-law.mjs or any loop-law template text; the
 single-source seam this ADR records is unchanged.
+
+Reconfirmed by runner-ergonomics on 2026-10-21: the reworded trigger and
+the decisions-split sentences render from lib/loop-law.mjs through every
+surface (rules text, scaffold 4.2 line, ambient block, /cdd-help); the
+cdd/rules.md mirror was rewritten deliberately because an existing store
+keeps its rules.md — single-sourcing is unchanged, not weakened.

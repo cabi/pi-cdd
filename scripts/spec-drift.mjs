@@ -237,6 +237,27 @@ const specsToCheck = preCommit ? allSpecs.filter((s) => stagedSet.has(s)) : allS
 // verdict — a skip is never silent. Living specs (and archive = frozen
 // history, already excluded from deltaSpecs) keep full strictness, and an
 // unrecognized marker shape fails L1 everywhere.
+const l2StaleFiles = []; // staleness-flagged files, for the expected-mid-Close hint — see filesClaimedByChange
+// One matching pass, two readers: the A1 citation check and the L2
+// expected-mid-Close hint both ask "which of these files does each open
+// change's delta Code: globs claim?" — answer it once, as a map of open
+// change name -> Set of matched files.
+const filesClaimedByChange = (files) => {
+  const claims = new Map();
+  for (const specRel of deltaSpecs) {
+    const globs = codeGlobs.get(specRel) ?? [];
+    if (!globs.length) continue;
+    const res = globs.map(globToRe);
+    const change = specRel.split('/')[2];
+    for (const f of files) {
+      if (res.some((re) => re.test(f))) {
+        if (!claims.has(change)) claims.set(change, new Set());
+        claims.get(change).add(f);
+      }
+    }
+  }
+  return claims;
+};
 const placeholderSkips = new Map(); // open change name -> skipped pin count
 for (const specRel of specsToCheck) {
   const openChange = specRel.match(/^cdd\/changes\/([^/]+)\//)?.[1] ?? null;
@@ -345,6 +366,7 @@ if (isRepo) {
         // (topology, not wall-clock: git timestamps have second resolution)
         if (codeC && specCs.every((specC) => codeC !== specC && git(['merge-base', '--is-ancestor', specC, codeC]) === '')) {
           issues.push(`[L2] ${f} changed after every spec of ${cap} last changed — update the spec (scenario or Code line) and commit them together`);
+          l2StaleFiles.push(f);
         }
       }
     }
@@ -533,20 +555,10 @@ if (adrs.length) {
     return tracked.filter((f) => res.some((re) => re.test(f)));
   };
 
+
   // A1 — citation on touch: follow it or supersede it, never drift past it
   if (!staged) {
-    const changeFiles = new Map(); // change -> Set(tracked files its deltas claim)
-    for (const specRel of deltaSpecs) {
-      const res = (codeGlobs.get(specRel) ?? []).map(globToRe);
-      if (!res.length) continue;
-      const change = specRel.split('/')[2];
-      for (const f of tracked) {
-        if (res.some((re) => re.test(f))) {
-          if (!changeFiles.has(change)) changeFiles.set(change, new Set());
-          changeFiles.get(change).add(f);
-        }
-      }
-    }
+    const changeFiles = filesClaimedByChange(tracked);
     for (const [change, files] of changeFiles) {
       const cdir = path.join(root, 'cdd', 'changes', change);
       const docs = fs
@@ -583,6 +595,22 @@ if (adrs.length) {
   }
 }
 
+// --- L2 expected-mid-Close hint -----------------------------------------------
+// Between a change's spec updates landing in the working tree and the archive
+// pair-commit, the guard is L2-red BY DESIGN (specs updated, code committed,
+// the pair not yet). When an open change's delta Code: globs claim one of the
+// L2-affected files, that change explains the red — say so, once, as an
+// informational line. Never fires without a matching open change, and never
+// suppresses, reclassifies, or greens anything.
+if (l2StaleFiles.length) {
+  const openOwners = filesClaimedByChange(l2StaleFiles);
+  if (openOwners.size) {
+    const names = [...openOwners.keys()];
+    const claimed = [...openOwners.values()].reduce((n, s) => n + s.size, 0);
+    console.log(`spec-drift: ${claimed} L2 line(s) are expected mid-Close for open change ${names.join(', ')} (its delta claims the affected code) — they clear at the archive pair-commit`);
+  }
+}
+
 // --- report --------------------------------------------------------------------
 if (issues.length) {
   console.error(`spec-drift: ${issues.length} issue(s) in ${path.basename(root)} — the spec, its acceptance tests, and the code must travel together:`);
@@ -591,7 +619,7 @@ if (issues.length) {
 }
 console.log(
   allSpecs.length
-    ? `spec-drift: clean (${allSpecs.length} spec${allSpecs.length > 1 ? 's' : ''}, ${accRel.length} acceptance test${accRel.length === 1 ? '' : 's'}, ${staged ? 'staged' : 'full'} scan)`
+    ? `spec-drift: clean (${allSpecs.length} spec${allSpecs.length > 1 ? 's' : ''}, ${accRel.length} acceptance test file${accRel.length === 1 ? '' : 's'}, ${staged ? 'staged' : 'full'} scan)`
     : 'spec-drift: no specs found — nothing to guard'
 );
 // informational, never silent: skipped scaffold placeholders in open deltas

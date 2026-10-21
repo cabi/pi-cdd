@@ -59,3 +59,9 @@ Reconfirmed by pin-law-rename on 2026-10-21: lib/templates.mjs
 changed only its DOOR_SCRIPTS entry for the grammar-law rename; the
 advisory-findings grammar and review-point wiring this ADR records are
 unchanged.
+
+Reconfirmed by runner-ergonomics on 2026-10-21: the ADR-review trigger
+wording made precise (decision content fires, reconfirmations do not)
+changes no finding's advisory standing — reviews stay findings with
+severity and disposition, never verdicts; gate authority stays with the
+deterministic doors.

@@ -70,20 +70,29 @@ check("SSL1", "the module defines exactly the 4 canonical review points and the 
   assert(norm(r1.trigger) === "after the proposal, if the design gate answered T1 or T2 YES", `R1 trigger diverges: ${r1.trigger}`);
   assert(norm(r2.trigger) === "always, at draft-green, before the first implementation task", `R2 trigger diverges: ${r2.trigger}`);
   assert(norm(r3.trigger) === "at Close before archive", `R3 trigger diverges: ${r3.trigger}`);
-  assert(norm(adr.trigger) === "if the change drafted or amended ADRs", `ADR trigger diverges: ${adr.trigger}`);
+  assert(norm(adr.trigger) === "if the change drafted an ADR or amended one's decision content — a Reconfirmed-by paragraph or a typo fix does not count", `ADR trigger diverges: ${adr.trigger}`);
   const g = law.FINDINGS_GRAMMAR;
   assert(Array.isArray(g.severities) && g.severities.join(",") === "blocker,should,note", "severities diverge");
   assert(Array.isArray(g.dispositions) && g.dispositions.join(",") === "fixed:,open,won't-fix:", "dispositions diverge");
   assert(norm(r1.triggerCompact) === "after the proposal, if T1 or T2 YES", `R1 compact trigger diverges: ${r1.triggerCompact}`);
   assert(norm(r2.triggerCompact) === "always, at draft-green", `R2 compact trigger diverges: ${r2.triggerCompact}`);
   assert(norm(r3.triggerCompact) === "at Close before archive", `R3 compact trigger diverges: ${r3.triggerCompact}`);
-  assert(norm(adr.triggerCompact) === "if ADRs were drafted or amended", `ADR compact trigger diverges: ${adr.triggerCompact}`);
+  assert(norm(adr.triggerCompact) === "if ADR decision content was drafted or amended", `ADR compact trigger diverges: ${adr.triggerCompact}`);
   assert(norm(r1.trigger).endsWith("T1 or T2 YES") && norm(r1.triggerCompact).endsWith("T1 or T2 YES"), "R1 compact trigger loses the T1 or T2 anchor");
   assert(norm(r2.trigger).startsWith(norm(r2.triggerCompact)), "R2 compact trigger is not a prefix of the normative trigger");
   assert(r3.triggerCompact === r3.trigger, "R3 compact trigger diverges from the normative trigger");
 });
 
 // --- the law text renders from the module and stays byte-identical --------------
+
+check("SSL2b", "rule 2a states the precise ADR trigger and the two decisions directories", () => {
+  const r = ruleBlock(tpl.RULES_MD, "2a");
+  includes(r, "decision content", "rule 2a");
+  includes(r, "Reconfirmed-by paragraph", "rule 2a");
+  includes(r, "typo fix does not count", "rule 2a");
+  includes(r, "root decisions/ holds ADRs 0001–0007, the product decisions", "rule 2a");
+  includes(r, "cdd/decisions/ holds ADRs 0008 and later, the loop decisions", "rule 2a");
+});
 
 check("SSL2", "RULES_MD rules 2/2a are the module's rendered fragments verbatim", () => {
   includes(tpl.RULES_MD, law.lawRule2(), "RULES_MD");

@@ -51,3 +51,8 @@ wanting same-session reviews as the default must supersede this ADR.
 Reconfirmed by acceptance-wiring on 2026-10-21: every review in this
 change — R1 proposal mode, R2 package mode, and both R3 axes — ran as a
 fresh cold sub-agent session; rule 2b is unchanged and followed.
+
+Reconfirmed by runner-ergonomics on 2026-10-21: R3 ran as two cold
+sub-agent sessions (standards and spec separately) with briefs from disk;
+this change's text edits to rule 2a do not touch rule 2b, and the cold
+reviews were performed, not assumed.
