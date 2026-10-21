@@ -59,7 +59,10 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
    implementation subtasks is the split signal — split at the design gate,
    more than 12 fails strict; record `split-considered:` if kept whole.
 7. **Test-first** — the acceptance test a subtask names exists before the
-   subtask is checked. A scenario without a committed pin is a wish.
+   subtask is checked. A scenario without a committed pin is a wish. Pins run
+   with the project's tests: `npm test` runs the `node --test` sweep, which
+   executes every `tests/acceptance/*.test.js` suite, and CI runs the same
+   entrypoint — a subtask is verified by that command green.
 8. **Mechanical changes** — behavior-preserving sweeps declare
    `Mechanical-Change: <reason>` in the commit message; they age no spec
    and never touch cdd/specs/ or acceptance tests.

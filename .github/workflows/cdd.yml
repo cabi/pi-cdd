@@ -5,13 +5,19 @@ on:
 jobs:
   guard:
     runs-on: ubuntu-latest
+    # floor major (20) and local-dev major (24) both gate every push;
+    # fail-fast: false so one leg's red never cancels the other's signal
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 24]
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
       # door 3 — full scan: the same guard the pre-commit hook runs
       # door 3 and the suites import @cucumber/gherkin from node_modules
       # (the vendored copy under vendor/ serves pi installs only)

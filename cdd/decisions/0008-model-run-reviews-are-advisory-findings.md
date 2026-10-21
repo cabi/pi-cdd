@@ -49,3 +49,8 @@ Reconfirmed by reviewer-not-author on 2026-10-21: rule 2b governs who runs
 a review (a cold sub-agent, with the same-session re-read as the recorded
 fallback), not what a review may decide — the advisory-findings contract
 of this ADR is unchanged; findings stay advisory, never verdicts.
+
+Reconfirmed by acceptance-wiring on 2026-10-21: this change alters what
+the law names (rule 7's executor sentence), not what a review may decide —
+its R1, R2, and both R3 axis findings stayed advisory throughout, disposed
+by the author with recorded dispositions, never verdicts.

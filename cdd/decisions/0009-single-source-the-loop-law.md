@@ -54,3 +54,9 @@ as canonical text in lib/loop-law.mjs, byte-pinned to cdd/rules.md like the
 rest of the law; the reviewer-independence facts (REVIEWER_INDEPENDENCE,
 FINDINGS_GRAMMAR.reviewerForms) extend the module this ADR rules
 single-source, and the three skills cite the law without restating it.
+
+Reconfirmed by acceptance-wiring on 2026-10-21: the new rule 7 sentence
+is authored once, in lib/templates.mjs's RULES_MD, and byte-mirrored to
+cdd/rules.md (SSL3 byte-identity re-verified green); rule 7 stays literal
+text in the template, outside lib/loop-law.mjs's scope (chain, review
+points, grammar) exactly as this ADR draws it.

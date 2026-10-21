@@ -47,3 +47,7 @@ Resolved accepted by the human sponsor on 2026-10-21: reviewer
 independence is the permanent contract of the loop — a cold sub-agent
 reviewer by default, the recorded same-session fallback; a later change
 wanting same-session reviews as the default must supersede this ADR.
+
+Reconfirmed by acceptance-wiring on 2026-10-21: every review in this
+change — R1 proposal mode, R2 package mode, and both R3 axes — ran as a
+fresh cold sub-agent session; rule 2b is unchanged and followed.
