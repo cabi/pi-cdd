@@ -242,7 +242,7 @@ Scenario: The repository's own store copy and README match the law
   Given this repository's store copy cdd/rules.md and its README driving-the-loop table
   When both are read
   Then the store copy carries the same review-points rule as the loop law
-  And the README table names R1, R2, and R3 with their triggers
+  And the README review-points row names the review-point triggers and points at cdd/rules.md rule 2a, naming no skill, mode, or findings path
   # Verified by: tests/acceptance/review-wiring.test.js
 
 Scenario: Ambient and help statements match the law
@@ -251,6 +251,8 @@ Scenario: Ambient and help statements match the law
   Then each names R1, R2, and R3 with the same triggers as the review-points rule
   # Verified by: tests/acceptance/review-wiring.test.js
 ```
+
+Code: lib/templates.mjs, lib/instructions.mjs, lib/context.mjs, lib/help.mjs, README.md, cdd/rules.md, cdd/decisions/0008-*.md, tests/acceptance/review-wiring.test.js
 
 ### Requirement: Proposal instruction carries the R1 review tail
 
@@ -341,3 +343,47 @@ Scenario: The guard accepts the draft status
 ```
 
 Code: lib/context.mjs, lib/help.mjs, cdd/rules.md, cdd/decisions/0008-*.md, tests/acceptance/review-wiring.test.js
+
+### Requirement: The loop law is single-sourced
+
+The loop-law facts — the loop chain, the review points with their trigger phrases, skills, modes, and findings paths, and the advisory-findings grammar — MUST be defined in exactly 1 module of the extension source (`lib/loop-law.mjs`); every other statement surface MUST render or interpolate from that module, and the README MUST carry only a trigger summary plus a pointer to the law.
+
+```gherkin
+Feature: The loop law is single-sourced
+
+Scenario: Every statement surface renders the module's facts
+  Given lib/loop-law.mjs and the statement surfaces of the extension — the loop law text, the proposal scaffold instruction, the tasks scaffold instruction, the ambient context block, and the help text
+  When each surface's named review-point facts are read
+  Then each equals the module's canonical values and no surface defines a fact independently
+  # Verified by: tests/acceptance/single-source-law.test.js
+
+Scenario: Re-sourcing leaves the law text byte-identical
+  Given the loop law text and the module's renderers
+  When the review-points rules of the law text are rendered
+  Then the rendered text is byte-identical to this repository's store copy cdd/rules.md
+  # Verified by: tests/acceptance/single-source-law.test.js
+```
+
+Code: lib/loop-law.mjs, tests/acceptance/single-source-law.test.js
+
+### Requirement: Single-source ADR is drafted
+
+`cdd/decisions/` MUST hold ADR-0009 recording that the loop law is single-sourced in `lib/loop-law.mjs` with every statement surface deriving from it, chosen over mirror, generator, and pointer-only alternatives. It is drafted with `status: draft` (a valid status the human resolves) and, once the human resolves it at Close, its frontmatter carries the resolved status; the drift guard MUST hold no violation against it in either state.
+
+```gherkin
+Feature: Single-source ADR is drafted
+
+Scenario: ADR-0009 states the single-source decision
+  Given the decision directory cdd/decisions/
+  When ADR-0009 is read
+  Then its frontmatter status is draft or accepted (drafted as draft for the human sponsor to resolve at Close) and its body records the single-source mechanism chosen over mirror, generator, and pointer-only alternatives
+  # Verified by: tests/acceptance/single-source-law.test.js
+
+Scenario: The guard accepts the draft status
+  Given ADR-0009 with frontmatter status draft or accepted
+  When the drift guard runs over the repository
+  Then the guard output holds no violation naming ADR-0009
+  # Verified by: tests/acceptance/single-source-law.test.js
+```
+
+Code: cdd/decisions/0009-*.md
