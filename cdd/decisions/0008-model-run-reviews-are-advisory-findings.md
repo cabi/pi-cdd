@@ -40,3 +40,7 @@ never write "review passed" as a gate; they report findings and
 dispositions, and the deterministic doors decide. Resolved accepted by the
 human sponsor on 2026-10-21: advisory findings are the permanent contract;
 a later door wanting verdict-shaped reviews must supersede this ADR.
+Reconfirmed by single-source-law on 2026-10-21: the review points this ADR
+ships now render from lib/loop-law.mjs (ADR-0009) into these same surfaces
+(templates, instructions, ambient, help); the advisory-findings contract is
+unchanged.

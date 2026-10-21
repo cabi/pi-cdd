@@ -16,6 +16,7 @@ const tpl = await import(path.join(REPO, "lib", "templates.mjs"));
 const ctx = await import(path.join(REPO, "lib", "context.mjs"));
 const storeMod = await import(path.join(REPO, "lib", "store.mjs"));
 const helpMod = await import(path.join(REPO, "lib", "help.mjs"));
+const lawMod = await import(path.join(REPO, "lib", "loop-law.mjs"));
 const lawPath = path.join(REPO, "scripts", "law.mjs");
 const law = fs.existsSync(lawPath) ? await import(lawPath) : null;
 
@@ -118,14 +119,13 @@ check("RW6", "the ambient block names R1, R2, R3 with their triggers and points 
   includes(block, "before archive", "ambient block");
 });
 
-check("RW7", "the help text names R1, R2, R3 with their triggers", () => {
-  const text = helpMod.helpText();
-  for (const tok of ["R1", "R2", "R3"]) includes(text, tok, "help text");
-  includes(text, "after proposal", "help text");
-  includes(text, "T1/T2 YES", "help text");
-  includes(text, "at draft-green", "help text");
-  includes(text, "before archive", "help text");
+check("RW7", "the help tip row renders the module's canonical review-point triggers", () => {
+  const row = helpMod.HELP_LINES.find((l) => l[0] === "tip" && l[1][0] === "reviews");
+  assert(row, "reviews tip row exists");
+  assert(JSON.stringify(row[1]) === JSON.stringify(lawMod.helpReviewTip()), "help tip row equals the module render");
+  for (const tok of ["R1", "R2", "R3"]) includes(row[1][1], tok, "help tip");
 });
+
 
 // --- templates and instructions ----------------------------------------------
 
@@ -199,7 +199,7 @@ check("RW14", "the README driving-the-loop table names R1, R2, R3 with their tri
   const readme = fs.readFileSync(path.join(REPO, "README.md"), "utf8");
   for (const tok of ["R1", "R2", "R3"]) includes(readme, tok, "README");
   includes(readme, "after the proposal", "README");
-  includes(readme, "T1/T2 YES", "README");
+  includes(readme, "T1 or T2 YES", "README");
   includes(readme, "at draft-green", "README");
   includes(readme, "before archive", "README");
 });
