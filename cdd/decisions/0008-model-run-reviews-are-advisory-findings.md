@@ -54,3 +54,8 @@ Reconfirmed by acceptance-wiring on 2026-10-21: this change alters what
 the law names (rule 7's executor sentence), not what a review may decide —
 its R1, R2, and both R3 axis findings stayed advisory throughout, disposed
 by the author with recorded dispositions, never verdicts.
+
+Reconfirmed by pin-law-rename on 2026-10-21: lib/templates.mjs
+changed only its DOOR_SCRIPTS entry for the grammar-law rename; the
+advisory-findings grammar and review-point wiring this ADR records are
+unchanged.

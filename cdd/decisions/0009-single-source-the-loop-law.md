@@ -60,3 +60,7 @@ is authored once, in lib/templates.mjs's RULES_MD, and byte-mirrored to
 cdd/rules.md (SSL3 byte-identity re-verified green); rule 7 stays literal
 text in the template, outside lib/loop-law.mjs's scope (chain, review
 points, grammar) exactly as this ADR draws it.
+
+Reconfirmed by pin-law-rename on 2026-10-21: the grammar-law module
+rename does not touch lib/loop-law.mjs or any loop-law template text; the
+single-source seam this ADR records is unchanged.

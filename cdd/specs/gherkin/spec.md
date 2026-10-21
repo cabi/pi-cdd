@@ -146,7 +146,7 @@ Scenario: The validator exports no style-checking surface
   # Verified by: tests/acceptance/gherkin-style-guidance.test.js
 ```
 
-Code: scripts/law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, cdd/scripts/**, lib/gherkin.mjs, lib/validate.mjs, lib/store.mjs, lib/templates.mjs, lib/instructions.mjs, decisions/0007-the-law-behind-every-door.md, tests/smoke.mjs, tests/acceptance/gherkin-door3.test.js, tests/acceptance/gherkin-parse-gate.test.js, tests/acceptance/gherkin-style-guidance.test.js, tests/acceptance/gherkin-subset.test.js
+Code: scripts/grammar-law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, cdd/scripts/**, lib/gherkin.mjs, lib/validate.mjs, lib/store.mjs, lib/templates.mjs, lib/instructions.mjs, decisions/0007-the-law-behind-every-door.md, tests/smoke.mjs, tests/acceptance/gherkin-door3.test.js, tests/acceptance/gherkin-parse-gate.test.js, tests/acceptance/gherkin-style-guidance.test.js, tests/acceptance/gherkin-subset.test.js
 
 ### Requirement: Door 3 re-lints every fence
 
@@ -465,7 +465,7 @@ Code: cdd/decisions/0010-*.md, cdd/decisions/0008-*.md, cdd/decisions/0009-*.md
 
 ### Requirement: Guard tolerates scaffold placeholders in open deltas
 
-The door 3 full scan treats a placeholder pin inside an open-delta spec (`cdd/changes/*/specs/`) as template text, not a claim: it does not fail the pin-resolution check and is reported as skipped, one informational line per open delta after the verdict — a skip is never silent. A placeholder pin is a `# Verified by:` pin whose path contains the scaffold's placeholder marker: the angle-bracket form of the words `scenario` or `name`, spelled here without its brackets because the draft door flags the literal token strings as unfilled (`lib/validate.mjs`) — the guard and the draft door agree on this token family. Any other angle-bracket shape is not a placeholder: it fails L1 even in an open delta, so the guard never silently greens an unrecognized token. Living specs keep full strictness — a placeholder pin there is an unresolvable pin like any other. The predicate lives in the law module (`scripts/law.mjs`, `LAW_VERSION` 2) and the store copies travel with their sources: `cdd/scripts/law.mjs` and `cdd/scripts/spec-drift.mjs` are byte-identical to them in this repository, and adopting stores pick both up when `cdd init` refreshes `cdd/scripts/*`.
+The door 3 full scan treats a placeholder pin inside an open-delta spec (`cdd/changes/*/specs/`) as template text, not a claim: it does not fail the pin-resolution check and is reported as skipped, one informational line per open delta after the verdict — a skip is never silent. A placeholder pin is a `# Verified by:` pin whose path contains the scaffold's placeholder marker: the angle-bracket form of the words `scenario` or `name`, spelled here without its brackets because the draft door flags the literal token strings as unfilled (`lib/validate.mjs`) — the guard and the draft door agree on this token family. Any other angle-bracket shape is not a placeholder: it fails L1 even in an open delta, so the guard never silently greens an unrecognized token. Living specs keep full strictness — a placeholder pin there is an unresolvable pin like any other. The predicate lives in the grammar law module (`scripts/grammar-law.mjs`, `LAW_VERSION` 2) and the store copies travel with their sources: `cdd/scripts/grammar-law.mjs` and `cdd/scripts/spec-drift.mjs` are byte-identical to them in this repository, and adopting stores pick both up when `cdd init` refreshes `cdd/scripts/*`.
 
 ```gherkin
 Feature: Guard tolerates scaffold placeholders in open deltas
@@ -500,11 +500,11 @@ Scenario: Unrecognized marker shape in an open delta stays red
 Scenario: Store copies stay byte-identical to the law sources
   Given this repository's store after the change
   When the store copies are compared with their sources
-  Then cdd/scripts/law.mjs is byte-identical to scripts/law.mjs and cdd/scripts/spec-drift.mjs is byte-identical to scripts/spec-drift.mjs, and the law reports LAW_VERSION 2
+  Then cdd/scripts/grammar-law.mjs is byte-identical to scripts/grammar-law.mjs and cdd/scripts/spec-drift.mjs is byte-identical to scripts/spec-drift.mjs, and the law reports LAW_VERSION 2
   # Verified by: tests/acceptance/gherkin-guard-placeholder.test.js
 ```
 
-Code: scripts/law.mjs, scripts/spec-drift.mjs, tests/acceptance/gherkin-guard-placeholder.test.js
+Code: scripts/grammar-law.mjs, scripts/spec-drift.mjs, tests/acceptance/gherkin-guard-placeholder.test.js
 
 ### Requirement: A new change reports the store verdict at start
 
