@@ -11,7 +11,7 @@
  * Dev:   pi --extension ~/Projects/pi-cdd
  */
 
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import * as path from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { initStore, createChange, archiveChange } from "./lib/store.mjs";
@@ -20,6 +20,17 @@ import { buildAmbientBlock } from "./lib/context.mjs";
 import { status, statusTable } from "./lib/status.mjs";
 import { CddStatusView } from "./lib/status-ui.ts";
 import { helpText, renderHelp } from "./lib/help.mjs";
+
+// Refuse silent direct execution: this module is the pi extension entry, loaded
+// by the harness. Run as a command it would print nothing and exit 0 — a
+// first-runner trap that reads as success. One stderr line, exit 2 (the
+// usage-error convention shared with validate.mjs and grammar-law.mjs).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  console.error(
+    "index.ts is the pi extension entry, not a command — load it with pi: pi --extension <this repo>; the cdd tool's ops run inside pi; the door commands are node cdd/scripts/spec-drift.mjs (guard), spec-extract, and arch-extract"
+  );
+  process.exit(2);
+}
 
 const EXT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 

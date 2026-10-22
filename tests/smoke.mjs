@@ -7,6 +7,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -828,6 +829,14 @@ check("S34", "tasks template wires the review points into the scaffold", () => {
   const archiveAt = t.indexOf("4.4 Archive");
   assert(closeAt !== -1 && reviewAt > closeAt && adrAt > reviewAt && validateAt > adrAt && archiveAt > validateAt, "Close must order code review and ADR review before validate and archive");
   assert(/r3-code-review\.md/.test(t) && /adr-review\.md/.test(t), "Close review tasks must name their findings files");
+});
+// --- S35: the extension entry refuses silent direct execution ---------------------
+check("S35", "node index.ts with no args prints one usage line and exits 2 (no silent exit-0)", () => {
+  const r = spawnSync("node", [path.join(REPO, "index.ts")], { encoding: "utf8", cwd: REPO });
+  assert(r.status === 2, `expected exit 2, got ${r.status}`);
+  const lines = r.stderr.trim().split("\n");
+  assert(lines.length === 1, `expected exactly one stderr line, got ${lines.length}`);
+  assert(/not a command/.test(r.stderr) && /pi --extension/.test(r.stderr) && /spec-drift\.mjs/.test(r.stderr), "usage line must name pi --extension and the door commands");
 });
 
 sb.dispose();
