@@ -38,11 +38,9 @@ Instantiation checklist (author):
 - Repository at commit `<sha>` (or the working tree — state that in your
   findings header).
 - The ADRs under review: `cdd/decisions/<ids>.md`
-- Every accepted ADR for context: `cdd/decisions/` and the root
-  `decisions/` — note the split: root `decisions/` holds ADRs 0001–0007, the
-  product decisions; `cdd/decisions/` holds ADRs 0008 and later, the loop
-  decisions. Both directories are context; only `cdd/decisions/` holds
-  loop-decision records.
+- Every accepted ADR for context: `cdd/decisions/` — the one decisions
+  home: ADRs 0001–0007 the product decisions, 0008 and later the loop
+  decisions.
 - The amending change folder `cdd/changes/<change-name>/` (proposal, delta)
   for what the amendment claims.
 - `cdd/rules.md` rule 12 (the four-criterion law — hard to reverse;

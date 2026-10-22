@@ -62,3 +62,8 @@ same change that flips the format; the living-spec migration is that
 change's own MODIFIED delta. Archives are immutable history: old-format
 archives stay exactly as written; only living specs and new changes speak
 the current format.
+
+Reconfirmed by adr-dir-migration on 2026-10-22: the only glob file this
+change touches is lib/gherkin.mjs, and only a path comment there — a
+reference now points at the one decisions home, cdd/decisions/. The
+parser-arbiter, subset, and door-1 phrasing law is unchanged.

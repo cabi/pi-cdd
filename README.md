@@ -97,7 +97,7 @@ skills/            bundled pi skills: cdd-code-review, cdd-spec-review (R1/R2), 
 tests/            smoke.mjs (libs, ambient, guard) + tools.mjs (merged-tool
                   suite: every op, fill-ins, help, static list); npm test runs
                   both; RUN_PI_LOOP=1 adds the isolated-pi checks (spends tokens)
-decisions/        ADRs 0001–0006
+cdd/decisions/   all ADRs — 0001–0007 product decisions, 0008+ loop decisions
 GLOSSARY.md       canonical language
 PRODUCT.md        bird's-eye map from the factory
 ```

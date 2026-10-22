@@ -58,3 +58,9 @@ tasks.md carries a run record naming a real door, and the new pins hit
 real doors — the backlog scenarios round-trip the actual tool dispatch
 (BO1–BO12, tools T3) and the not-gated boundary runs the real drift guard
 inside a sandbox git repo (BO11).
+
+Reconfirmed by adr-dir-migration on 2026-10-22: cdd/rules.md changes
+only by deliberate mirror regeneration from RULES_MD after the rule 2a
+sentence edit (initStore does not rewrite an existing store's rules.md;
+identity pinned by the single-source-law suite).
+Ticks-still-claims and pins-hit-real-doors are untouched.

@@ -83,3 +83,11 @@ and the README seven-ops lines from the same source of truth as the tool
 declaration; the cdd/rules.md mirror was rewritten deliberately from
 RULES_MD (an existing store keeps its rules.md) — single-sourcing is
 unchanged, byte-identity still pinned by the single-source-law suite.
+
+Reconfirmed by adr-dir-migration on 2026-10-22: rule 2a's
+decisions-directory sentence is rewritten at its single source
+(lib/loop-law.mjs, rendered through RULES_MD) to state the one decisions
+home — every ADR lives in cdd/decisions/; the README layout row states
+the same truth, and the cdd/rules.md mirror was rewritten deliberately
+from RULES_MD (byte-identity still pinned by the single-source-law
+suite). Single-sourcing is unchanged.

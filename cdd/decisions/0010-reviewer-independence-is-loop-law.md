@@ -88,3 +88,9 @@ independence is unchanged — R3 ran as two separate cold sessions whose
 families differ from the author's, per rule 2b. Rule 13's PF-n citation
 duty extends the same advisory reporting to process findings: backlog ids
 in milestone and Close reports, never prose.
+
+Reconfirmed by adr-dir-migration on 2026-10-22: rule 2a's text changes
+only its decisions-directory sentence (rendered from lib/loop-law.mjs
+into cdd/rules.md); the reviewer-independence law — cold sessions, no
+author-reviewer, findings advisory — is untouched, and the cdd-adr-review
+SKILL example rows now cite the one decisions home.

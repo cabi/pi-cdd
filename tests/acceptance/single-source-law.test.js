@@ -85,13 +85,14 @@ check("SSL1", "the module defines exactly the 4 canonical review points and the 
 
 // --- the law text renders from the module and stays byte-identical --------------
 
-check("SSL2b", "rule 2a states the precise ADR trigger and the two decisions directories", () => {
+check("SSL2b", "rule 2a states the precise ADR trigger and the one decisions home", () => {
   const r = ruleBlock(tpl.RULES_MD, "2a");
   includes(r, "decision content", "rule 2a");
   includes(r, "Reconfirmed-by paragraph", "rule 2a");
   includes(r, "typo fix does not count", "rule 2a");
-  includes(r, "root decisions/ holds ADRs 0001–0007, the product decisions", "rule 2a");
-  includes(r, "cdd/decisions/ holds ADRs 0008 and later, the loop decisions", "rule 2a");
+  includes(r, "Every ADR lives in `cdd/decisions/` — 0001–0007 the product decisions, 0008 and later the loop decisions — there is no second decisions directory", "rule 2a");
+  assert(!r.includes("root decisions"), "rule 2a still names the root decisions directory");
+  assert(!r.includes("two decisions directories"), "rule 2a still describes the split");
 });
 
 check("SSL2", "RULES_MD rules 2/2a are the module's rendered fragments verbatim", () => {

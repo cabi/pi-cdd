@@ -44,3 +44,9 @@ extension-door1 E2), so a mislabeled check fails loudly there.
 Amended by pin-law-rename on 2026-10-21: the law module is now
 `scripts/grammar-law.mjs` (self-describing rename, decision unchanged — one
 law behind every door).
+
+Reconfirmed by adr-dir-migration on 2026-10-22: the only glob file this
+change touches is lib/gherkin.mjs, and only a path comment there; the
+law-behind-every-door topology (machine law in scripts/, adapters
+injecting it) is unchanged. The product ADRs of this decision's era now
+live in the same store home, cdd/decisions/.

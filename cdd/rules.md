@@ -22,10 +22,9 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
     `reviews/r3-code-review.md`) as two separate cold sessions — rule 2b
     governs both axes, and if the change drafted an ADR or amended one's decision content — a Reconfirmed-by paragraph or a typo fix does not count,
     skill `cdd-adr-review` runs on them (findings:
-    `reviews/adr-review.md`). The two decisions directories are
-    split by role: root decisions/ holds ADRs 0001–0007, the product
-    decisions; cdd/decisions/ holds ADRs 0008 and later, the loop
-    decisions. A review reports findings with severity
+    `reviews/adr-review.md`). Every ADR lives in `cdd/decisions/` —
+    0001–0007 the product decisions, 0008 and later the loop decisions —
+    there is no second decisions directory. A review reports findings with severity
     blocker/should/note and disposition fixed:/open/won't-fix:, never red
     or green verdicts; gate authority stays with the deterministic
     validators and the human. An open blocker stops the loop at that step

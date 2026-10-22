@@ -45,8 +45,8 @@ Consistency with accepted ADRs:
 | severity | finding | evidence | disposition |
 |---|---|---|---|
 | blocker | "use vendored parser" not recorded though all four criteria pass | arch-extract report §interpreted; vendor/ layout | fixed: draft 0008 added |
-| should | 0003 records a single-capability behavior | decisions/0003, criterion 4 | open |
-| note | title states topic, not decision | decisions/0005 | won't-fix: <reason> |
+| should | 0003 records a single-capability behavior | cdd/decisions/0003, criterion 4 | open |
+| note | title states topic, not decision | cdd/decisions/0005 | won't-fix: <reason> |
 ```
 
 Severity: `blocker` (unsound to resolve the batch), `should` (dispose or consciously carry), `note` (recorded, no action demanded). Evidence cites file and section. Dispositions live in this file; later resolutions edit the row, not the report.
