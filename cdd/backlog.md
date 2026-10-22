@@ -1,0 +1,13 @@
+# backlog — process findings
+Conventions: a steer is believed only when an on-disk artifact backs it;
+milestone and Close reports cite PF-n ids, never prose.
+
+- PF-1 [open] proposal scaffold comments phantom-count as a 6th Done-When and their scaffold phrases trip the placeholder check; the behavior fix needs its own loop pass | source: 20261022-loop-law-hardening M2 validate lesson | note: change-worthy; scaffold text fix and S-series smoke-pin edits travel together
+- PF-2 [open] doc line: changing the scaffold legitimately requires editing S-series smoke pins | source: 20261022-wire-review-points finding 9 | note: tiny; rules.md or cdd-code-review skill
+- PF-3 [open] bootstrap-deliverable ordering: the loop has no recorded notion of deliverables authored before the delta | source: 20261022-loop-law-hardening R2-F004 | note: evaluate: fixed in briefs this once; generalize into law only if the pattern recurs
+- PF-4 [open] design-ticks-at-draft-green ambiguity | source: 20261022-loop-law-hardening R2-F005 | note: evaluate: noted in briefs; law or scaffold line only if it recurs
+- PF-5 [won't-do] anchor-drift aborted edit batches (agent tooling friction, hit by both recent runners) | source: director session 2026-10-22 | note: record-only: tool-side friction, no repo action planned
+- PF-6 [watch] gherkin living spec at 26 requirements vs extension 4 and acceptance 2; navigation concern ripening | source: director session 2026-10-22
+- PF-7 [won't-do] free-rung 429s at spawn (deployment policy, not law) | source: director session 2026-10-22 | note: record-only: deployment policy
+- PF-8 [open] brief-r3 templates route both R3 axes to one shared findings file with no append discipline; parallel cold sessions clobber each other (spec section lost, reconstructed from the reviewer report) | source: 20261022-backlog-op R3 | note: change-worthy: give each axis its own file or mandate append-only writes in the brief
+- PF-9 [open] instantiated reviewer briefs written to /tmp are volatile — one was reaped mid-run and its reviewer reconstructed the brief from the template | source: 20261022-backlog-op R3 | note: tiny: briefs belong under the change folder (cdd/changes/<name>/reviews/) where the archive keeps them

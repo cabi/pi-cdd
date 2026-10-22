@@ -81,3 +81,10 @@ precedent) become law; nothing is reversed. Reconfirm-only — rejected:
 the ADR's body was silent on both, and law tightening while the ADR
 stayed silent would be the silent contradiction the ADR review exists
 to catch.
+
+Reconfirmed by backlog-op on 2026-10-22: this change edits cdd/rules.md
+(the byte-regenerated mirror carrying the new rule 13); reviewer
+independence is unchanged — R3 ran as two separate cold sessions whose
+families differ from the author's, per rule 2b. Rule 13's PF-n citation
+duty extends the same advisory reporting to process findings: backlog ids
+in milestone and Close reports, never prose.

@@ -19,7 +19,7 @@ same author, private project, no license file; attribution lives at the top of
 | | five-tool version | lean version |
 |---|---|---|
 | commit | `139effd` (main) | this tree |
-| declarations (name+desc+schema) | 1818 chars ≈ 455 tok | 665 chars ≈ 166 tok |
+| declarations (name+desc+schema) | 1818 chars ≈ 455 tok | 665 chars ≈ 166 tok at baseline (696 after `backlog` joined) |
 | registered tools | 5 (`cdd_init`, `cdd_new_change`, `cdd_validate`, `cdd_status`, `cdd_archive`) | 1 (`cdd`) |
 
 The verbatim descriptions and schemas of the five-tool version are preserved
@@ -69,7 +69,7 @@ Verified against pi `1.3.0` (`@earendil-works/pi-coding-agent` dist):
    renaming `index.ts` must update this manifest and the README install block.
 4. **Static tool list.** The factory registers exactly one tool at load and
    never calls `setActiveTools`; there is no loader tool. `tests/tools.mjs`
-   T1 pins this (1 tool, 6 ops, `setActiveToolsCalls === 0`) so the list
+   T1 pins this (1 tool, 7 ops, `setActiveToolsCalls === 0`) so the list
    cannot change mid-session.
 5. **System-prompt cost is the declaration only**: name + description +
    parameters (see `docs/session-format.md`). Ambient text is the
@@ -122,7 +122,7 @@ When changing what a tool does, treat `OPS_DOC` as the contract:
 
 | check | pins |
 |---|---|
-| T1 | one tool, six ops, static list, ≤700-char declaration, no OPS_DOC duplication in the description |
+| T1 | one tool, seven ops, static list, ≤700-char declaration, no OPS_DOC duplication in the description |
 | T2a–d | fill-ins fire for legacy names/params; never misfire on ambiguous input |
 | T3a–g | every op round-trips the real libs in a sandbox; help returns full parameters |
 | T4a–c | clear errors for the ambiguous cases (missing name, unknown option, bad JSON, conflicting name, red archive) |
@@ -158,3 +158,17 @@ copied verbatim into adopting stores (`DOOR_SCRIPTS` in
 - The archive refusal render is written twice in `index.ts` (command
   handler and tool case). Extraction awaits a second caller; T4b/T4c pin
   the byte-identical text meanwhile.
+
+## The backlog file (cdd/backlog.md)
+
+- `cdd/backlog.md` is living triage data, not spec: process findings
+  (PF-n items) written only through the `cdd` backlog op
+  (`lib/backlog.mjs` enforces the line grammar). No living-spec
+  requirement covers its content and no door validates it — it appears
+  in no `Code:` glob, by design (same outside-spec-ownership stance as
+  this file, but unlike this file it is project data on disk).
+- The header block (everything before the first item line) carries the
+  working conventions; item lines are the grammar — ids strictly
+  increasing, statuses open | watch | done | won't-do |
+  seeded-into-change. Resolving to `seeded-into-change` requires the
+  adopting change name.

@@ -98,3 +98,8 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
 12. **Decisions** — hard to reverse, surprising without context, a real
     trade-off, crossing capabilities → cdd/decisions/ (A0/A1/A2 rules in
     cdd/scripts/arch-extract.mjs).
+13. **The backlog** — process findings land in `cdd/backlog.md` as one
+    `PF-n` item each, written through the `cdd` backlog op (list, add,
+    resolve). Milestone and Close reports cite `PF-n` ids, never prose.
+    The backlog is living triage data, not spec: validate and the guard
+    never check its content.

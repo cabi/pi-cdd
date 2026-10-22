@@ -51,3 +51,10 @@ hardening dogfooded rule 11a twice before it became law. Drafted
 **Resolved.** Accepted 2026-10-22 by the human sponsor at Close of
 loop-law-hardening: rules 11a and 7 ship with this change; the re-tick
 duty was dogfooded twice during the change itself.
+
+Reconfirmed by backlog-op on 2026-10-22: this change edits
+lib/templates.mjs and the regenerated cdd/rules.md mirror; every tick in
+tasks.md carries a run record naming a real door, and the new pins hit
+real doors — the backlog scenarios round-trip the actual tool dispatch
+(BO1–BO12, tools T3) and the not-gated boundary runs the real drift guard
+inside a sandbox git repo (BO11).

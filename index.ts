@@ -16,6 +16,7 @@ import * as path from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { initStore, createChange, archiveChange } from "./lib/store.mjs";
 import { validateChange, validateStore, formatVerdict } from "./lib/validate.mjs";
+import { listBacklog, addBacklogItem, resolveBacklogItem } from "./lib/backlog.mjs";
 import { buildAmbientBlock } from "./lib/context.mjs";
 import { status, statusTable } from "./lib/status.mjs";
 import { CddStatusView } from "./lib/status-ui.ts";
@@ -102,6 +103,22 @@ const OPS_DOC = {
     description:
       "Close a change: strict validation must pass, then deltas merge into the living specs (ADDED appends, MODIFIED replaces, REMOVED deletes) and the folder moves to cdd/archive/<date>-<name>/.",
     parameters: { type: "object", properties: { name: nameParam }, required: ["name"] },
+  },
+  backlog: {
+    description:
+      "Maintain cdd/backlog.md, the process-finding backlog. Item grammar: - PF-n [status] summary | source: ref [| change: name] [| note: text]; status: open, watch, done, won't-do, seeded-into-change. Milestone and Close reports cite PF-n ids, never prose.",
+    parameters: {
+      type: "object",
+      properties: {
+        action: { type: "string", enum: ["list", "add", "resolve"], description: "default list" },
+        id: { type: "string", description: "item id for resolve, e.g. PF-1" },
+        summary: { type: "string", description: "one-line finding (add)" },
+        source: { type: "string", description: "the run, review, or archived change that raised it (add)" },
+        status: { type: "string", enum: ["open", "watch", "done", "won't-do", "seeded-into-change"], description: "default open (add); required (resolve)" },
+        change: { type: "string", description: "adopting change name (required for seeded-into-change)" },
+        note: { type: "string", description: "free-form context" },
+      },
+    },
   },
 };
 
@@ -261,11 +278,11 @@ export default function cddExtension(pi: ExtensionAPI) {
     name: "cdd",
     label: "cdd",
     description:
-      "Contract-driven development. init scaffolds the store once per project. new scaffolds cdd/changes/<name>/ artifacts to fill. validate: draft checks structure; strict adds Verified-by pin checks; no name → whole store. status lists open changes. archive merges deltas into the living spec, moves the change to cdd/archive/; strict green first. help lists per-op parameters.",
+      "Contract-driven development. init scaffolds the store per project. new scaffolds change artifacts to fill. validate: draft checks structure; strict adds Verified-by pin checks; no name → whole store. status lists open changes. archive merges deltas into the living spec, moves it to the archive; strict green first. backlog triages process findings in cdd/backlog.md. help lists per-op params.",
     parameters: {
       type: "object",
       properties: {
-        op: { type: "string", enum: ["init", "new", "validate", "status", "archive", "help"] },
+        op: { type: "string", enum: ["init", "new", "validate", "status", "archive", "backlog", "help"] },
         name: { type: "string", description: "change name, kebab-case" },
         options: { type: "string", description: 'extra params as JSON, e.g. {"mode":"strict"}' },
       },
@@ -326,6 +343,24 @@ export default function cddExtension(pi: ExtensionAPI) {
             };
           }
           return { ...result(r.ok ? `archived:\n${json(r)}\nPair-commit: feature commit, then this archive commit.` : json(r), r), isError: !r.ok };
+        }
+        case "backlog": {
+          const o = parseOptions(params.options, ["action", "id", "summary", "source", "status", "change", "note"]);
+          if (!o.ok) return fail(o.error);
+          const action = o.value.action ?? "list";
+          if (action === "list") {
+            const r = listBacklog(ctx.cwd);
+            return r.ok ? result(r.text, { ok: true, items: r.items }) : fail(r.error);
+          }
+          if (action === "add") {
+            const r = addBacklogItem(ctx.cwd, o.value);
+            return r.ok ? { ...result(r.text, r), isError: false } : fail(r.error);
+          }
+          if (action === "resolve") {
+            const r = resolveBacklogItem(ctx.cwd, o.value);
+            return r.ok ? { ...result(r.text, r), isError: false } : fail(r.error);
+          }
+          return fail(`unknown action ${JSON.stringify(action)} (allowed: list, add, resolve)`);
         }
         case "help":
           return result(

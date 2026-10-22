@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// library-usage — the validator library and the grammar module refuse silent
+// library-usage — the validator library, the grammar module, and the backlog module refuse silent
 // direct execution (exactly one stderr usage line naming the real
 // invocations, exit 2) while staying silent for library importers; draft
 // validation exempts angle-bracket template tokens inside inline-code spans
@@ -145,6 +145,24 @@ check("LU6", "an untouched scaffold keeps its exact 3 draft errors", () => {
   }
 });
 
+check("LU7", "direct execution of lib/backlog.mjs prints one usage line and exits 2", () => {
+  const r = run(path.join(REPO, "lib", "backlog.mjs"));
+  assert(r.status === 2, `expected exit 2, got ${r.status}`);
+  const lines = r.stderr.trim().split("\n");
+  assert(lines.length === 1 && lines[0].length > 0, `expected exactly one stderr line, got ${JSON.stringify(r.stderr)}`);
+  assert(/cdd/.test(lines[0]) && /backlog/.test(lines[0]), `usage line must name the cdd tool's backlog operation: ${lines[0]}`);
+  assert((r.stdout ?? "").trim() === "", "usage must not write to stdout");
+});
+
+check("LU8", "importing the backlog module as a library stays silent and exits 0", () => {
+  const r = spawnSync(
+    "node",
+    ["-e", `import(${JSON.stringify(path.join(REPO, "lib", "backlog.mjs"))}).then(() => process.exit(0), (e) => { console.error(String(e)); process.exit(1); })`],
+    { encoding: "utf8", cwd: REPO }
+  );
+  assert(r.status === 0, `lib/backlog.mjs: library import must exit 0, got ${r.status} (${r.stderr})`);
+  assert((r.stdout ?? "").trim() === "" && (r.stderr ?? "").trim() === "", "lib/backlog.mjs: library import must print nothing");
+});
 console.log(`\nlibrary-usage: ${pass} passed, ${fail} failed`);
 if (failures.length) {
   for (const f of failures) console.error(`  ${f}`);

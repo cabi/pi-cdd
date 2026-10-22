@@ -73,3 +73,10 @@ disposition, never verdicts, and gate authority stays with the
 deterministic validators and the human. The literal rules 11a and 7
 additions it carries to that file are recorded by ADR-0011, not claimed
 here.
+
+Reconfirmed by backlog-op on 2026-10-22: this change edits files under
+this ADR's code: globs (lib/templates.mjs, lib/help.mjs); the
+advisory-findings contract is unchanged — R3's two cold sessions reported
+findings with severity and disposition only, all disposed by the author,
+and gate authority stayed with the deterministic doors (validate strict,
+the drift guard, and the acceptance pins) plus the human.

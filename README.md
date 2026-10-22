@@ -4,7 +4,7 @@ A pi extension that brings the [openspec-cdd](https://github.com/cabi/openspec-c
 method (same author: cabi) to any project — **without the OpenSpec CLI**. The
 method (change loop, lean-verified schema, three doors, drift guard) is
 unchanged; the counterparty at door 1 is no longer an external tool but the
-extension itself. The agent sees it as **one lean `cdd` tool** (six ops)
+extension itself. The agent sees it as **one lean `cdd` tool** (seven ops)
 instead of five separate tools — same features, ~63% fewer declaration tokens
 per request (see [Lean tool declaration](#lean-tool-declaration)).
 
@@ -34,7 +34,7 @@ pi remove git:github.com/cabi/pi-cdd            # uninstall again
 ```
 door 1 · authoring      /cdd-init /cdd-new /cdd-status /cdd-archive   (human)
                         cdd (agent tool; ops: init · new · validate ·
-                        status · archive · help)
+                        status · archive · backlog · help)
                         + ambient method injection (before_agent_start)
 door 2 · commit         .githooks/pre-commit  → spec-drift.mjs --staged   (message-independent checks)
                         .githooks/commit-msg  → spec-drift.mjs --commit-msg "$1"

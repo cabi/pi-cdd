@@ -69,7 +69,7 @@ await check("T1", "one lean `cdd` tool registered at load; list cannot change mi
   const t = api.tools[0];
   assert(t.name === "cdd", `tool name: ${t.name}`);
   assert(typeof t.prepareArguments === "function", "prepareArguments missing");
-  assert(t.parameters.properties.op.enum.length === 6, "op enum must list all six ops");
+  assert(t.parameters.properties.op.enum.length === 7, "op enum must list all seven ops");
   assert(JSON.stringify(t.parameters.required) === '["op"]', "only op is required");
   assert(api.commands.length === 5, `expected 5 commands, got ${api.commands.length}`);
   assert(api.events["before_agent_start"], "ambient hook not registered");
@@ -271,10 +271,23 @@ await check("T3g", "op help returns the full per-op parameters (nothing trimmed 
     assert(t.includes(frag), `help missing parameter fragment: ${frag}`);
   }
   const doc = r.details;
-  for (const op of ["init", "new", "validate", "status", "archive"]) {
+  for (const op of ["init", "new", "validate", "status", "archive", "backlog"]) {
     assert(doc[op] && doc[op].description && doc[op].parameters, `help details missing op ${op}`);
   }
   assert(/options JSON string/.test(t), "help must say how to pass the parameters");
+});
+
+await check("T3h", "op backlog add/list/resolve round-trips through the library", async () => {
+  const bo = sandbox();
+  let r = await call({ op: "backlog", options: JSON.stringify({ action: "add", summary: "fixture finding", source: "tools T3h" }) }, bo.root);
+  assert(!r.isError && /PF-1/.test(textOf(r)), textOf(r));
+  r = await call({ op: "backlog" }, bo.root);
+  assert(!r.isError && /PF-1 \[open\]/.test(textOf(r)), textOf(r));
+  r = await call({ op: "backlog", options: JSON.stringify({ action: "resolve", id: "PF-1", status: "done" }) }, bo.root);
+  assert(!r.isError && /PF-1 \[done\]/.test(textOf(r)), textOf(r));
+  r = await call({ op: "backlog", options: '{"action":"purge"}' }, bo.root);
+  assert(r.isError && /unknown action.*allowed: list, add, resolve/.test(textOf(r)), textOf(r));
+  bo.dispose();
 });
 
 // --- T4: clear errors for ambiguous calls --------------------------------------

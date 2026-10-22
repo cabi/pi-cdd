@@ -329,7 +329,7 @@ sb4.dispose();
 check("S21", "/cdd-help renders the driving workflow (prompts, gates, commands)", () => {
   // helpText/renderHelp imported at module top (S21 uses them directly)
   const txt = helpText();
-  for (const needle of ['"New change: <what and why>"', '"implement <change>"', "Done-When", "draft green", "/cdd-status", "agent tool: cdd", "Mechanical-Change", "no spec markers", "arch-extract", "spec-extract", "four-criterion test"]) {
+  for (const needle of ['"New change: <what and why>"', '"implement <change>"', "Done-When", "draft green", "/cdd-status", "agent tool: cdd — ops: init · new · validate · status · archive · backlog · help", "Mechanical-Change", "no spec markers", "arch-extract", "spec-extract", "four-criterion test"]) {
     assert(txt.includes(needle), `help text missing: ${needle}\n${txt}`);
   }
   assert(!txt.includes("\x1b["), "helpText must stay plain (no ANSI)");

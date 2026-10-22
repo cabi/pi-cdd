@@ -76,3 +76,10 @@ additions render from lib/loop-law.mjs and the literal rules 11a and 7
 from the RULES_MD template; the cdd/rules.md mirror was rewritten
 deliberately (an existing store keeps its rules.md) — single-sourcing is
 unchanged, byte-identity pinned by the same acceptance suite.
+
+Reconfirmed by backlog-op on 2026-10-22: the literal rule 13 renders from
+the RULES_MD template in lib/templates.mjs, the ops row from lib/help.mjs,
+and the README seven-ops lines from the same source of truth as the tool
+declaration; the cdd/rules.md mirror was rewritten deliberately from
+RULES_MD (an existing store keeps its rules.md) — single-sourcing is
+unchanged, byte-identity still pinned by the single-source-law suite.
