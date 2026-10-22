@@ -1,8 +1,9 @@
 ---
-status: superseded (format rulings) by 0006-feature-block-consolidation.md — parser-arbiter, subset, and door-1 phrasing verdicts stand
+status: superseded
 code: lib/gherkin.mjs, lib/validate.mjs, lib/templates.mjs, lib/instructions.mjs, scripts/spec-drift.mjs
 ---
 # Gherkin is the scenario language; the official parser is the arbiter
+Superseded (format rulings) by 0006-feature-block-consolidation.md — parser-arbiter, subset, and door-1 phrasing verdicts stand.
 
 Every scenario body in a delta and in a living spec is a fenced ` ```gherkin `
 block containing one complete `Scenario:` (or `Scenario Outline:` with an
