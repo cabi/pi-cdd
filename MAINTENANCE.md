@@ -1,5 +1,9 @@
 # MAINTENANCE — the lean `cdd` tool
 
+> Ownership note: this file is deliberately outside spec ownership — it is
+> process documentation for maintainers, not product behavior. No living-spec
+> requirement covers it, by design; nothing here is pinned by acceptance tests.
+
 This repo applies the "lean tools" pass to **its own** extension surface
 (no proxy, no upstream dependency): the five tools registered by `index.ts`
 at baseline commit `139effd` were merged into one `cdd` op-dispatch tool with
