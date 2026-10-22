@@ -4,6 +4,7 @@ description: "Model-run review of drafted architecture decision records under cd
 ---
 
 Advisory review of drafted ADRs. It produces **findings, never verdicts**: recorded decisions under `cdd/decisions/` are ground truth once accepted, and only the human accepts. The review runs at the moment drafts exist and are cheapest to fix — after `cdd/scripts/arch-extract.mjs` prints its draft skeleton and the agent (or a person) fills it in, **before** the human resolves the batch.
+Reviewer briefs live next to this skill: `brief-adr.md` — instantiate it for the cold reviewer session (rule 2b).
 
 The failure mode this skill exists for: ADR bloat and ADR blindness. A decision recorded that fails the four-criterion test is noise — it belongs in the spec, the rules, or a code comment. A decision that passes all four but is never recorded is the expensive one: the next change unknowingly reverses it.
 

@@ -65,3 +65,11 @@ wording made precise (decision content fires, reconfirmations do not)
 changes no finding's advisory standing — reviews stay findings with
 severity and disposition, never verdicts; gate authority stays with the
 deterministic doors.
+
+Reconfirmed by loop-law-hardening on 2026-10-22: this change edits files
+under this ADR's code: globs (lib/templates.mjs); the advisory-findings
+contract is unchanged — findings stay advisory with severity and
+disposition, never verdicts, and gate authority stays with the
+deterministic validators and the human. The literal rules 11a and 7
+additions it carries to that file are recorded by ADR-0011, not claimed
+here.

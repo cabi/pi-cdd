@@ -4,6 +4,7 @@ description: "Two-axis review of implementation work in a contract-driven (cdd) 
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point:
+Reviewer briefs live next to this skill: `brief-r3-standards.md` and `brief-r3-spec.md` — one per axis; the two axes run as two separate cold sessions (rule 2b), each briefed from its own template.
 
 - **Standards**: does the code conform to this repo's documented coding standards?
 - **Spec**: does the diff faithfully implement the originating cdd change — its proposal Done-When, its spec delta, and nothing the delta does not sponsor?

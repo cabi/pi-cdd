@@ -4,6 +4,7 @@ description: "Model-run review of cdd authoring artifacts — proposal, spec del
 ---
 
 Advisory review of cdd authoring artifacts. It produces **findings, never verdicts**: the deterministic doors (`cdd validate`, the drift guard, CI) decide green/red, and the human keeps the close button. A review cannot block a door — but loop law says every blocker finding is disposed before the next loop step begins.
+Reviewer briefs live next to this skill: `brief-r1.md` (proposal mode) and `brief-r2.md` (package mode) — instantiate the matching template for the cold reviewer session (rule 2b).
 
 The failure mode this skill exists for: three well-formed artifacts about three different things. `cdd validate` checks each artifact's shape; it cannot see that the proposal describes a car, the delta a garden, the tasks a rocket. A cold reviewer can.
 

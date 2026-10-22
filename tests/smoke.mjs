@@ -24,6 +24,7 @@ const CddStatusView = statusUiMod?.CddStatusView ?? null;
 
 const { tasksTemplate } = await import(path.join(REPO, "lib", "templates.mjs"));
 const law = await import(path.join(REPO, "scripts", "grammar-law.mjs"));
+const loopLaw = await import(path.join(REPO, "lib", "loop-law.mjs"));
 let pass = 0;
 let fail = 0;
 const failures = [];
@@ -839,6 +840,26 @@ check("S35", "node index.ts with no args prints one usage line and exits 2 (no s
   assert(/not a command/.test(r.stderr) && /pi --extension/.test(r.stderr) && /spec-drift\.mjs/.test(r.stderr), "usage line must name pi --extension and the door commands");
 });
 
+
+// --- S36: the reviewer brief templates live next to their skills ------------------
+check("S36", "five reviewer briefs pin law citations, grammar, and output filenames", () => {
+  const briefs = [
+    ["cdd-spec-review", "brief-r1.md", "R1"],
+    ["cdd-spec-review", "brief-r2.md", "R2"],
+    ["cdd-code-review", "brief-r3-standards.md", "R3"],
+    ["cdd-code-review", "brief-r3-spec.md", "R3"],
+    ["cdd-adr-review", "brief-adr.md", "ADR"],
+  ];
+  for (const [skill, file, point] of briefs) {
+    const p = path.join(REPO, "skills", skill, file);
+    assert(fs.existsSync(p), `missing brief ${skill}/${file}`);
+    const b = fs.readFileSync(p, "utf8");
+    assert(/rule 2b/.test(b), `${file} must cite rule 2b`);
+    assert(/family/.test(b), `${file} must state the author-family rule`);
+    assert(/blocker/.test(b) && /won't-fix:/.test(b), `${file} must carry the findings grammar`);
+    assert(b.includes(loopLaw.reviewPoint(point).findings), `${file} must name its output file per reviewPoint()`);
+  }
+});
 sb.dispose();
 sb2.dispose();
 g.dispose();

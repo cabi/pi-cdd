@@ -19,7 +19,8 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
     implementation task, skill `cdd-spec-review` runs in package mode
     (findings: `reviews/r2-change-review.md`). R3: at Close before
     archive, skill `cdd-code-review` runs (findings:
-    `reviews/r3-code-review.md`), and if the change drafted an ADR or amended one's decision content — a Reconfirmed-by paragraph or a typo fix does not count,
+    `reviews/r3-code-review.md`) as two separate cold sessions — rule 2b
+    governs both axes, and if the change drafted an ADR or amended one's decision content — a Reconfirmed-by paragraph or a typo fix does not count,
     skill `cdd-adr-review` runs on them (findings:
     `reviews/adr-review.md`). The two decisions directories are
     split by role: root decisions/ holds ADRs 0001–0007, the product
@@ -36,6 +37,10 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
     same-session re-read is the lawful but weaker fallback, used
     only with recorded justification, and it records its form and
     justification in the findings file header.
+    The reviewer's model family differs from the author's — family meaning the same provider or model lineage; when no reviewer of
+    another family exists, the author
+    stops and asks the human sponsor rather than silently degrading the review. R3's standards and spec
+    axes run as two separate cold sessions, each with its own brief.
 3. **Proposal** — ## Why, ## What Changes, one `Done-When:` line, one
    `Code: <globs>` line naming the implementation surface.
 4. **Delta** — `## ADDED | MODIFIED | REMOVED Requirements` →
@@ -65,7 +70,10 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
    subtask is checked. A scenario without a committed pin is a wish. Pins run
    with the project's tests: `npm test` runs the `node --test` sweep, which
    executes every `tests/acceptance/*.test.js` suite, and CI runs the same
-   entrypoint — a subtask is verified by that command green.
+   entrypoint — a subtask is verified by that command green. Acceptance
+   pins for door behavior invoke the real door entry point — a real module
+   import or a child-process run — never a copied fragment; a sandbox-only
+   pin is a note-level finding at R3.
 8. **Mechanical changes** — behavior-preserving sweeps declare
    `Mechanical-Change: <reason>` in the commit message; they age no spec
    and never touch cdd/specs/ or acceptance tests.
@@ -81,6 +89,12 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
 11. **Archive** — strict validation green (every task outside Close ticked;
     the archive ticks the Close section itself) and guard green; deltas merge
     into the living spec; feature commit and archive commit travel as a pair.
+11a. **Ticks are claims, not history** — a Close-phase review finding that
+    invalidates a ticked artifact voids the tick: un-tick, edit, re-run the
+    item's verify-by, and record the re-tick inline as `re-verified after
+    <review point>`. A door refusing the change at Close — a validator or
+    guard failure — voids affected ticks the same way. Re-editing a ticked
+    artifact without recording the re-tick is a blocker at archive.
 12. **Decisions** — hard to reverse, surprising without context, a real
     trade-off, crossing capabilities → cdd/decisions/ (A0/A1/A2 rules in
     cdd/scripts/arch-extract.mjs).

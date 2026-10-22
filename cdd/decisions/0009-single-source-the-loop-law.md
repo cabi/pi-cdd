@@ -70,3 +70,9 @@ the decisions-split sentences render from lib/loop-law.mjs through every
 surface (rules text, scaffold 4.2 line, ambient block, /cdd-help); the
 cdd/rules.md mirror was rewritten deliberately because an existing store
 keeps its rules.md — single-sourcing is unchanged, not weakened.
+
+Reconfirmed by loop-law-hardening on 2026-10-22: the rule 2b and rule 2a
+additions render from lib/loop-law.mjs and the literal rules 11a and 7
+from the RULES_MD template; the cdd/rules.md mirror was rewritten
+deliberately (an existing store keeps its rules.md) — single-sourcing is
+unchanged, byte-identity pinned by the same acceptance suite.

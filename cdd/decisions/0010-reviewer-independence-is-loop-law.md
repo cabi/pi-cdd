@@ -60,3 +60,24 @@ Reconfirmed by runner-ergonomics (archive pair-commit) on 2026-10-21: the
 cdd/rules.md mirror rewrite travels in this archive commit with the
 merged living spec — the mirror text is the law's own render, not a
 review-wiring change; rule 2b and the cold-review norm are untouched.
+
+Amendment 2026-10-22 (loop-law-hardening): rule 2b gains two clauses.
+First, the author-family clause — the reviewer's model family must differ
+from the author's (family meaning the same provider or model lineage);
+when no other-family reviewer exists the author stops and asks the human
+sponsor rather than silently degrading the review, the fallback recording
+duty of the original decision covering how the exception is recorded.
+Second, the two-axes-two-sessions clause — R3's standards and spec axes
+run as two separate cold sessions, each with its own brief, because one
+session doing both axes leaks the first axis's framing into the second.
+The prior silence on both is noted: this ADR's body never mentioned
+model family or session splitting; a runner-ergonomics reconfirm note
+recorded the two-session practice as precedent, not decision content.
+Amend rather than supersede: the core decision — cold sub-agent reviews
+as the contract, same-session re-read as the recorded weaker fallback —
+stands, and the previously unrecorded family weighting and
+the session-splitting weighting (recorded so far only as practice
+precedent) become law; nothing is reversed. Reconfirm-only — rejected:
+the ADR's body was silent on both, and law tightening while the ADR
+stayed silent would be the silent contradiction the ADR review exists
+to catch.
