@@ -146,7 +146,7 @@ Scenario: The validator exports no style-checking surface
   # Verified by: tests/acceptance/gherkin-style-guidance.test.js
 ```
 
-Code: scripts/grammar-law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, cdd/scripts/**, lib/gherkin.mjs, lib/validate.mjs, lib/store.mjs, lib/templates.mjs, lib/instructions.mjs, decisions/0007-the-law-behind-every-door.md, tests/smoke.mjs, tests/acceptance/gherkin-door3.test.js, tests/acceptance/gherkin-parse-gate.test.js, tests/acceptance/gherkin-style-guidance.test.js, tests/acceptance/gherkin-subset.test.js
+Code: scripts/grammar-law.mjs, scripts/spec-drift.mjs, scripts/spec-extract.mjs, scripts/arch-extract.mjs, cdd/scripts/**, lib/gherkin.mjs, lib/validate.mjs, lib/store.mjs, lib/templates.mjs, lib/instructions.mjs, tests/smoke.mjs, tests/acceptance/gherkin-door3.test.js, tests/acceptance/gherkin-parse-gate.test.js, tests/acceptance/gherkin-style-guidance.test.js, tests/acceptance/gherkin-subset.test.js
 
 ### Requirement: Door 3 re-lints every fence
 
@@ -225,11 +225,10 @@ Scenario: Rule 2a states all three review points and the ADR review
   And it names the conditional ADR review for decision-content changes to ADRs — drafting one or amending its content — not for Reconfirmed-by paragraphs or typo fixes, with skill cdd-adr-review and findings path reviews/adr-review.md
   # Verified by: tests/acceptance/review-wiring.test.js
 
-Scenario: Rule 2a states the two decisions directories
+Scenario: Rule 2a states the one decisions home
   Given the loop law text rendered into a fresh store's cdd/rules.md
   When the review-points rule is read
-  Then it names the repository root decisions directory as the home of ADRs 0001 through 0007, the product decisions
-  And it names cdd/decisions as the home of ADRs numbered 0008 and later, the loop decisions
+  Then it names cdd/decisions as the home of every ADR — 0001 through 0007 the product decisions, 0008 and later the loop decisions — and states there is no second decisions directory
   # Verified by: tests/acceptance/single-source-law.test.js
 
 Scenario: Findings grammar is advisory, never verdicts
@@ -847,3 +846,25 @@ Scenario: The live backlog holds the seed findings grammar-conforming
 ```
 
 Code: lib/templates.mjs, lib/help.mjs, cdd/rules.md, tests/smoke.mjs
+
+### Requirement: One decisions home across the corpus
+
+No live artifact of the extension — the loop law, the README layout, the reviewer briefs and skills, the source comments — documents a second decisions directory: every live path that names an ADR home names `cdd/decisions/`. Historical factory notes — PRODUCT.md and the 0001 body's factory-path record — keep their past-tense references as history.
+
+```gherkin
+Feature: One decisions home across the corpus
+
+Scenario: Reviewer brief and skill name the one home
+  Given a repository whose product ADRs were moved into the store
+  When the ADR review brief and skill are read
+  Then each names cdd/decisions paths only, never a live root decisions directory
+  # Verified by: tests/acceptance/decisions-home.test.js
+
+Scenario: Root-path references survive only as history
+  Given a repository whose product ADRs were moved into the store
+  When every tracked file outside the archive and the open change folders is scanned for decisions paths
+  Then root-path decisions references remain only in the historical factory notes in PRODUCT.md and the 0001 body
+  # Verified by: tests/acceptance/decisions-home.test.js
+```
+
+Code: skills/cdd-adr-review/brief-adr.md, skills/cdd-adr-review/SKILL.md, README.md, lib/gherkin.mjs
