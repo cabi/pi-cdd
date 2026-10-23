@@ -100,4 +100,4 @@ Short design (T1):
 - [x] 4.2 Spec-axis change code review — run skill `cdd-code-review` with the spec-axis brief (brief-r3-spec.md) over the same diff, in a second cold session; findings at `reviews/r3-spec-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-spec-code-review.md holding no open blocker
 - [x] 4.3 ADR review — skipped: this change drafted no ADR under `cdd/decisions/` and amended no decision content (the proposal's "## Decisions Followed" section only cites existing decisions), verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line
 - [x] 4.4 cdd validate strict green, guard green — re-verified post-review-fixes: `cdd validate backlog-revalidate --strict` → PASS; `node cdd/scripts/spec-drift.mjs` → clean (6 specs, 29 acceptance test files, full scan); node --test 29/29, tools 16/16, backlog-revalidate 14/14, backlog-op 12/12, smoke 36/36
-- [ ] 4.5 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.5 Archive — pair-commit: feature commit, then archive commit
