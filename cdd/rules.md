@@ -58,8 +58,9 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
     design document stays the shape and is archived with the change — an
     ADR may cite the archived design document's path but carries no diagram
     copy.
-3. **Proposal** — ## Why, ## What Changes, one `Done-When:` line, one
-   `Code: <globs>` line naming the implementation surface.
+3. **Proposal** — ## Why, ## What Changes, `Done-When:` lines carrying
+   1-5 completion criteria (each an observable check), one `Code: <globs>`
+   line naming the implementation surface.
 4. **Delta** — `## ADDED | MODIFIED | REMOVED Requirements` →
    `### Requirement: <name>` + prose, then exactly one ```gherkin fence
    holding one complete Gherkin document (ADR-0006): `Feature: <name>`

@@ -357,7 +357,13 @@ if (isRepo) {
       if (stagedCode.length && !specRels.some((s) => stagedSet.has(s))) {
         issues.push(`[L2] staged code ${stagedCode.join(', ')} but no spec of ${cap} is in this commit — spec and code travel together (update the living spec or the change's delta)`);
       }
-    } else {
+    } else if (!preCommit) {
+      // topology L2 is committed-history law: lastCommit() cannot see this
+      // commit's staged spec merge, so in pre-commit mode it can only fire
+      // on the commit being made (the archive pair-commit's second commit
+      // stages the merged spec without code — unreachable red, the PF-18
+      // deadlock). The commit-msg door polices staged pairs mid-commit; the
+      // full scan (door 3) owns topology here and at every checkpoint.
       const specCs = specRels.map(lastCommit).filter(Boolean);
       if (!specCs.length) continue; // nothing committed yet — nothing to compare
       for (const f of matches) {
