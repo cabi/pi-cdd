@@ -79,3 +79,9 @@ the byte-identical render of the single source, every Close tick cites an
 exact command and tail, and the new pins hit real doors — LDW4 drives the
 real validateChange door on a scratch change, the guard pin drives the
 real spec-drift child process in a sandbox repo.
+
+Reconfirmed by skill-layout on 2026-10-23: the brief-path pins in
+loop-law-hardening.test.js moved with the files into assets/ and still
+read the real briefs from disk; the S33 growth was red-first honest —
+it failed on the loose brief pre-move exactly as claimed before going
+green, and every Close tick cites an exact command.

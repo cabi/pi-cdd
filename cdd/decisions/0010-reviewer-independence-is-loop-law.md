@@ -111,3 +111,9 @@ Reconfirmed by law-guard-fixes on 2026-10-23: cdd/rules.md changed only as
 the byte-identical render of the single source, and both R3 axes ran in
 cold sessions of a different model family than the author — briefs lived
 under the change's reviews/, each axis its own findings file.
+
+Reconfirmed by skill-layout on 2026-10-23: the reviewer briefs moved from
+beside each SKILL.md into per-skill assets/ dirs (pi skill-authoring
+layout, pure renames) — the independence law is unchanged; each R3 axis
+still ran in its own cold session of a different model family, briefed
+only from the instantiated brief under the change's reviews/.
