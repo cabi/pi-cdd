@@ -833,12 +833,26 @@ check("S34", "tasks template wires the review points into the scaffold", () => {
   assert(/r3-standards-code-review\.md/.test(t) && /r3-spec-code-review\.md/.test(t) && /adr-review\.md/.test(t), "Close review tasks must name their findings files");
 });
 // --- S35: the extension entry refuses silent direct execution ---------------------
-check("S35", "node index.ts with no args prints one usage line and exits 2 (no silent exit-0)", () => {
+check("S35", "node index.ts never exits silently (no silent exit-0); usage + exit 2 where node can run TS", () => {
   const r = spawnSync("node", [path.join(REPO, "index.ts")], { encoding: "utf8", cwd: REPO });
-  assert(r.status === 2, `expected exit 2, got ${r.status}`);
-  const lines = r.stderr.trim().split("\n");
-  assert(lines.length === 1, `expected exactly one stderr line, got ${lines.length}`);
-  assert(/not a command/.test(r.stderr) && /pi --extension/.test(r.stderr) && /spec-drift\.mjs/.test(r.stderr), "usage line must name pi --extension and the door commands");
+  assert(r.status !== 0, `expected a nonzero exit (never a silent exit-0), got ${r.status}`);
+  assert(r.stderr.trim().length > 0, "direct execution must fail loudly, not silently");
+  // CI matrix spans node 20 (cannot execute .ts at all: ERR_UNKNOWN_FILE_EXTENSION,
+  // node's own refusal fires before the guard can print its usage line) and node 24
+  // (type stripping default: the guard prints exactly one usage line and exits 2).
+  // Probe this node's regime with a real .ts file and assert the full invariant
+  // only where it applies.
+  const probeDir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-cdd-s35-"));
+  const probeFile = path.join(probeDir, "probe.ts");
+  fs.writeFileSync(probeFile, "const x: number = 1;\n");
+  const pr = spawnSync("node", [probeFile], { encoding: "utf8" });
+  fs.rmSync(probeDir, { recursive: true, force: true });
+  if (pr.status === 0) {
+    assert(r.status === 2, `strip-capable node: expected exit 2, got ${r.status}`);
+    const lines = r.stderr.trim().split("\n");
+    assert(lines.length === 1, `expected exactly one stderr line, got ${lines.length}`);
+    assert(/not a command/.test(r.stderr) && /pi --extension/.test(r.stderr) && /spec-drift\.mjs/.test(r.stderr), "usage line must name pi --extension and the door commands");
+  }
 });
 
 
