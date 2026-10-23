@@ -19,8 +19,9 @@ Instantiation checklist (author):
 ## Change identity
 
 - Change: `cdd/changes/<change-name>/`
-- Artifacts under review: the whole package — `proposal.md`, `tasks.md`, and
-  every delta `specs/*/spec.md` — at draft-green (validate draft passes, no
+- Artifacts under review: the whole package — `proposal.md`, `design.md`
+  when the design gate produced one (T2 or T4 YES, rule 2c), `tasks.md`,
+  and every delta `specs/*/spec.md` — at draft-green (validate draft passes, no
   implementation task ticked yet; design-section ticks are expected at draft-green)
 - Review point: R2 (package), always at draft-green
 
@@ -40,6 +41,7 @@ Instantiation checklist (author):
 - Repository at commit `<sha>` (or the working tree if the change is
   uncommitted — state that in your findings header).
 - `cdd/changes/<change-name>/proposal.md`
+- `cdd/changes/<change-name>/design.md` — when the design gate produced one; skip when absent (rule 2c: prose-shaped changes carry none).
 - `cdd/changes/<change-name>/tasks.md`
 - `cdd/changes/<change-name>/specs/<capability>/spec.md` (every delta)
 - `cdd/specs/<capability>/spec.md` (every living spec the delta touches)
@@ -61,7 +63,10 @@ Instantiation checklist (author):
    them) and no orphan requirements (no Done-When sponsors them).
 3. **Same-change coherence (car/garden/rocket)** — proposal, delta, and
    tasks describe the same change; each artifact alone is well-formed but
-   the three together must be about one thing.
+   the three together must be about one thing. When a `design.md` exists
+   (rule 2c), it joins the check: the diagram's boxes map to real
+   capabilities or modules, the level claim matches the stated risk, and
+   design ↔ proposal ↔ delta hold no contradictions.
 4. **MODIFIED/REMOVED legality** — every MODIFIED requirement restates EVERY
    scenario the living spec already has (silently dropping one is a
    finding); every REMOVED, where present, carries a `Reason:` line.

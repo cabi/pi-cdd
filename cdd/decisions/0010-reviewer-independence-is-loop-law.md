@@ -94,3 +94,9 @@ only its decisions-directory sentence (rendered from lib/loop-law.mjs
 into cdd/rules.md); the reviewer-independence law — cold sessions, no
 author-reviewer, findings advisory — is untouched, and the cdd-adr-review
 SKILL example rows now cite the one decisions home.
+
+Reconfirmed by design-docs on 2026-10-23: brief-r1/brief-r2/SKILL charter
+object lines grow to include design.md and every review of this change ran
+cold (fresh deepseek-v4-pro sessions vs author zai/glm-5.3 at R1, R2, and
+both R3 axes); instantiated briefs stored under the change's reviews/
+folder, read from disk, never curated by the author.

@@ -64,3 +64,10 @@ only by deliberate mirror regeneration from RULES_MD after the rule 2a
 sentence edit (initStore does not rewrite an existing store's rules.md;
 identity pinned by the single-source-law suite).
 Ticks-still-claims and pins-hit-real-doors are untouched.
+
+Reconfirmed by design-docs on 2026-10-23: rule 2c joins the law text and
+cdd/rules.md moves only by the deliberate RULES_MD mirror regeneration;
+byte-identity now double-pinned (single-source-law suite plus
+tests/acceptance/design-docs.test.js DD9, with DD8 pinning 2c's rendered
+position between 2b and rule 3). Ticks-still-claims and pins-hit-real-doors
+are untouched.

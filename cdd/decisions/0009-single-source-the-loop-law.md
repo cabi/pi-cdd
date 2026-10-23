@@ -91,3 +91,10 @@ home — every ADR lives in cdd/decisions/; the README layout row states
 the same truth, and the cdd/rules.md mirror was rewritten deliberately
 from RULES_MD (byte-identity still pinned by the single-source-law
 suite). Single-sourcing is unchanged.
+
+Reconfirmed by design-docs on 2026-10-23: rule 2c is defined once in
+lib/loop-law.mjs (lawRule2c) and rendered into RULES_MD between rules 2b
+and 3; cdd/rules.md moved only by the deliberate mirror regeneration and
+stays byte-identical (pinned by DD8/DD9 alongside the single-source-law
+suite). No second statement of the rule exists — briefs and the SKILL
+charter cite it.

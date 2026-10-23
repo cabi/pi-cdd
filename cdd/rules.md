@@ -40,6 +40,22 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
     another family exists, the author
     stops and asks the human sponsor rather than silently degrading the review. R3's standards and spec
     axes run as two separate cold sessions, each with its own brief.
+2c. **Design documents** — a design gate that answers T2 (architecture bet) or
+    T4 (invariant risk) YES carries a design document (design.md, sibling of
+    the proposal) for that change: exactly 4 mandatory sections — Level,
+    Diagram, Boundaries, Alternatives — and exactly 1 mermaid flowchart drawn
+    with C4 conventions in flowchart syntax (node labels carry the element
+    kind), never a native C4 diagram type. Level states which C4 level —
+    Context, Container, or Component — and why the risk lives there; the
+    Code level is banned (too fine, it rots fastest). Boundaries hold 1 line
+    per diagram box: what it is, what it must not know about. Alternatives
+    name the obvious other shape and why not. Every other gate outcome keeps
+    the short design note above the tick in the tasks file; the gate record
+    names the chosen shape and, for a design document, the C4 level and why.
+    When the T2 bet also mints an ADR, the ADR records the decision; the
+    design document stays the shape and is archived with the change — an
+    ADR may cite the archived design document's path but carries no diagram
+    copy.
 3. **Proposal** — ## Why, ## What Changes, one `Done-When:` line, one
    `Code: <globs>` line naming the implementation surface.
 4. **Delta** — `## ADDED | MODIFIED | REMOVED Requirements` →

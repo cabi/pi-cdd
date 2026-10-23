@@ -50,3 +50,10 @@ change touches is lib/gherkin.mjs, and only a path comment there; the
 law-behind-every-door topology (machine law in scripts/, adapters
 injecting it) is unchanged. The product ADRs of this decision's era now
 live in the same store home, cdd/decisions/.
+
+Reconfirmed by design-docs on 2026-10-23: the design document stays
+outside every machine door by sponsor decision (charter-only enforcement;
+no validator change, no new door) — the briefs and the cdd-code-review
+skill carry its checks; if reviews keep finding missing or bad diagrams,
+that becomes a process finding and a door later, exactly the trajectory
+this decision prescribes.

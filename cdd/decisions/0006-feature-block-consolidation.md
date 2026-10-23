@@ -67,3 +67,8 @@ Reconfirmed by adr-dir-migration on 2026-10-22: the only glob file this
 change touches is lib/gherkin.mjs, and only a path comment there — a
 reference now points at the one decisions home, cdd/decisions/. The
 parser-arbiter, subset, and door-1 phrasing law is unchanged.
+
+Reconfirmed by design-docs on 2026-10-23: lib/templates.mjs grows
+designTemplate beside the existing artifact scaffolds and the tasks
+skeleton's design-gate line gains the design.md shape clause; the
+scaffold-block format and every existing scaffold are unchanged.

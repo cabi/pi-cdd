@@ -16,7 +16,7 @@ Instantiation checklist (author):
 ## Change identity
 
 - Change: `cdd/changes/<change-name>/`
-- Artifact under review: `cdd/changes/<change-name>/proposal.md` (the proposal alone — the delta does not exist yet; tasks.md exists only for its §2.1 design-gate record, a read input)
+- Artifact under review: `cdd/changes/<change-name>/proposal.md` + `cdd/changes/<change-name>/design.md` when the design gate produced one (T2 or T4 YES, rule 2c) — the delta does not exist yet; tasks.md exists only for its §2.1 design-gate record, a read input
 - Review point: R1 (proposal), fired because the design gate answered T1 or T2 YES
 
 ## Reviewer session requirements
@@ -35,6 +35,7 @@ Instantiation checklist (author):
 - Repository at commit `<sha>` (or the working tree if the change is
   uncommitted — state that in your findings header).
 - `cdd/changes/<change-name>/proposal.md` — the artifact under review.
+- `cdd/changes/<change-name>/design.md` — part of the review object when the design gate produced one; skip when absent (rule 2c: prose-shaped changes carry none).
 - `cdd/specs/` — living spec inventory (capability mapping, reuse).
 - `cdd/archive/` — merged changes, for reuse-first honesty.
 - `cdd/rules.md` — the loop law (proposal shape, Done-When/Code: lines).
@@ -46,7 +47,9 @@ Instantiation checklist (author):
 
 - In scope: the proposal as an artifact — its Why, What Changes, Done-When
   lines, Code: globs, capability claims, reuse-first honesty, design-gate
-  credibility.
+  credibility — and, when a design.md exists, its four-section contract
+  (rule 2c): exactly one kind-carrying mermaid flowchart, no free-form
+  sections.
 - Out of scope: drafting the delta or tasks (reading tasks.md §2.1's design-gate record is the one exception — MUST-DELIVER 1), proposing redesigns, any fix.
   You report findings; you do not edit files.
 

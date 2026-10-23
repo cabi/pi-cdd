@@ -80,3 +80,9 @@ advisory-findings contract is unchanged — R3's two cold sessions reported
 findings with severity and disposition only, all disposed by the author,
 and gate authority stayed with the deterministic doors (validate strict,
 the drift guard, and the acceptance pins) plus the human.
+
+Reconfirmed by design-docs on 2026-10-23: templates.mjs gains the
+designTemplate scaffold beside the existing artifact scaffolds; review
+findings stay advisory (R1/R2/R3 dispositions were fixed or argued, never
+overridden); design.md has no validator door by the sponsor's
+charter-only decision, so reviews remain its only check.

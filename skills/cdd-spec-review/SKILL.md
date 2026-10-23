@@ -1,6 +1,6 @@
 ---
 name: cdd-spec-review
-description: "Model-run review of cdd authoring artifacts — proposal, spec delta, tasks — for cross-artifact coherence before expensive work starts. Two modes: proposal (after the proposal is drafted, when the design gate answered T1 or T2 YES) and package (at draft-green, before the first implementation task). Checks the Done-When → requirement → task chain, delta↔living-spec fit, reuse-first honesty, design-gate credibility, verify-by realism. Use in projects with a cdd/ store when a review point fires or the user asks to review a change's artifacts."
+description: "Model-run review of cdd authoring artifacts — proposal, design.md (when the design gate produced one), spec delta, tasks — for cross-artifact coherence before expensive work starts. Two modes: proposal (after the proposal is drafted, when the design gate answered T1 or T2 YES) and package (at draft-green, before the first implementation task). Checks the Done-When → requirement → task chain, delta↔living-spec fit, reuse-first honesty, design-gate credibility, verify-by realism. Use in projects with a cdd/ store when a review point fires or the user asks to review a change's artifacts."
 ---
 
 Advisory review of cdd authoring artifacts. It produces **findings, never verdicts**: the deterministic doors (`cdd validate`, the drift guard, CI) decide green/red, and the human keeps the close button. A review cannot block a door — but loop law says every blocker finding is disposed before the next loop step begins.
@@ -20,8 +20,8 @@ The failure mode this skill exists for: three well-formed artifacts about three 
 1. **Locate the change.** The name the caller passed, or — with several open changes — ask. All artifacts are read **from disk**; never review from the author's summary or the conversation's memory of drafting.
 2. **Run cold — loop law rule 2b.** The reviewer-independence requirement is the law's; this skill carries only the procedure. Spawn a cold sub-agent: a fresh session whose prompt contains only the mode's charter below, the change's paths, and the instruction to read them — briefed from paths on disk, never curated content, nothing pasted or pre-summarized by the author. The same-session re-read is the lawful but weaker fallback, for when no sub-agent mechanism exists: run the review as a separate pass, re-reading every listed file from disk and deliberately ignoring everything remembered about writing them, and record the fallback and its justification in the findings file header.
 3. **Read**, per mode:
-   - *proposal*: `cdd/changes/<name>/proposal.md`, plus `cdd/specs/` (capability inventory) and `cdd/changes/` (work in flight).
-   - *package*: `proposal.md`, `tasks.md`, every `specs/*/spec.md` delta, every touched `cdd/specs/<capability>/spec.md` living spec, and `cdd/rules.md`.
+   - *proposal*: `cdd/changes/<name>/proposal.md` and `design.md` (when the gate produced one), plus `cdd/specs/` (capability inventory) and `cdd/changes/` (work in flight).
+   - *package*: `proposal.md`, `design.md` (when the gate produced one), `tasks.md`, every `specs/*/spec.md` delta, every touched `cdd/specs/<capability>/spec.md` living spec, and `cdd/rules.md`.
 4. **Report findings** with the shared grammar, and write them to `cdd/changes/<name>/reviews/r1-proposal-review.md` or `r2-change-review.md`.
 5. **Proceed rule.** Before drafting the delta (R1) or working task 3.2 (R2): every `blocker` carries a disposition other than `open`. The author may fix or argue (`won't-fix: <reason>`); a blocker that changes scope goes back to the human gate, not the reviewer.
 
@@ -41,7 +41,7 @@ The chain, both directions:
 
 - **Coverage (no gaps)**: every `Done-When:` criterion has ≥ 1 requirement in the delta AND ≥ 1 task in the traceability table. A criterion with a requirement but no task, or a task but no requirement, is a blocker.
 - **Sponsorship (no orphans)**: no requirement exists that no Done-When needs; no task exists that no requirement or criterion needs; nothing implemented early that the proposal's Non-Goals fence explicitly rejects. Orphans are blockers (scope creep).
-- **Same change**: proposal, delta, and tasks describe the same thing. Requirement names, scenario language, and task phrasing must be recognizably about one change; a topical mismatch anywhere in the chain is a blocker — this is the car/garden/rocket check.
+- **Same change**: proposal, design.md (when the gate produced one), delta, and tasks describe the same thing. Requirement names, scenario language, and task phrasing must be recognizably about one change; a topical mismatch anywhere in the chain is a blocker — this is the car/garden/rocket check.
 
 Delta ↔ living spec:
 

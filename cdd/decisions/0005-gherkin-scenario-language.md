@@ -60,3 +60,9 @@ Given/When/Then prose without a parse gate (self-certification — the
 arbiter must be code we did not write); a grace period or per-store format
 flag (the validator would carry two formats forever). Breaking change,
 hard switch at v0.3.0.
+
+Reconfirmed by design-docs on 2026-10-23: lib/templates.mjs gains the
+designTemplate scaffold and a gate clause in the tasks scaffold; scenario
+language, fences, and the pin dialect are untouched, and the new
+tests/acceptance/design-docs.test.js writes pins in the established style
+against the code arbiter.
