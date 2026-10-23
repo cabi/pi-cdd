@@ -1,0 +1,92 @@
+<!--
+R2 package review brief (skill cdd-spec-review, package mode), instantiated
+for change skill-layout by the author session (family: zai, glm-5.3).
+Reviewer: cold sub-agent, family opencode-zen (deepseek-v4-pro) — differs from
+the author's family per rule 2b. Repo: working tree on branch skill-layout
+(base main @ 1750767), change uncommitted. This file is the reviewer's entire
+brief; nothing else rides along.
+-->
+
+# R2 package review — skill-layout
+
+## Change identity
+
+- Change: `cdd/changes/skill-layout/`
+- Artifacts under review: the whole package — `proposal.md`, `design.md`
+  when the design gate produced one (T2 or T4 YES, rule 2c), `tasks.md`,
+  and every delta `specs/*/spec.md` — at draft-green (validate draft passes, no
+  implementation task ticked yet; design-section ticks are expected at draft-green)
+- Review point: R2 (package), always at draft-green
+
+## Reviewer session requirements
+
+- You are a **cold session**: fresh, not the author's session. Read only the
+  paths below, from disk at the pinned state. Loop law rule 2b — the reviewer
+  is not the author of the artifacts under review.
+- Your model family must differ from the author's model family (family = same
+  provider or model lineage). Verify your own family from your runtime
+  environment (e.g. `PI_PROVIDER`) — the brief states the author's family,
+  never yours as settled fact. If you cannot establish that the families
+  differ, say so in your findings header and stop.
+
+## Inputs (paths, pinned state)
+
+- Repository in the working tree, uncommitted — branch skill-layout, base
+  main @ 1750767; state the working-tree form in your findings header.
+- `cdd/changes/skill-layout/proposal.md`
+- `cdd/changes/skill-layout/design.md` — when the design gate produced one; skip when absent (rule 2c: prose-shaped changes carry none).
+- `cdd/changes/skill-layout/tasks.md`
+- `cdd/changes/skill-layout/specs/gherkin/spec.md` (the one delta)
+- `cdd/specs/gherkin/spec.md` (the living spec the delta touches)
+- `cdd/rules.md` — the loop law (delta shape, MODIFIED/REMOVED rules, pin form)
+
+## Scope fence
+
+- In scope: the drafted package — cross-artifact coherence, coverage,
+  sponsorship, delta↔living-spec fit, verify-by realism.
+- Out of scope: implementation (none exists yet), proposing redesigns, any
+  fix. You report findings; you do not edit files.
+
+## MUST-DELIVER checklist (the charter)
+
+1. **Coverage** — every Done-When line maps to ≥1 delta requirement, and
+   every requirement maps to ≥1 task. A Done-When with no requirement, or
+   a requirement with no task, is a finding.
+2. **Sponsorship** — no orphan tasks (no requirement or Done-When needs
+   them) and no orphan requirements (no Done-When sponsors them).
+3. **Same-change coherence (car/garden/rocket)** — proposal, delta, and
+   tasks describe the same change; each artifact alone is well-formed but
+   the three together must be about one thing. When a `design.md` exists
+  (rule 2c), it joins the check: the diagram's boxes map to real capabilities
+  or modules, the level claim matches the stated risk, and design ↔ proposal ↔
+  delta hold no contradictions. No design.md exists for this change (gate: all
+  five triggers NO, skip record in tasks §2.1).
+4. **MODIFIED/REMOVED legality** — every MODIFIED requirement restates EVERY
+   scenario the living spec already has (silently dropping one is a
+   finding); every REMOVED, where present, carries a `Reason:` line.
+5. **Verify-by runnable as written** — each task's verify-by names a command
+   or check that exists and would actually fail before / pass after the
+   task; each scenario's `# Verified by:` pin names a real acceptance test
+   path.
+
+## Findings grammar (advisory — no fixes, no verdicts)
+
+Each finding: severity `blocker` | `should` | `note`, the finding, evidence
+(path:line). You report every finding with disposition `open`; the author
+later sets `fixed:` or `won't-fix:` when disposing.
+Never red/green verdicts; gate authority stays with the deterministic validators and the human.
+
+## Output
+
+Write your findings to `cdd/changes/skill-layout/reviews/r2-change-review.md`
+(output path per `reviewPoint("R2").findings` in `lib/loop-law.mjs`). Header
+records your reviewer form (cold sub-agent / same-session re-read) and your
+model family vs. the author's.
+
+## Dispositions (author, after review)
+
+- R2-F001 fixed: `skills/cdd-adr-review/SKILL.md` added to the MODIFIED requirement's Code: line — its pointer line is edited by this change and the "skills point at their briefs" scenario names it.
+- R2-F002 fixed: the `lib/templates.mjs` edit dropped from the proposal and tasks — its two mentions are basenames that stay truthful under `assets/`; no edit, no sponsorship gap.
+- R2-F003 fixed: the "git history preserved" Done-When line dropped — rename history via `--follow` is a process criterion of this change's execution, kept as task 3.4's verify-by, not a durable spec contract.
+- R2-F004 fixed: the "grep sweep zero matches" Done-When line dropped — reference hygiene across the repo is a process criterion of this change's execution, kept as task 3.4's verify-by, not a durable spec contract.
+- R2-F005 won't-fix: the universal-gate Done-When intentionally maps to task 4.4 only; recorded here as the convention, no artifact change.

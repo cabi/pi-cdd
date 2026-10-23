@@ -163,13 +163,13 @@ check("DD15", "designTemplate stays adopter-generic", () => {
 // --- the briefs and the skill ---------------------------------------------
 
 check("DD16", "brief-r1.md names the proposal + design.md as the review object", () => {
-  const b = fs.readFileSync(path.join(REPO, "skills", "cdd-spec-review", "brief-r1.md"), "utf8");
+  const b = fs.readFileSync(path.join(REPO, "skills", "cdd-spec-review", "assets", "brief-r1.md"), "utf8");
   includes(b, "proposal.md` + `cdd/changes/<change-name>/design.md`", "brief-r1.md");
   includes(b, "when the design gate produced one", "brief-r1.md");
 });
 
 check("DD17", "brief-r2.md includes design.md with the design-alignment check", () => {
-  const b = fs.readFileSync(path.join(REPO, "skills", "cdd-spec-review", "brief-r2.md"), "utf8");
+  const b = fs.readFileSync(path.join(REPO, "skills", "cdd-spec-review", "assets", "brief-r2.md"), "utf8");
   includes(b, "`proposal.md`, `design.md`", "brief-r2.md");
   includes(b, "boxes map to real", "brief-r2.md");
   includes(b, "level claim matches the stated risk", "brief-r2.md");

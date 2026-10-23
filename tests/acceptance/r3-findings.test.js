@@ -114,14 +114,14 @@ check("RF5", "the tasks instruction names both per-axis findings paths", () => {
 // --- the briefs and the charter ---------------------------------------------
 
 check("RF6", "brief-r3-standards.md names only its own findings file", () => {
-  const b = fs.readFileSync(path.join(REPO, "skills", "cdd-code-review", "brief-r3-standards.md"), "utf8");
+  const b = fs.readFileSync(path.join(REPO, "skills", "cdd-code-review", "assets", "brief-r3-standards.md"), "utf8");
   includes(b, STANDARDS, "brief-r3-standards.md");
   excludes(b, SPEC, "brief-r3-standards.md");
   excludes(b, OLD, "brief-r3-standards.md");
 });
 
 check("RF7", "brief-r3-spec.md names only its own findings file", () => {
-  const b = fs.readFileSync(path.join(REPO, "skills", "cdd-code-review", "brief-r3-spec.md"), "utf8");
+  const b = fs.readFileSync(path.join(REPO, "skills", "cdd-code-review", "assets", "brief-r3-spec.md"), "utf8");
   includes(b, SPEC, "brief-r3-spec.md");
   excludes(b, STANDARDS, "brief-r3-spec.md");
   excludes(b, OLD, "brief-r3-spec.md");

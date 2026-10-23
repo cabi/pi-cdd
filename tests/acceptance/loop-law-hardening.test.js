@@ -127,7 +127,7 @@ const BRIEFS = [
   ["cdd-adr-review", "brief-adr.md", "ADR", null],
 ];
 const readBrief = (skill, file) =>
-  fs.readFileSync(path.join(REPO, "skills", skill, file), "utf8");
+  fs.readFileSync(path.join(REPO, "skills", skill, "assets", file), "utf8");
 
 check("LLH6", "the five briefs carry the common skeleton", () => {
   for (const [skill, file, point, axis] of BRIEFS) {

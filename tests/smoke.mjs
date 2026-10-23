@@ -796,7 +796,7 @@ if (CddStatusView) {
 }
 
 // --- S33: bundled review skills are loadable pi skills ---------------------------
-check("S33", "skills/ holds the three review skills, frontmatter valid, manifest registered", () => {
+check("S33", "skills/ holds the bundled cdd skills, frontmatter valid, manifest registered, pi layout honored", () => {
   const skills = ["cdd-code-review", "cdd-spec-review", "cdd-adr-review"];
   for (const s of skills) {
     const file = path.join(REPO, "skills", s, "SKILL.md");
@@ -814,6 +814,30 @@ check("S33", "skills/ holds the three review skills, frontmatter valid, manifest
   }
   const spec = JSON.parse(fs.readFileSync(path.join(REPO, "package.json"), "utf8"));
   assert(Array.isArray(spec.pi?.skills) && spec.pi.skills.includes("./skills"), "package.json pi.manifest must register ./skills");
+  // pi skill-authoring layout: brief templates are assets, never loose beside a SKILL.md
+  const skillDirs = fs.readdirSync(path.join(REPO, "skills"), { withFileTypes: true })
+    .filter((e) => e.isDirectory() && fs.existsSync(path.join(REPO, "skills", e.name, "SKILL.md")))
+    .map((e) => e.name);
+  assert(skillDirs.length >= 4, `expected at least 4 bundled skills, found ${skillDirs.length}`);
+  for (const d of skillDirs) {
+    const dir = path.join(REPO, "skills", d);
+    // routing signal first: the description carries a when/whenever clause
+    const text = fs.readFileSync(path.join(dir, "SKILL.md"), "utf8");
+    const fm = text.match(/^---\n([\s\S]*?)\n---\n/);
+    const desc = fm?.[1].match(/^description:\s*"([\s\S]*)"\s*$/m);
+    assert(desc && /\bwhen(ever)?\b/i.test(desc[1]), `skills/${d}: description carries a when/whenever routing clause`);
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isFile()) {
+        const loose = /^brief-.*\.md$/i.test(entry.name) || /-brief\.md$/i.test(entry.name);
+        assert(!loose, `skills/${d}: brief template ${entry.name} sits loose beside SKILL.md — briefs live under assets/`);
+      } else if (entry.isDirectory() && entry.name !== "assets") {
+        for (const inner of fs.readdirSync(path.join(dir, entry.name))) {
+          const stray = /^brief-.*\.md$/i.test(inner) || /-brief\.md$/i.test(inner);
+          assert(!stray, `skills/${d}/${entry.name}/${inner}: brief templates live under assets/, not ${entry.name}/`);
+        }
+      }
+    }
+  }
 });
 
 // --- S34: the loop law scaffolds its review points -------------------------------
@@ -860,11 +884,11 @@ check("S35", "node index.ts never exits silently (no silent exit-0); usage + exi
 // --- S36: the reviewer brief templates live next to their skills ------------------
 check("S36", "five reviewer briefs pin law citations, grammar, and output filenames", () => {
   const briefs = [
-    ["cdd-spec-review", "brief-r1.md", "R1", null],
-    ["cdd-spec-review", "brief-r2.md", "R2", null],
-    ["cdd-code-review", "brief-r3-standards.md", "R3", "standards"],
-    ["cdd-code-review", "brief-r3-spec.md", "R3", "spec"],
-    ["cdd-adr-review", "brief-adr.md", "ADR", null],
+    ["cdd-spec-review", "assets/brief-r1.md", "R1", null],
+    ["cdd-spec-review", "assets/brief-r2.md", "R2", null],
+    ["cdd-code-review", "assets/brief-r3-standards.md", "R3", "standards"],
+    ["cdd-code-review", "assets/brief-r3-spec.md", "R3", "spec"],
+    ["cdd-adr-review", "assets/brief-adr.md", "ADR", null],
   ];
   for (const [skill, file, point, axis] of briefs) {
     const p = path.join(REPO, "skills", skill, file);
