@@ -101,3 +101,5 @@ the archive.
 Reconfirmed-by: comments-are-shape-only — lib/templates.mjs, lib/context.mjs, lib/help.mjs headers swept; advisory-findings law unchanged.
 
 Reconfirmed-by: backlog-revalidate — this change's own R1/R2/R3 reviews ran advisory (findings under the change's reviews/, every finding disposed, none gating the archive); the review-point law text untouched.
+
+Reconfirmed-by: gitlab-ci-parity — this change' R1 was lawfully skipped (design gate all-NO); R2 and both R3 axes ran cold and advisory (opencode-zen/deepseek-v4-pro, findings under the change' reviews/, every finding disposed, none gating the archive).

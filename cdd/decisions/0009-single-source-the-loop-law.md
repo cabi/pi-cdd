@@ -114,3 +114,5 @@ r3render) — no second statement of the rule exists.
 Reconfirmed-by: comments-are-shape-only — lib/loop-law.mjs header banners removed; the loop law stays single-sourced in cdd/rules.md.
 
 Reconfirmed-by: backlog-revalidate — rule 13's reworded sentence is authored once in RULES_MD and byte-mirrored to cdd/rules.md (an existing store keeps its rules.md — the mirror rewrite is deliberate); single-sourcing unchanged, byte-identity still pinned by the single-source suite.
+
+Reconfirmed-by: gitlab-ci-parity — CI_GITLAB grows in lib/templates.mjs only; the root .gitlab-ci.yml stays a byte-identical dogfood mirror of the render, now pinned byte-exact by GL6 — the same single-source mirror pattern as RULES_MD ↔ cdd/rules.md; no rule text duplicated.

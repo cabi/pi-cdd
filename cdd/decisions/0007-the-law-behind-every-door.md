@@ -71,3 +71,5 @@ Reconfirmed by guard-glob-fix on 2026-10-23: scripts/spec-drift.mjs changed (glo
 Reconfirmed-by: comments-are-shape-only — doorway banners and ADR-pointer comments removed across scripts/ and lib/; every door still routes editors to the corpus at edit time.
 
 Reconfirmed-by: backlog-revalidate — the new refusals and verdicts are pinned by tests/acceptance/backlog-revalidate.test.js driving the real door (loadViaPi on index.ts); no law text restated in code.
+
+Reconfirmed-by: gitlab-ci-parity — the parity contract is pinned by tests/acceptance/gitlab-ci-parity.test.js driving the real render (imports lib/templates.mjs, reads the real .gitlab-ci.yml from disk); no law text restated in code, and the new scaffold comments are rendered output, not law.

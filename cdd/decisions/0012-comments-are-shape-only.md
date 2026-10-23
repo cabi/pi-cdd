@@ -70,3 +70,5 @@ there); the comments-are-shape-only change drafted this ADR, enacted the
 sweep, and landed the pins. cdd-adr-review runs on this ADR at Close.
 
 Reconfirmed-by: backlog-revalidate — the new code in index.ts and lib/backlog.mjs carries shape-only comments (no corpus routing); the standards-axis review caught the same-pattern violation in the new test's header (deleted), and the pre-existing test headers were minted as a backlog finding through the op.
+
+Reconfirmed-by: gitlab-ci-parity — the new comment lines live inside the CI_GITLAB scaffold output string (rendered text, explicitly exempt as "Rendered text is untouched"); the new test file' source comments follow the swept test-header convention (PF-24).

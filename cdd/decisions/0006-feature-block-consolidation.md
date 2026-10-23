@@ -85,3 +85,5 @@ Reconfirmed by guard-glob-fix on 2026-10-23: scripts/spec-drift.mjs changed (glo
 Reconfirmed-by: comments-are-shape-only — lib/gherkin.mjs, lib/validate.mjs, lib/templates.mjs, scripts/spec-drift.mjs comments swept; the format rulings unchanged.
 
 Reconfirmed-by: backlog-revalidate — lib/templates.mjs changes only rule 13's literal text inside RULES_MD (the op's actions named non-enumeratively); no new feature block, every requirement keeps exactly one.
+
+Reconfirmed-by: gitlab-ci-parity — lib/templates.mjs changes only the CI_GITLAB scaffold string; no feature-block format touched, and the new requirement lands as exactly one Feature block with its own acceptance pin.

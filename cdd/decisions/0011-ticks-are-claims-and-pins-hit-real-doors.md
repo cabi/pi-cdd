@@ -89,3 +89,5 @@ green, and every Close tick cites an exact command.
 Reconfirmed-by: comments-are-shape-only — lib/templates.mjs and tests/acceptance/loop-law-hardening.test.js comments swept; every tick still cites an exact command.
 
 Reconfirmed-by: backlog-revalidate — every new tick cites an exact command (task 4.4 records the green evidence) and the new pins drive the real door; rule 11 text unchanged.
+
+Reconfirmed-by: gitlab-ci-parity — every tick in tasks.md cites its evidence (RED shown before green, green tails recorded); the new pin hits the real render and the real disk copy, mutation-verified by the R3 spec reviewer.
