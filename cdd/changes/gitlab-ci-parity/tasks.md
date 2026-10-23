@@ -1,0 +1,32 @@
+# Tasks — gitlab-ci-parity
+
+## 1. Context
+
+- [x] 1.1 Read the living spec and every file matching the proposal's Code: globs — lib/templates.mjs (CI_GITLAB at :232, CI_GITHUB at :212), .gitlab-ci.yml, .github/workflows/cdd.yml (the reference shape), lib/store.mjs:60-90 (initStore writes the adopter copy from the template), cdd/specs/acceptance/spec.md, tests/acceptance/ci-node-matrix.test.js (MX pin style), tests/acceptance/single-source-law.test.js (SSL3 byte-identity pin style), cdd/backlog.md PF-15 (the node-20 leg incident) — verify by this tick naming what was read
+
+## 2. Design
+
+- [x] 2.1 Design gate — T1 cross-cutting NO (one template constant plus its dogfood mirror; no capability seam beyond the delta), T2 architecture bet NO (GitLab `parallel: matrix` is platform syntax inside the existing template string; no structural bet on the extension), T3 shared seam NO (CI_GITLAB is a leaf constant consumed only by initStore's render), T4 invariant risk NO (no law text, guard, or single-source surface touched), T5 parallel work NO (no other open change; the store held zero open changes at branch time). All NO — chosen shape: in-template content parity, no new module and no new surface; no design.md, so no C4 level — verify by this line naming all five answers, the chosen shape, and the C4 level
+
+## 3. Implementation
+
+- [x] 3.1 Change review — once the package is drafted (proposal, delta, tasks on disk) and `cdd validate` draft mode passes, run skill `cdd-spec-review` in package mode over the whole change package; findings at `reviews/r2-change-review.md`; dispose every blocker (fixed:/open/won't-fix:) and record dispositions — ticks only when no blocker is open, verify by reviews/r2-change-review.md holding no open blocker (R2 run cold by sub-agent gitlab-ci-parity-r2, opencode-zen/deepseek-v4-pro ≠ author family zai; 0 blockers, 0 shoulds, 2 notes — R2-F001 won't-fix (living sweep requirement already sponsors it, rule 5), R2-F002 fixed (proposal names the dogfood workflow as reference and Non-Goals record CI_GITHUB parity as follow-up))
+- [x] 3.2 Acceptance pin for the parity contract — a new suite tests/acceptance/gitlab-ci-parity.test.js that structurally parses the CI_GITLAB render (fail-closed YAML-subset parser, ci-node-matrix style, one GitLab adaptation: mapping keys may contain colons for job names like `cdd:guard:`) and asserts the parity facets plus the byte-identity of the root copy, red on the current template — verify by tests/acceptance/gitlab-ci-parity.test.js failing on the pre-change template (observed RED: GL1–GL4 FAIL — legs "(none)", image "node:20", GIT_DEPTH "(none)", script missing npm ci — exit 1; GL0/GL5/GL6 ok)
+- [x] 3.3 Grow CI_GITLAB to the parity shape and hand-sync the root .gitlab-ci.yml in the same commit — `parallel: matrix` with NODE_VERSION exactly ["20","24"], `image: node:$NODE_VERSION`, `variables: GIT_DEPTH: "0"`, `npm ci` before the guard scan, door-3 and adjust-to-your-runner comments kept — verify by tests/acceptance/gitlab-ci-parity.test.js (post-R2 restructure: the guard's [O] single-owner and [L2] checks forced delta sponsorship from acceptance to gherkin — lib/templates.mjs is gherkin-owned, same mirror-pair precedent as RULES_MD ↔ cdd/rules.md; delta moved to specs/gherkin/, proposal Capabilities re-pointed, ADR-0006/0007/0011 citations added)
+  - 3.3 evidence: `node tests/acceptance/gitlab-ci-parity.test.js` → GL0–GL6 all ok, exit 0; `node cdd/scripts/spec-drift.mjs` → "spec-drift: clean (5 specs, 30 acceptance test files, full scan)", exit 0; `npm test` → 30/30 pass, exit 0 (tails recorded in the M3 report); the same-commit pairing is realized at the 4.5 feature commit
+
+## Done When Traceability
+
+| criterion | task ids |
+|---|---|
+| the CI_GITLAB render fans the guard out to exactly the 2 Node majors 20 and 24 via parallel matrix legs with image node:$NODE_VERSION, runs npm ci before the guard scan, sets GIT_DEPTH to 0, and keeps the door-3 and adjust-to-your-runner comments | 3.2, 3.3 |
+| the repository's root .gitlab-ci.yml is byte-identical to the CI_GITLAB render | 3.2, 3.3 |
+| npm test exits 0 with the parity suite inside the sweep | 3.3 |
+
+## 4. Close
+
+- [x] 4.1 Standards-axis change code review — run skill `cdd-code-review` with the standards-axis brief (brief-r3-standards.md) over the diff since the change branched, in its own cold session; findings at `reviews/r3-standards-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-standards-code-review.md holding no open blocker (run cold by sub-agent gitlab-ci-parity-r3-standards, opencode-zen/deepseek-v4-pro ≠ author family zai; 0 blockers, 0 shoulds, 2 notes — F001 won't-fix: parser sibling-copy is proposal-documented, consolidation would be its own change; F002 won't-fix for the pattern (PF-24 sweep, tests/ outside ADR-0012 glob) but fixed the routing target: header capability acceptance→gherkin, suite re-run green)
+- [x] 4.2 Spec-axis change code review — run skill `cdd-code-review` with the spec-axis brief (brief-r3-spec.md) over the same diff, in a second cold session; findings at `reviews/r3-spec-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-spec-code-review.md holding no open blocker (run cold by sub-agent gitlab-ci-parity-r3-spec-2, opencode-zen/deepseek-v4-pro ≠ author family zai — first spawn died on a transient provider 400, relaunched clean; 0 blockers, 0 shoulds, 1 note — R3-SPEC-F001 fixed: outcome-shaped THEN conjunct tightened to the template-owned observable, spec line 15, guard + parity suite re-run green; reviewer mutation-verified GL4/GL6 fail on npm ci → npm install)
+- [x] 4.3 ADR review — no ADR is drafted and no ADR decision content is amended by this change (template content parity, gate all-NO) — skip recorded on this line, verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line (skip: this change drafts no ADR and amends no decision content — the A1 citations in proposal.md record decisions followed, not changed; per the mission brief, ADR-review runs only if decision content was drafted or amended)
+- [x] 4.4 cdd validate strict green, guard green (validate strict → PASS; `node cdd/scripts/spec-drift.mjs` → "spec-drift: clean (5 specs, 30 acceptance test files, full scan)", exit 0)
+- [ ] 4.5 Archive — pair-commit: feature commit, then archive commit

@@ -2,9 +2,18 @@ stages: [verify]
 
 cdd:guard:
   stage: verify
-  image: node:20
+  image: node:$NODE_VERSION
+  # full clone: the guard walks commit history, a shallow clone starves it
+  variables:
+    GIT_DEPTH: "0"
   # door 3 — full scan: the same guard the pre-commit hook runs
+  # fan out to both supported Node majors: CI floor + local-dev major
+  parallel:
+    matrix:
+      - NODE_VERSION: ["20", "24"]
   script:
+    # the suites import @cucumber/gherkin from node_modules
+    - npm ci
     - node cdd/scripts/spec-drift.mjs
     # the project's own tests (adjust to your runner)
     - npm test --if-present
