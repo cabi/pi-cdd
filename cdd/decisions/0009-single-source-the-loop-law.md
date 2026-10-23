@@ -110,3 +110,5 @@ Reconfirmed by law-guard-fixes on 2026-10-23: lawRule3() is defined once
 in lib/loop-law.mjs, renders into RULES_MD, and cdd/rules.md is written as
 its byte-identical mirror — pinned byte-exact by LDW2 (r3store ===
 r3render) — no second statement of the rule exists.
+
+Reconfirmed-by: comments-are-shape-only — lib/loop-law.mjs header banners removed; the loop law stays single-sourced in cdd/rules.md.

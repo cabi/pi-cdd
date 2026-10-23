@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // gherkin-parse-gate — the @cucumber/gherkin parser is the arbiter of every
-// Feature fence in a delta (ADR-0006). Pins: gherkin-parse-gate scenarios
-// in the gherkin-feature-blocks delta.
+// Feature fence in a delta.
 
 import * as fs from "node:fs";
 import * as os from "node:os";

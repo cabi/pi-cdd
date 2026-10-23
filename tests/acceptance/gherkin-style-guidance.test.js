@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // gherkin-style-guidance — declarative style is door-1 law in the corpus, and
-// the validator carries exactly 0 style heuristics (ADR-0006). Red until
+// the validator carries exactly 0 style heuristics. Red until
 // templates.mjs, instructions.mjs, and rules.md carry the clauses.
 
 import * as fs from "node:fs";

@@ -4,8 +4,7 @@
 // Done-When lines of 1-5 completion criteria, each an observable check.
 // Red until lawRule3() exists in lib/loop-law.mjs, until the rendered law
 // text interpolates it, and until the store mirror cdd/rules.md carries the
-// same rule-3 text (PF-17: the law said "one Done-When: line" while the
-// door enforces 1..5).
+// same rule-3 text.
 
 import * as fs from "node:fs";
 import * as os from "node:os";

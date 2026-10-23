@@ -1,5 +1,5 @@
 // grammar-law.mjs — the one law behind every door. Zero dependencies, plain
-// Node >= 20 (ADR-0001): lib (door 1) imports it from the extension tree,
+// Node >= 20: lib (door 1) imports it from the extension tree,
 // the copied door scripts (cdd/scripts/) import their own copy. A grammar
 // defined here is defined exactly once — doors adapt it, they never restate
 // it.
@@ -10,12 +10,10 @@
  * v2: placeholder pins in open deltas are skip-reported, not L1 failures (isPlaceholderPin). */
 import { pathToFileURL } from "node:url";
 
-// Refuse silent direct execution: this module is the law library behind the
-// doors — lib (door 1) and the door scripts import it. Run as a command it
-// would print nothing and exit 0 — a first-runner trap that reads as success
-// having checked nothing. One stderr line, exit 2 (spec-drift's usage-error
-// convention). The verbatim cdd/scripts/ copy behaves identically because
-// the check compares its own URL with argv[1], never a hardcoded path.
+// Refuse silent direct execution: run as a command, this module prints
+// nothing and exits 0. It prints one stderr line and exits 2 instead. The
+// verbatim cdd/scripts/ copy behaves identically because the check compares
+// its own URL with argv[1], never a hardcoded path.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   console.error(
     "grammar-law.mjs is the law library behind the doors, not a command — run the door commands instead: node cdd/scripts/spec-drift.mjs (guard), spec-extract, arch-extract; validation runs through the cdd tool's validate operation"
@@ -72,14 +70,14 @@ export function splitTaskSections(text) {
 // Chapter: the gherkin fence — scanning, the pin dialect, the subset laws.
 // The parser is injected: door 1 passes the vendored @cucumber/gherkin
 // (lib/gherkin.mjs), door 3 passes the adopting repo's own dependency
-// (cdd/scripts/spec-drift.mjs). The law stays zero-dependency (ADR-0001)
-// and every door renders the same verdict (ADR-0002).
+// (cdd/scripts/spec-drift.mjs). The law stays zero-dependency and every
+// door renders the same verdict.
 
 const OPEN_FENCE = /^\s*```\s*gherkin\s*$/;
 const CLOSE_FENCE = /^\s*```\s*$/;
 
 /**
- * The one pin dialect: a `# Verified by: <path>` comment (ADR-0006) —
+ * The one pin dialect: a `# Verified by: <path>` comment —
  * indent-tolerant (it sits at step depth inside the fence), never markdown,
  * never backticked. Every door builds its line scanner from this source.
  */
@@ -164,7 +162,7 @@ const ENGLISH_STEPS = new Set(["given", "when", "then", "and", "but"]);
  * line, text }], errors: [{ line, message }] } — `line` values are 1-based
  * within the body; callers add the fence's absolute offset. Parse validity,
  * the cdd subset, and the strict comment law are machine law here;
- * declarative phrasing is door-1 judgment (ADR-0006).
+ * declarative phrasing is door-1 judgment.
  */
 export function checkFenceBody(body, parse) {
   const errors = [];
@@ -232,7 +230,7 @@ export function checkFenceBody(body, parse) {
   }
 
   // Strict comment law: the only legal comment is a scenario's trailing
-  // "# Verified by: <path>" pin (ADR-0006). Anything else can silently
+  // "# Verified by: <path>" pin. Anything else can silently
   // comment out a step, so it is an error, not a style note.
   const pins = [];
   const comments = [...(doc.comments ?? [])].sort((a, b) => a.location.line - b.location.line);
@@ -272,7 +270,7 @@ export function checkFenceBody(body, parse) {
 }
 
 //
-// Chapter: decision frontmatter — the strict dialect for cdd/decisions/*.md.
+// Chapter: decision frontmatter — the strict dialect for decision records.
 // status and code live in the --- block, nowhere else; a key outside the
 // block is not a decision header.
 

@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-// gherkin-subset — the cdd Gherkin subset laws (ADR-0006): English
+// gherkin-subset — the cdd Gherkin subset laws: English
 // Given/When/Then/And/But only, exactly one When, at least one Then,
 // no Background/Rule/tags/outlines/tables/doc strings, prose stays outside
 // the fence, and the only comment is the "# Verified by:" pin.
-// Pins: gherkin-subset scenarios in the gherkin-feature-blocks delta.
 
 import * as fs from "node:fs";
 import * as os from "node:os";

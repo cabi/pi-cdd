@@ -1,11 +1,10 @@
 /**
  * pi-cdd — contract-driven development as a pi extension.
  *
- * The factory (openspec-cdd) used the OpenSpec CLI as the door-1
- * counterparty. Here the harness itself is the counterparty (ADR-0002):
- * ambient context carries the method, deterministic tools return
- * verdicts, and doors 2/3 are the standalone zero-dependency scripts
- * that /cdd-init copies into the adopting project.
+ * The harness itself is the door-1 counterparty: ambient context carries
+ * the method, deterministic tools return verdicts, and doors 2/3 are the
+ * standalone zero-dependency scripts that /cdd-init copies into the
+ * adopting project.
  *
  * Load:  pi --extension <this repo>
  * Dev:   pi --extension ~/Projects/pi-cdd
@@ -22,10 +21,8 @@ import { status, statusTable } from "./lib/status.mjs";
 import { CddStatusView } from "./lib/status-ui.ts";
 import { helpText, renderHelp } from "./lib/help.mjs";
 
-// Refuse silent direct execution: this module is the pi extension entry, loaded
-// by the harness. Run as a command it would print nothing and exit 0 — a
-// first-runner trap that reads as success. One stderr line, exit 2 (the
-// usage-error convention shared with validate.mjs and grammar-law.mjs).
+// Refuse silent direct execution: run as a command, this module prints
+// nothing and exits 0. It prints one stderr line and exits 2 instead.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   console.error(
     "index.ts is the pi extension entry, not a command — load it with pi: pi --extension <this repo>; the cdd tool's ops run inside pi; the door commands are node cdd/scripts/spec-drift.mjs (guard), spec-extract, and arch-extract"
@@ -232,7 +229,7 @@ export default function cddExtension(pi: ExtensionAPI) {
     handler: async (_args: string, ctx) => {
       const s = status(ctx.cwd);
       if (ctx.mode === "tui") {
-        // door-1 window: tabs + sortable tables, ESC closes (ADR-0002)
+        // door-1 window: tabs + sortable tables, ESC closes
         await ctx.ui.custom<void>((tui, theme, _kb, done) => new CddStatusView(s, tui, theme, () => done()));
       } else {
         console.log(statusTable(s));
@@ -272,7 +269,7 @@ export default function cddExtension(pi: ExtensionAPI) {
     },
   });
 
-  // ---- door 1 mirror: the model's tool (one dispatcher, every op, ADR-0005) -
+  // ---- door 1 mirror: the model's tool (one dispatcher, every op) ---------
 
   pi.registerTool({
     name: "cdd",
@@ -372,7 +369,7 @@ export default function cddExtension(pi: ExtensionAPI) {
       }
     },
   });
-  // ---- ambient context (ADR-0004) -------------------------------------------
+  // ---- ambient context --------------------------------------------------------
 
   pi.on("before_agent_start", async (event) => {
     const block = buildAmbientBlock(process.cwd());

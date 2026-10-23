@@ -13,3 +13,5 @@ Reasons:
 3. **Merge semantics stay textual:** the delta → spec merge on archive is a markdown section operation, reviewable in the archive commit.
 
 Consequence: the extension's store layer is a thin `fs` module, and any future format change is an ADR plus a migration note — never a silent version bump.
+
+Reconfirmed-by: comments-are-shape-only — lib/store.mjs lesson prose and pointer comments removed; the plain-markdown store unchanged.

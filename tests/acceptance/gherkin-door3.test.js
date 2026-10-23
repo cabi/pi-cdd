@@ -227,8 +227,8 @@ check("D6", "two-When fence: full scan red with the subset law, --staged green",
   assert(r.code !== 0, `expected non-zero exit, got 0:\n${r.out}`);
   const g = r.out.split("\n").filter((l) => l.includes("[G]"));
   assert(g.length === 1 && g[0].includes("cdd/specs/cap/spec.md") && g[0].includes("exactly one When step"), `expected exactly 1 [G] finding naming the spec file and the defect:\n${r.out}`);
-  // the commit door is parser-free by contract (ADR-0005): the same fence,
-  // staged scan stays green — door 2 never imports the parser
+  // the commit door is parser-free by contract: the same fence, staged
+  // scan stays green — door 2 never imports the parser
   fs.writeFileSync(path.join(root, "touch.txt"), "x");
   execFileSync("git", ["-C", root, "add", "touch.txt"]);
   const staged = runScan(root, path.join(root, "cdd", "scripts", "spec-drift.mjs"), ["--staged"]);

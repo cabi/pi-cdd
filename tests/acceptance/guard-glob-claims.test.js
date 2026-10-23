@@ -1,12 +1,9 @@
 #!/usr/bin/env node
-// guard-glob-claims — PF-20's pin: a Code glob compiles to exactly the files
-// it names. Every probe stages one file against a sandbox spec whose Code
-// line claims it and asks the real commit-msg door: a claimed file with no
-// spec of its capability staged must red the staged-pair check; an unclaimed
-// file must stay green. Pre-fix, every single-star and character-class glob
-// compiled to a pattern demanding a literal "[" (the escape pass ate the
-// star's translation), so the claimed-file probes passed the door silently —
-// these are the probes that caught PF-20, kept red-first honest.
+// guard-glob-claims — a Code glob compiles to exactly the files it names.
+// Every probe stages one file against a sandbox spec whose Code line
+// claims it and asks the real commit-msg door: a claimed file with no
+// spec of its capability staged must red the staged-pair check; an
+// unclaimed file must stay green.
 
 import * as fs from "node:fs";
 import * as os from "node:os";

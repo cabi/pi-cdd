@@ -10,8 +10,8 @@
 //   2. an `interpreted` section the agent or human fills from that evidence
 //      — the tool never asserts interpretation as fact
 //
-// Existing decisions are ground truth, not audit targets: ADRs under
-// cdd/decisions/ (and docs/adr/, whose content gets a thin index entry
+// Existing decisions are ground truth, not audit targets: records under the
+// decisions directory (and docs/adr/, whose content gets a thin index entry
 // there so the guard sees them) are ingested and echoed as settled context.
 // The report lists audit candidates only where induced reality and a
 // recorded decision meet — machines detect, humans resolve.

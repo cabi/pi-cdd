@@ -1,13 +1,11 @@
 #!/usr/bin/env node
-// guard-memory-claims — PF-19's pin at the root: a Code line claims
-// implementation surface, never decision memory. Decision memory
-// (cdd/decisions/**) answers to the guard's A-checks unconditionally, so no
-// travel door may bind it — which is what made staged ADR reconfirmations
-// unlawful (the staged-pair check demanded a spec travel with the ADR). The
-// full scan owns the law: an open-delta memory claim reds unconditionally, a
-// living claim reds unless the same capability's open change is correcting
-// that very requirement with a clean restated Code line — then one
-// informational skip line, never silent.
+// guard-memory-claims — a Code line claims implementation surface, never
+// decision memory. Decision memory (cdd/decisions/**) answers to the
+// guard's A-checks unconditionally, so no travel door may bind it. The
+// full scan owns the law: an open-delta memory claim reds unconditionally,
+// a living claim reds unless the same capability's open change is
+// correcting that very requirement with a clean restated Code line —
+// then one informational skip line, never silent.
 
 import * as fs from "node:fs";
 import * as os from "node:os";

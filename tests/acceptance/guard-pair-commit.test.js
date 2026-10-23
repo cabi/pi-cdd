@@ -4,9 +4,6 @@
 // archiveChange stages) passes the pre-commit staged scan; the door 3 full
 // scan still owns committed-history topology L2 and fires exactly once at
 // the mid-pair tip; completing the pair turns the full scan green again.
-// PF-18: pre-fix, the pre-commit door ran the topology check too — it reads
-// committed history, cannot see the staged living-spec merge, and deadlocked
-// the archive commit (the 20261023-hook-wiring --no-verify incident shape).
 
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -35,10 +32,10 @@ const assert = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
 
-// The PF-18 sandbox: a git store whose capability `app` claims src/app.js;
-// change add-y lands a second requirement on the same Code glob through the
-// real pre-commit door, then the real archiveChange stages the pair's second
-// commit. Same shape the 20261023-hook-wiring bypass hit.
+// Sandbox: a git store whose capability `app` claims src/app.js; change
+// add-y lands a second requirement on the same Code glob through the
+// real pre-commit door, then the real archiveChange stages the pair's
+// second commit.
 async function pairFixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "cdd-pc-"));
   fs.mkdirSync(path.join(root, "tests", "acceptance"), { recursive: true });

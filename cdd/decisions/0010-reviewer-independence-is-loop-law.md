@@ -117,3 +117,5 @@ beside each SKILL.md into per-skill assets/ dirs (pi skill-authoring
 layout, pure renames) — the independence law is unchanged; each R3 axis
 still ran in its own cold session of a different model family, briefed
 only from the instantiated brief under the change's reviews/.
+
+Reconfirmed-by: comments-are-shape-only — lib/loop-law.mjs citations and test banners swept; reviewer-independence law unchanged.

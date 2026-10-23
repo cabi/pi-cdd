@@ -2,7 +2,7 @@
 // (open changes first, archived second), each a keyboard-sortable table with
 // the newest change on top; in-process rows are highlighted. Rendering uses
 // ONLY theme tokens pi provides and pi-tui width utilities — no hardcoded
-// colors, no second renderer (see docs/tui.md).
+// colors, no second renderer.
 
 import type { Theme } from "@earendil-works/pi-coding-agent";
 import { matchesKey, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";

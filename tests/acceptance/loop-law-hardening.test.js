@@ -2,11 +2,10 @@
 // loop-law-hardening — the loop law gains the author-family clause and the
 // two-axes-two-sessions clause as rule 2b law (with rule 2a cross-referencing
 // the two-sessions requirement where it names R3), the re-tick rule 11a and
-// the pin-realism sentence in the test-first rule, ADR-0010 carries the dated
-// amendment recording both 2b clauses, the five reviewer brief templates live
-// next to their skills with the common skeleton and their MUST-DELIVER
-// checklists, and the review-wiring suite holds no dead law reads. Red until
-// the law text, mirrors, ADR amendment, briefs, and cleanup land.
+// the pin-realism sentence in the test-first rule, the five reviewer brief
+// templates live next to their skills with the common skeleton and their
+// MUST-DELIVER checklists, and the review-wiring suite holds no dead law
+// reads. Red until the law text, mirrors, briefs, and cleanup land.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -56,8 +55,6 @@ const readAdr = (prefix) => {
   return fs.readFileSync(path.join(dir, files[0]), "utf8");
 };
 
-// --- Requirement: Loop law names three review points (modified) ------------------
-
 check("LLH1", "rule 2a cross-references the two-sessions rule where it names R3", () => {
   const r = ruleBlock(storeRules(), "2a");
   includes(r, "two separate cold sessions", "rule 2a");
@@ -65,8 +62,6 @@ check("LLH1", "rule 2a cross-references the two-sessions rule where it names R3"
   includes(ruleBlock(tpl.RULES_MD, "2a"), "two separate cold sessions", "RULES_MD rule 2a");
   includes(norm(ruleBlock(tpl.RULES_MD, "2a")), "rule 2b governs both axes", "RULES_MD rule 2a cross-ref");
 });
-
-// --- Requirement: Reviews run cold (modified) ------------------------------------
 
 check("LLH2", "rule 2b separates author and reviewer families and R3's two axes", () => {
   const store = storeRules();
@@ -81,8 +76,6 @@ check("LLH2", "rule 2b separates author and reviewer families and R3's two axes"
   includes(store, law.lawRule2b().trim(), "store copy");
 });
 
-// --- Requirement: Reviewer-independence ADR is drafted (modified) ----------------
-
 check("LLH3", "ADR-0010 carries the dated rule-2b amendment", () => {
   const adr = readAdr("0010");
   const a = norm(adr).toLowerCase();
@@ -94,8 +87,6 @@ check("LLH3", "ADR-0010 carries the dated rule-2b amendment", () => {
   includes(a, "silence", "ADR-0010");
 });
 
-// --- Requirement: Re-tick law makes ticks claims, not history --------------------
-
 check("LLH4", "rule 11a states the re-tick duty, door refusal, and archive blocker", () => {
   const store = storeRules();
   const r = ruleBlock(store, "11a");
@@ -106,8 +97,6 @@ check("LLH4", "rule 11a states the re-tick duty, door refusal, and archive block
   includes(ruleBlock(tpl.RULES_MD, "11a"), "Ticks are claims, not history", "RULES_MD rule 11a");
 });
 
-// --- Requirement: Acceptance pins invoke the real door ---------------------------
-
 check("LLH5", "the test-first rule states the pin-realism clause", () => {
   const r = ruleBlock(storeRules(), "7");
   includes(r, "real door entry point", "rule 7");
@@ -116,8 +105,6 @@ check("LLH5", "the test-first rule states the pin-realism clause", () => {
   includes(r, "never a copied fragment", "rule 7");
   includes(r, "sandbox-only pin is a note-level finding at R3", "rule 7");
 });
-
-// --- Requirement: Reviewer briefs live next to their skills ----------------------
 
 const BRIEFS = [
   ["cdd-spec-review", "brief-r1.md", "R1", null],
@@ -185,8 +172,6 @@ check("LLH8", "the skills point at their briefs", () => {
     assert(s.includes("brief-"), `${skill}/SKILL.md does not point at its briefs`);
   }
 });
-
-// --- Requirement: Review wiring holds no dead law reads --------------------------
 
 check("LLH9", "review-wiring holds no dead law binding and stays green", () => {
   const src = fs.readFileSync(path.join(REPO, "tests", "acceptance", "review-wiring.test.js"), "utf8");

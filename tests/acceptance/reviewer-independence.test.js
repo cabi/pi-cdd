@@ -2,10 +2,9 @@
 // reviewer-independence — the loop law states reviewer independence as rule
 // 2b (the reviewer is not the author of the artifacts under review; cold
 // sub-agent reviews, same-session re-read as the recorded fallback), the
-// module owns the facts, every statement surface renders them from it, the
-// three bundled skills cite rule 2b and carry the procedure, and ADR-0010
-// records the decision with ADR-0008/0009 reconfirm notes. Red until the
-// law, surfaces, skills, and ADRs carry the change.
+// module owns the facts, every statement surface renders them from it, and
+// the three bundled skills cite rule 2b and carry the procedure. Red until
+// the law, surfaces, and skills carry the change.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -67,7 +66,6 @@ const readAdr = (prefix) => {
   return fs.readFileSync(path.join(dir, files[0]), "utf8");
 };
 
-// --- Requirement: Reviews run cold ------------------------------------------------
 
 check("RI1", "rule 2b states the independence law in the store copy", () => {
   const store = fs.readFileSync(path.join(REPO, "cdd", "rules.md"), "utf8");
@@ -132,7 +130,6 @@ check("RI5", "rule 2b rendered from the module is byte-identical to the store co
   assert(slice2b(store) === rendered, "cdd/rules.md's rule 2b slice is not the module's render");
 });
 
-// --- Requirement: Reviewer-independence ADR is drafted -----------------------------
 
 check("RI6", "ADR-0010 states the reviewer-independence decision", () => {
   const body = readAdr("0010");

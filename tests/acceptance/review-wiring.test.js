@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // review-wiring — the three review points (R1/R2/R3 + conditional ADR review)
 // are named by every statement of the loop with triggers, skills, modes, and
-// findings paths, and reviews are advisory findings, never verdicts (ADR-0008).
-// Red until templates.mjs, instructions.mjs, context.mjs, help.mjs, the store
+// findings paths, and reviews are advisory findings, never verdicts. Red
+// until templates.mjs, instructions.mjs, context.mjs, help.mjs, the store
 // copy cdd/rules.md, README.md, smoke.mjs, and cdd/decisions/ carry the wiring.
 
 import * as fs from "node:fs";
@@ -184,7 +184,6 @@ check("RW11", "the tasks instruction explains the review clauses and the advisor
   includes(t, "draft-green", "tasks scaffold instruction");
 });
 
-// --- ADR-0008 and the guard's acceptance of the draft status ------------------
 
 check("RW12", "ADR-0008 exists with a resolved status stating the advisory-findings decision", () => {
   const dir = path.join(REPO, "cdd", "decisions");

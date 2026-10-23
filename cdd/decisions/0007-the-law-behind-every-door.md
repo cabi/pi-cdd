@@ -67,3 +67,5 @@ commit-msg door owns staged pairs, the full scan owns topology L2 (!preCommit
 gate) — so every check stays door-backed and no door gained law-free checks.
 
 Reconfirmed by guard-glob-fix on 2026-10-23: scripts/spec-drift.mjs changed (globToRe fix, new memory-claim check), but the grammar decision holds: the Gherkin grammar (CODE_LINE, PIN_COMMENT and friends) still lives solely in scripts/grammar-law.mjs — the guard imports CODE_LINE rather than restating it, and no new grammar constant was introduced.
+
+Reconfirmed-by: comments-are-shape-only — doorway banners and ADR-pointer comments removed across scripts/ and lib/; every door still routes editors to the corpus at edit time.

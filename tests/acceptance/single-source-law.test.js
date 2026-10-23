@@ -3,8 +3,8 @@
 // skills, modes, findings paths, and the advisory-findings grammar) are
 // defined in exactly 1 module, lib/loop-law.mjs; every statement surface
 // renders them from it; the README row carries the canonical triggers plus
-// a pointer to rule 2a; ADR-0009 records the decision. Red until the module
-// exists (module-resolution error) and until every surface derives from it.
+// the law's review-point rule. Red until the module exists (module-resolution
+// error) and until every surface derives from it.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -168,7 +168,6 @@ check("SSL7", "the README review-points row names the canonical triggers and poi
   }
 });
 
-// --- ADR-0009 and the guard ------------------------------------------------------
 
 check("SSL8", "ADR-0009 records the single-source decision with status draft or accepted", () => {
   const dir = path.join(REPO, "cdd", "decisions");

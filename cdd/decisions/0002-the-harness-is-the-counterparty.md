@@ -11,3 +11,5 @@ The factory needed the OpenSpec CLI as an external counterparty that forced the 
 3. **The human keeps the close button:** `/cdd-init` and `/cdd-archive` are commands first; the agent tools mirror them for flow, but the git pair-commit rhythm (feature commit + archive commit) stays visible in history.
 
 Consequence: trust in pi-cdd is trust in *deterministic checks plus injected context*, not in an external vendor tool. That is a different trust model than the factory's — and the reason the validation run (P4) must falsify it before any packaging.
+
+Reconfirmed-by: comments-are-shape-only — index.ts banner comments swept; the harness-counterparty contract unchanged.

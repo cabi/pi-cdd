@@ -97,3 +97,5 @@ Reconfirmed by law-guard-fixes on 2026-10-23: both R3 axes ran cold and
 advisory (opencode-zen/deepseek-v4-pro, opencode-zen/deepseek-v4.1-flash)
 — six findings, every one disposed fixed, none a verdict and none gating
 the archive.
+
+Reconfirmed-by: comments-are-shape-only — lib/templates.mjs, lib/context.mjs, lib/help.mjs headers swept; advisory-findings law unchanged.

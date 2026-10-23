@@ -1,63 +1,21 @@
 #!/usr/bin/env node
-// spec-drift — the lean-verified drift guard (C5 companion).
-//
-// Premise: code is the truth, the spec is the index. This script keeps the
-// index honest. Same script, three doors, nearest to where drift starts:
-//   1. apply preflight  — the schema's apply instruction runs it before `/cdd-archive`
+// spec-drift — the drift guard. Code is the truth, the spec is the index;
+// this script keeps the index honest. One script, three doors, nearest to
+// where drift starts:
+//   1. apply preflight  — the schema's apply instruction runs it before archive
 //   2. commit door      — .githooks/pre-commit runs it with --staged
 //                         (message-independent checks); .githooks/commit-msg
-//                         runs it with --commit-msg "$1" (L2 travel with the
-//                         mechanical exemption, staged-M integrity). The
-//                         trailer is visible only to the second hook, so a
-//                         mechanical commit never needs --no-verify.
+//                         runs it with --commit-msg "$1" (message-carried
+//                         exemptions and staged integrity)
 //
-// L1 traceability (always, no git needed):
-//   - every `Verified by <path>` pin in every spec resolves to an existing file
-//   - every file under tests/acceptance/ (or test/acceptance/) is pinned by some spec
+// Check families (the Checks line below is the complete, pinned tag set):
+//   L — pin traceability, spec staleness, task-list scale, memory-claim placement
+//   M — a mechanical-marked commit leaves specs and acceptance tests untouched
+//   O — every file is claimed by at most one spec's Code: globs
+//   A — decision records: lifecycle, citation on touch, staleness, placement
+//   G/H — grammar-law verdict pins and decision-header hygiene
 //
-// L2 staleness (living specs with git history):
-//   - a requirement may carry `Code: <glob>` lines; if a matching file was
-//     committed after the spec file last changed, the spec is stale — the code
-//     and the spec must travel together.
-//     and the spec must travel together. Commits marked mechanical (a
-//     `Mechanical-Change: <reason>` trailer or a `[mechanical]` subject —
-//     lint --fix sweeps, codemods, framework updates) do not advance the
-//     clock: they carry no contract information.
-//
-// M mechanical integrity (full scan): a commit claiming to be mechanical
-//     must not touch cdd/specs/ or the acceptance tests. Behavior
-//     change? Not mechanical — contract travels with code, through the loop.
-//
-// O single owner: a file claimed by two specs' Code: globs is an unowned
-//     helper — narrow the globs, or give the helper its own capability.
-//
-// --staged scopes the checks to the current index (the commit door):
-//   staged acceptance-test deletions, staged orphan acceptance tests, or staged
-//   code matching Code: globs fail unless the spec is updated in the same commit.
-// L3 scale (living changes): a task list past 12 tracked tasks is a
-//     decomposition signal, not a work plan — long checklists are where
-//     model execution stops being reliable (mid-list skips, phantom
-//     ticks). The split procedure lives in the schema's tasks
-//     instruction. A recorded `split-considered:` decision passes;
-//
-// L4 memory claims (full scan): a Code: line claiming cdd/decisions/**
-//     (by prefix or by compiled glob) reds — decision memory answers to the
-//     A-checks, never to spec travel; a living claim skips once, loudly,
-//     while an open change of the same capability corrects it.
-//
-// A architectural decisions (cdd/decisions/, full scan) — memory beside
-//     the contract, created only when a decision is hard to reverse,
-//     surprising without context, a real trade-off, and crosses capability
-//     boundaries:
-//   A0 lifecycle — status is valid, supersedes resolves, and a superseded
-//     target actually flipped its status in the same commit
-//   A1 citation on touch — an open change whose code overlaps an accepted
-//     decision's `code:` globs must cite that ADR (follow it) or supersede it
-//   A2 staleness — code under a decision's globs moving past the decision is
-//     silent rot: reconfirm (touch the decision in the same commit) or
-//     supersede it with a new ADR
-//     archived changes are frozen history and are never nagged.
-//
+// Checks: A0 A1 A2 G H L1 L2 L3 L4 L4-skip M O
 //
 // exit 0 = no drift · 1 = drift found · 2 = usage/setup error
 
@@ -163,9 +121,9 @@ const pinsOf = new Map(); // specRel -> [{ pin, resolved }]
 const codeGlobs = new Map(); // specRel -> [globs]
 for (const specRel of allSpecs) {
   const text = fs.readFileSync(path.join(root, specRel), 'utf8');
-  // Pins live inside the gherkin fences as "# Verified by:" comments
-  // (ADR-0006); markdown outside fences is blanked so a quoted phrase
-  // cannot pose as a pin.
+  // Pins live inside the gherkin fences as "# Verified by:" comments;
+  // markdown outside fences is blanked so a quoted phrase cannot pose
+  // as a pin.
   let inFence = false;
   const masked = text
     .split('\n')
@@ -223,7 +181,7 @@ function accFiles(dir, acc = []) {
 const accRel = accDirs.flatMap((d) => accFiles(d).map(rel));
 
 function globToRe(glob) {
-  // PF-20: translate, never double-escape. A `[...]` span passes through as a
+  // Translate, never double-escape. A `[...]` span passes through as a
   // character class (leading `!` negates), a single `*` becomes `[^/]*`, every
   // other regex metacharacter is escaped so literals stay literal, and an
   // unterminated or empty `[` is literal text — a compiled claim is exactly
@@ -352,10 +310,9 @@ const tracked = isRepo ? (git(['ls-files']) ?? '').split('\n').filter(Boolean) :
 
 // ==============================================================================
 // L4 — decision memory is not implementation surface: no Code line may claim
-// cdd/decisions/**. ADRs answer to the A-checks (A0/A1/A2) unconditionally, so
+// the decisions directory. ADRs answer to the A-checks unconditionally, so
 // binding them to a capability's travel doors double-governs them — and makes
-// a staged ADR reconfirmation unlawful (PF-19: the staged-pair check demanded
-// a spec travel with the ADR). The full scan owns this law. An open delta's
+// a staged ADR reconfirmation unlawful. The full scan owns this law. An open delta's
 // claim reds unconditionally; a living claim reds unless an open change of the
 // same capability is correcting that very requirement (heading-matched) with a
 // clean restated Code line — then one informational skip line, never silent.
@@ -479,9 +436,9 @@ if (isRepo) {
       // topology L2 is committed-history law: lastCommit() cannot see this
       // commit's staged spec merge, so in pre-commit mode it can only fire
       // on the commit being made (the archive pair-commit's second commit
-      // stages the merged spec without code — unreachable red, the PF-18
-      // deadlock). The commit-msg door polices staged pairs mid-commit; the
-      // full scan (door 3) owns topology here and at every checkpoint.
+      // stages the merged spec without code — unreachable red here). The
+      // commit-msg door polices staged pairs mid-commit; the full scan
+      // (door 3) owns topology here and at every checkpoint.
       const specCs = specRels.map(lastCommit).filter(Boolean);
       if (!specCs.length) continue; // nothing committed yet — nothing to compare
       for (const f of matches) {
@@ -633,7 +590,7 @@ if (fs.existsSync(changesDir)) {
 }
 
 // ==============================================================================
-// A — architectural decisions (cdd/decisions/): the memory that replaces
+// A — architectural decisions (the decisions directory): the memory that replaces
 // osmosis. Beside the contract tree in form, visible to the guard in fact.
 // ==============================================================================
 const decisionsDir = path.join(root, 'cdd', 'decisions');
