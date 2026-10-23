@@ -205,6 +205,12 @@ Scenario: The chain archives and merges into the living spec
   When the archive library call runs on that change
   Then the change folder moves under the archive and the living spec holds the scaffolded requirement
   # Verified by: tests/smoke.mjs
+
+Scenario: Doorway pins are honest across the node matrix
+  Given the smoke pin that executes the extension entry directly
+  When the runtime node cannot execute TypeScript files (no type stripping)
+  Then the pin asserts the invariant — a loud nonzero exit, never silent success — instead of the strip-capable usage-line contract
+  # Verified by: tests/smoke.mjs
 ```
 
 Code: tests/smoke.mjs, lib/templates.mjs
