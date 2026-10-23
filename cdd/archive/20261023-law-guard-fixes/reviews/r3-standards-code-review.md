@@ -41,3 +41,16 @@ Evidence: `cdd/changes/law-guard-fixes/proposal.md` (three Done-When lines, all 
 - F1 (header comment stale) — **fixed:** lib/loop-law.mjs:4 now reads "lawRule2/lawRule2a/2b/2c and lawRule3".
 - F2 (LDW2 claims byte-identity but compares normalized) — **fixed:** ruleBlock() returns the raw slice; LDW2 asserts `r3store === r3render` (byte-exact). Verified by spec-axis F1 disposition below.
 - F3 (traceability row without a Done-When line) — **fixed:** proposal.md carries the PF-17 Done-When line first ("rule 3's rendered law text and its cdd/rules.md mirror state the 1-5 observable-criteria contract, and the old one-line wording is gone"); 4 Done-When lines ↔ 4 table rows.
+
+## Post-Close addendum 2026-10-23 (post-approval, director-authorized)
+
+The Close pair-commit surfaced an A2 staleness debt (six ADRs vs the change's
+governed files). While executing a director-authorized bypass order, the
+runner isolated the door red, found the order's premise false (a lawful
+amend shape exists), and stopped before any --no-verify. The six
+reconfirmation paragraphs landed via director-authorized amend of this
+change's unpushed archive commit, through both wired doors. Findings:
+PF-19 (corrected mechanism — staged-pair vs A2 on literally-claimed ADR
+files) and PF-20 (globToRe star-escape bug) are recorded in cdd/backlog.md.
+No R3 finding above is affected; this addendum is store history, not a
+review verdict.

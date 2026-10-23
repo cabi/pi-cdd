@@ -73,3 +73,9 @@ position between 2b and rule 3). Ticks-still-claims and pins-hit-real-doors
 are untouched.
 
 Reconfirmed by r3-findings on 2026-10-23: cdd/rules.md changed only as the byte-identical render of the single source, every tick in this change maps to an observable verify line, and the pins hit real doors — the R3 cold review found the red suite the runner's green claim had papered over.
+
+Reconfirmed by law-guard-fixes on 2026-10-23: cdd/rules.md changed only as
+the byte-identical render of the single source, every Close tick cites an
+exact command and tail, and the new pins hit real doors — LDW4 drives the
+real validateChange door on a scratch change, the guard pin drives the
+real spec-drift child process in a sandbox repo.

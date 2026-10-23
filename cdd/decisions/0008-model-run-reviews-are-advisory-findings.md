@@ -92,3 +92,8 @@ per axis changes where findings land, not what they are — the advisory
 grammar (blocker/should/note plus fixed:/open/won't-fix:) and the
 never-verdicts rule carry into both files unchanged, and dispositions
 still never gate on their own.
+
+Reconfirmed by law-guard-fixes on 2026-10-23: both R3 axes ran cold and
+advisory (opencode-zen/deepseek-v4-pro, opencode-zen/deepseek-v4.1-flash)
+— six findings, every one disposed fixed, none a verdict and none gating
+the archive.

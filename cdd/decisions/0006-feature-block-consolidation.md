@@ -74,3 +74,8 @@ skeleton's design-gate line gains the design.md shape clause; the
 scaffold-block format and every existing scaffold are unchanged.
 
 Reconfirmed by r3-findings on 2026-10-23: the per-axis R3 rule lands inside the existing artifact blocks — tasksTemplate's Close items, the two brief templates, and the cdd-code-review charter — and proposalTemplate's new Capabilities section joins its existing scaffold block; no scaffold surface is split out.
+
+Reconfirmed by law-guard-fixes on 2026-10-23: lib/templates.mjs changes
+only inside the RULES_MD law block — rule 3 now renders from lawRule3()
+stating the 1-5 observable-criteria contract — and every scaffold block
+(feature/proposal/delta/tasks/design/briefs) is untouched.

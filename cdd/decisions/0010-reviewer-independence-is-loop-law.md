@@ -106,3 +106,8 @@ two findings files is now the law itself instead of a runner-side patch —
 each R3 brief names only its own findings file so neither reviewer session
 can write the other's, closing the clobber recurrence this decision's law
 could not yet express.
+
+Reconfirmed by law-guard-fixes on 2026-10-23: cdd/rules.md changed only as
+the byte-identical render of the single source, and both R3 axes ran in
+cold sessions of a different model family than the author — briefs lived
+under the change's reviews/, each axis its own findings file.

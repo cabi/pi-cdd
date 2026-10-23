@@ -59,3 +59,9 @@ that becomes a process finding and a door later, exactly the trajectory
 this decision prescribes.
 
 Reconfirmed by r3-findings on 2026-10-23: the per-axis R3 findings rule is rendered loop law from lib/loop-law.mjs with cdd/rules.md as its byte-identical mirror, and no new validator door is added — the Capabilities placeholder joins the existing validateProposal placeholder door.
+
+Reconfirmed by law-guard-fixes on 2026-10-23: the rule-3 law wording now
+matches the validateProposal door's 1-5 criteria contract, and the guard's
+door ownership is made explicit — pre-commit keeps the staged checks, the
+commit-msg door owns staged pairs, the full scan owns topology L2 (!preCommit
+gate) — so every check stays door-backed and no door gained law-free checks.

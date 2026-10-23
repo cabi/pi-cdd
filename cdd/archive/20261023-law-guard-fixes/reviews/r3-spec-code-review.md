@@ -68,3 +68,15 @@ Advisory only: no fixes applied, no verdicts — gate authority stays with the d
 - F1 (LDW2 normalized comparison) — **fixed:** ruleBlock() now returns the raw slice and LDW2 asserts `r3store === r3render` byte-exact; the scratch mutation from this review (whitespace re-wrap of rule 3 in the mirror) now fails LDW2 directly.
 - F2 (no pin couples the three surfaces) — **fixed:** new LDW4 asserts the scaffold instruction still states "Done-When: 1-5 completion criteria" and exercises the real `validateChange` door on a scratch change: 6 Done-When lines trip "Done-When criteria (max 5", 5 lines do not. Mutation-verified: sed-ing the instruction bound to 1-6 turns LDW4 red.
 - F3 (commit-msg compensating control pinned only pre-existing) — **fixed:** new GPC5 stages bare code (delta unstaged) and runs the real door with --commit-msg, asserting exit non-zero with exactly one "[L2] … no spec of app is in this commit". Mutation-verified: disabling the staged-pair branch turns GPC5 red.
+
+## Post-Close addendum 2026-10-23 (post-approval, director-authorized)
+
+The Close pair-commit surfaced an A2 staleness debt (six ADRs vs the
+change's governed files). A director-authorized bypass was withdrawn after
+the runner probe-isolated the door red and found a lawful amend shape
+(reconfirmations ride the archive commit, which alone carries a
+living-spec merge to pair a literally-claimed ADR file); the six
+reconfirmation paragraphs landed via the authorized amend of the unpushed
+archive commit through both wired doors. PF-19 (corrected) and PF-20
+(globToRe star-escape) are recorded in cdd/backlog.md. No finding above is
+affected; this addendum is store history, not a review verdict.

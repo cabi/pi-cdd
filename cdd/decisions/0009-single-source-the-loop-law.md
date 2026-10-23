@@ -105,3 +105,8 @@ lib/loop-law.mjs and render from it into the law text, the statement
 surfaces, and the byte-identical cdd/rules.md mirror (pinned by the
 r3-findings and single-source-law suites) — no second statement of the
 rule exists; briefs and the SKILL charter cite it.
+
+Reconfirmed by law-guard-fixes on 2026-10-23: lawRule3() is defined once
+in lib/loop-law.mjs, renders into RULES_MD, and cdd/rules.md is written as
+its byte-identical mirror — pinned byte-exact by LDW2 (r3store ===
+r3render) — no second statement of the rule exists.
