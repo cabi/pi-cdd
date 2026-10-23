@@ -283,7 +283,7 @@ Scenario: Rule 2a cross-references the two-sessions rule
   # Verified by: tests/acceptance/loop-law-hardening.test.js
 ```
 
-Code: lib/loop-law.mjs, lib/templates.mjs, lib/instructions.mjs, lib/context.mjs, lib/help.mjs, README.md, cdd/rules.md, cdd/decisions/0008-*.md, tests/acceptance/review-wiring.test.js, tests/acceptance/single-source-law.test.js, tests/acceptance/loop-law-hardening.test.js, tests/acceptance/r3-findings.test.js
+Code: lib/loop-law.mjs, lib/templates.mjs, lib/instructions.mjs, lib/context.mjs, lib/help.mjs, README.md, cdd/rules.md, tests/acceptance/review-wiring.test.js, tests/acceptance/single-source-law.test.js, tests/acceptance/loop-law-hardening.test.js, tests/acceptance/r3-findings.test.js
 
 ### Requirement: Proposal instruction carries the R1 review tail
 
@@ -341,7 +341,7 @@ Scenario: Smoke pins the review scaffolds
   # Verified by: tests/smoke.mjs
 ```
 
-Code: lib/templates.mjs, lib/instructions.mjs, lib/context.mjs, lib/help.mjs, cdd/rules.md, cdd/decisions/0008-*.md, tests/acceptance/review-wiring.test.js, tests/smoke.mjs
+Code: lib/templates.mjs, lib/instructions.mjs, lib/context.mjs, lib/help.mjs, cdd/rules.md, tests/acceptance/review-wiring.test.js, tests/smoke.mjs
 
 ### Requirement: Design gate record lands before the proposal
 
@@ -377,7 +377,7 @@ Scenario: The tasks scaffold carries the shape clause
   # Verified by: tests/acceptance/design-docs.test.js
 ```
 
-Code: lib/loop-law.mjs, lib/templates.mjs, lib/context.mjs, lib/help.mjs, cdd/rules.md, cdd/decisions/0008-*.md, tests/acceptance/review-wiring.test.js, tests/acceptance/design-docs.test.js
+Code: lib/loop-law.mjs, lib/templates.mjs, lib/context.mjs, lib/help.mjs, cdd/rules.md, tests/acceptance/review-wiring.test.js, tests/acceptance/design-docs.test.js
 
 ### Requirement: Advisory-findings ADR is drafted
 
@@ -399,7 +399,7 @@ Scenario: The guard accepts the draft status
   # Verified by: tests/acceptance/review-wiring.test.js
 ```
 
-Code: lib/context.mjs, lib/help.mjs, cdd/rules.md, cdd/decisions/0008-*.md, tests/acceptance/review-wiring.test.js
+Code: lib/context.mjs, lib/help.mjs, cdd/rules.md, tests/acceptance/review-wiring.test.js
 
 ### Requirement: The loop law is single-sourced
 
@@ -425,7 +425,7 @@ Code: lib/loop-law.mjs, tests/acceptance/single-source-law.test.js
 
 ### Requirement: Single-source ADR is drafted
 
-`cdd/decisions/` MUST hold ADR-0009 recording that the loop law is single-sourced in `lib/loop-law.mjs` with every statement surface deriving from it, chosen over mirror, generator, and pointer-only alternatives. It is drafted with `status: draft` (a valid status the human resolves) and, once the human resolves it at Close, its frontmatter carries the resolved status; the drift guard MUST hold no violation against it in either state.
+`cdd/decisions/` MUST hold ADR-0009 recording that the loop law is single-sourced in `lib/loop-law.mjs` with every statement surface deriving from it, chosen over mirror, generator, and pointer-only alternatives. It is drafted with `status: draft` (a valid status the human resolves) and, once the human resolves it at Close, its frontmatter carries the resolved status; the drift guard MUST hold no violation against it in either state. The requirement claims its enforcement pin, not the ADR itself — decision memory answers to the A-checks.
 
 ```gherkin
 Feature: Single-source ADR is drafted
@@ -443,7 +443,7 @@ Scenario: The guard accepts the draft status
   # Verified by: tests/acceptance/single-source-law.test.js
 ```
 
-Code: cdd/decisions/0009-*.md
+Code: tests/acceptance/single-source-law.test.js
 
 ### Requirement: Reviews run cold
 
@@ -538,7 +538,7 @@ Scenario: ADR-0010 carries the rule-2b amendment
   # Verified by: tests/acceptance/loop-law-hardening.test.js
 ```
 
-Code: cdd/decisions/0010-*.md, cdd/decisions/0008-*.md, cdd/decisions/0009-*.md, tests/acceptance/loop-law-hardening.test.js
+Code: tests/acceptance/reviewer-independence.test.js, tests/acceptance/loop-law-hardening.test.js
 
 ### Requirement: Guard tolerates scaffold placeholders in open deltas
 
@@ -876,7 +876,7 @@ Scenario: ADR-0011 records both law decisions
   # Verified by: tests/acceptance/loop-law-hardening.test.js
 ```
 
-Code: cdd/decisions/0011-ticks-are-claims-and-pins-hit-real-doors.md, tests/acceptance/loop-law-hardening.test.js
+Code: tests/acceptance/loop-law-hardening.test.js
 
 ### Requirement: Process findings land in the backlog
 
@@ -1076,3 +1076,128 @@ Scenario: The full scan still enforces topology at the mid-pair tip
 ```
 
 Code: scripts/spec-drift.mjs, cdd/scripts/**, tests/acceptance/guard-pair-commit.test.js
+
+### Requirement: Code globs compile to precise file claims
+
+The drift guard MUST compile every `Code:` glob to one anchored regex with precise glob semantics: a `[...]` span becomes a character class (leading `!` negates), a single `*` matches within one directory segment, `**` matches across separators, every other regex metacharacter is escaped so literals stay literal, and an unterminated `[` or an empty class span (`[]`, `[!]`) is literal text — an empty class would match nothing, and a silent no-match glob is the failure this law kills. A compiled claim MUST be exactly the files the glob names — never silently zero (PF-20's disease: `*` escaped before translation made every star glob demand a literal `[`), never broader.
+
+```gherkin
+Feature: Code globs compile to precise file claims
+
+Scenario: A single star claims within one directory
+  Given a sandbox git store whose spec claims src/*.mjs with the files src/app.mjs, src/app.js, and src/sub/app.mjs committed
+  When src/app.mjs is staged with no spec of the capability and the commit-msg door runs
+  Then it exits non-zero naming src/app.mjs
+  And staging src/app.js or src/sub/app.mjs with no spec of the capability stays green — the glob claims neither file
+  # Verified by: tests/acceptance/guard-glob-claims.test.js
+
+Scenario: A double star claims across directories
+  Given a sandbox git store whose spec claims src/** with the files src/app.js and src/deep/b.js committed
+  When either file is staged with no spec of the capability and the commit-msg door runs
+  Then it exits non-zero naming that file
+  # Verified by: tests/acceptance/guard-glob-claims.test.js
+
+Scenario: A character class claims its members and only them
+  Given a sandbox git store whose spec claims cfg/[ab].mjs and cfg/[!ab].mjs with the files cfg/a.mjs, cfg/b.mjs, and cfg/c.mjs committed
+  When cfg/a.mjs or cfg/b.mjs is staged with no spec of the capability
+  Then the commit-msg door reds on the [ab] claim naming that file
+  And staging cfg/c.mjs alone reds only on the [!ab] claim — each class claims its members and only them
+  # Verified by: tests/acceptance/guard-glob-claims.test.js
+
+Scenario: A literal dot stays literal
+  Given a sandbox git store whose spec claims cfg/v1.2.mjs with the files cfg/v1.2.mjs and cfg/v1X2.mjs committed
+  When cfg/v1X2.mjs is staged with no spec of the capability and the commit-msg door runs
+  Then it stays green — the glob's dot matches a dot, not any character
+  # Verified by: tests/acceptance/guard-glob-claims.test.js
+
+Scenario: An unterminated class span is literal text
+  Given a sandbox git store whose spec claims cfg/[ab.mjs with a file literally named cfg/[ab.mjs committed
+  When that file is staged with no spec of the capability and the commit-msg door runs
+  Then it exits non-zero naming it — the stray bracket claims nothing broader than itself
+  # Verified by: tests/acceptance/guard-glob-claims.test.js
+
+Scenario: An empty class span is literal text
+  Given a sandbox git store whose spec claims cfg/[].mjs and cfg/[!].mjs with files literally so named committed
+  When either file is staged with no spec of the capability and the commit-msg door runs
+  Then it exits non-zero naming that file — an empty class would match nothing, and a silent no-match glob is the failure this law kills
+  # Verified by: tests/acceptance/guard-glob-claims.test.js
+```
+
+Code: scripts/spec-drift.mjs, cdd/scripts/**, tests/acceptance/guard-glob-claims.test.js
+
+### Requirement: Code lines claim implementation surface, never decision memory
+
+A `Code:` line names implementation surface — files whose travel the doors bind. Decision memory (`cdd/decisions/**`) is governed unconditionally by the guard's A-checks and MUST NOT be claimed: the door 3 full scan reds on any open-delta line naming decision memory (by `cdd/decisions/` prefix or by compiled claim), and on any living line not under an open correction. The exemption is per-requirement, not per-change: an open change of the same capability that MODIFIES the requirement holding the claim (matched by heading, exactly) AND restates its `Code:` line free of decision-memory claims earns one informational skip line for that claim — never silent, always green; a delta that ADDS a memory claim, a second open change's claim, a correction restated under a different heading, or a correction whose restated line keeps the claim exempts nothing and reds. The travel-door half of the exemption is all-or-nothing: a claim is exempt from the staged-pair and topology checks only when every requirement holding it is corrected — one uncorrected holder keeps the doors bound. With honest lines no door binds decision memory, so a staged ADR reconfirmation with nothing claiming it passes both commit doors.
+
+```gherkin
+Feature: Code lines claim implementation surface, never decision memory
+
+Scenario: An open delta claiming decision memory reds
+  Given a store whose full scan exits 0 and an open change whose delta spec carries Code: cdd/decisions/*.md
+  When the door 3 full scan runs
+  Then it exits non-zero with exactly 1 memory-claim finding naming the delta spec, the claim, and the lawful surface — decision memory answers to the A-checks, not spec travel
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A living claim with no correction reds
+  Given a store whose full scan exits 0 except for a living spec carrying Code: cdd/decisions/*.md with no open change of that capability modifying that requirement
+  When the door 3 full scan runs
+  Then it exits non-zero with exactly 1 memory-claim finding naming the living spec
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A living claim under correction skips with one line
+  Given a living spec carrying Code: cdd/decisions/*.md and an open change of the capability whose delta modifies that requirement with a corrected Code line
+  When the door 3 full scan runs
+  Then it exits 0 printing exactly 1 informational skip line naming the claim and the open change
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: An added claim corrects nothing
+  Given a living spec carrying Code: cdd/decisions/*.md on requirement R and an open change of the capability whose delta adds a new requirement claiming Code: cdd/decisions/*.md without touching R
+  When the door 3 full scan runs
+  Then it exits non-zero with exactly 2 findings — the added delta line and the living line on R — the exemption follows the corrected requirement, never the change
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A second open change gets no cover
+  Given a living spec carrying Code: cdd/decisions/*.md on requirement R, an open change of the capability whose delta modifies R with a corrected Code line, and a second open change whose delta claims Code: cdd/decisions/*.md
+  When the door 3 full scan runs
+  Then R prints exactly 1 skip line and the second change's claim prints exactly 1 finding — one change's correction never launders another's claim
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A renamed heading breaks the match
+  Given a living spec carrying Code: cdd/decisions/*.md on requirement R and an open change whose delta modifies R's content but restates it under a different requirement heading
+  When the door 3 full scan runs
+  Then the living claim on R reds — a correction that no longer names the requirement it corrects exempts nothing, and no skip is granted on a fuzzy match
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A correction that keeps the claim reds both
+  Given a living spec carrying Code: cdd/decisions/*.md on requirement R and an open change of the capability whose delta modifies R by exact heading but restates Code: cdd/decisions/*.md unchanged
+  When the door 3 full scan runs
+  Then it exits non-zero with exactly 2 findings — the living line on R and the delta line on R — a correction that re-claims memory corrects nothing
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A staged ADR edit with no claiming spec passes both doors
+  Given a tracked ADR file no spec's Code line claims
+  When the ADR edit is staged and each commit door runs
+  Then both doors exit 0 — decision memory travels alone, answering to the A-checks
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A staged ADR edit claimed only under correction passes both doors
+  Given a living spec carrying Code: cdd/decisions/*.md on requirement R and an open change of the capability whose delta modifies R with a corrected Code line
+  When an ADR edit matching the claim is staged and each commit door runs
+  Then both doors exit 0 — the under-correction claim exempts the travel doors for the archive window, and the skip line carries the record
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A compiled claim with no decisions prefix reds
+  Given a living spec carrying Code: cdd/** — no decisions prefix, yet the compiled glob matches a tracked decision file
+  When the door 3 full scan runs
+  Then it exits non-zero with exactly 1 finding naming the living spec and the glob as compiled — the prefix is a fast path, the compiled claim is the law
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+
+Scenario: A half-corrected spec exempts nothing
+  Given a living spec where requirements R2 and R3 both carry Code: cdd/decisions/*.md and an open change of the capability corrects R2 only
+  When the door 3 full scan runs, then an ADR edit matching the claim is staged and the commit-msg door runs
+  Then the scan exits non-zero with exactly 1 skip for R2 and exactly 1 finding naming R3
+  And the door reds with the staged-pair finding — a claim held by any uncorrected requirement still binds the travel doors
+  # Verified by: tests/acceptance/guard-memory-claims.test.js
+```
+
+Code: scripts/spec-drift.mjs, cdd/scripts/**, tests/acceptance/guard-memory-claims.test.js

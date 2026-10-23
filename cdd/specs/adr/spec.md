@@ -4,7 +4,7 @@
 
 ### Requirement: Product ADRs live in the store's decisions home
 
-Every ADR lives in `cdd/decisions/` — 0001–0007 the product decisions relocated from the repository root with history intact, 0008 and later the loop decisions — there is no second decisions directory. Relocation preserves git history through the move, and every relocated ADR carries a frontmatter status the drift guard's enum accepts.
+Every ADR lives in `cdd/decisions/` — 0001–0007 the product decisions relocated from the repository root with history intact, 0008 and later the loop decisions — there is no second decisions directory. Relocation preserves git history through the move, and every relocated ADR carries a frontmatter status the drift guard's enum accepts. The decisions home is decision memory governed unconditionally by the guard's A-checks; this capability's `Code:` line names its enforcement pin, never the memory files themselves.
 
 ```gherkin
 Feature: Product ADRs live in the store's decisions home
@@ -32,6 +32,7 @@ Scenario: The door 3 full scan governs all eleven ADRs
   When the door 3 full scan runs
   Then it exits 0 with no A-check finding naming any of the 11 ADRs
   # Verified by: tests/acceptance/decisions-home.test.js
+
 ```
 
-Code: cdd/decisions/000[1-7]-*.md, tests/acceptance/decisions-home.test.js
+Code: tests/acceptance/decisions-home.test.js

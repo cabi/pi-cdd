@@ -79,3 +79,5 @@ Reconfirmed by law-guard-fixes on 2026-10-23: lib/templates.mjs changes
 only inside the RULES_MD law block — rule 3 now renders from lawRule3()
 stating the 1-5 observable-criteria contract — and every scaffold block
 (feature/proposal/delta/tasks/design/briefs) is untouched.
+
+Reconfirmed by guard-glob-fix on 2026-10-23: scripts/spec-drift.mjs changed (globToRe fix plus a new memory-claim check with an under-correction exemption), but the decision holds: every requirement still carries exactly one Feature block, pins stay inside the gherkin fence as the only comment line, and the two new requirements (glob compilation contract, memory-claim law) follow the same one-doc-per-requirement shape with their own acceptance pins.
