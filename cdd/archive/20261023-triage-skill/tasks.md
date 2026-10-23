@@ -89,5 +89,5 @@ Process — the skill exercised live (Done-When 3, task 3.4): the rubric decided
 - [x] 4.1 Standards-axis change code review — run skill `cdd-code-review` with the standards-axis brief (brief-r3-standards.md) over the diff since the change branched, in its own cold session; findings at `reviews/r3-standards-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-standards-code-review.md holding no open blocker
 - [x] 4.2 Spec-axis change code review — run skill `cdd-code-review` with the spec-axis brief (brief-r3-spec.md) over the same diff, in a second cold session; findings at `reviews/r3-spec-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-spec-code-review.md holding no open blocker
 - [x] 4.3 ADR review — skipped: no ADR drafted or amended (the change is a skill, a smoke check, a backlog line, and change artifacts; the standards reviewer confirmed no ADR `code:` glob claims a touched file) — if this change drafted an ADR under `cdd/decisions/` or amended one's decision content (a Reconfirmed-by paragraph or a typo fix does not count), run skill `cdd-adr-review` on them (findings at `reviews/adr-review.md` per that skill); if none, record the skip on this line, verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line
-- [ ] 4.4 cdd validate strict green, guard green
-- [ ] 4.5 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.4 cdd validate strict green, guard green
+- [x] 4.5 Archive — pair-commit: feature commit, then archive commit
