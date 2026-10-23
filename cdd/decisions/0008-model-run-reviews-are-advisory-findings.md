@@ -99,3 +99,5 @@ advisory (opencode-zen/deepseek-v4-pro, opencode-zen/deepseek-v4.1-flash)
 the archive.
 
 Reconfirmed-by: comments-are-shape-only — lib/templates.mjs, lib/context.mjs, lib/help.mjs headers swept; advisory-findings law unchanged.
+
+Reconfirmed-by: backlog-revalidate — this change's own R1/R2/R3 reviews ran advisory (findings under the change's reviews/, every finding disposed, none gating the archive); the review-point law text untouched.

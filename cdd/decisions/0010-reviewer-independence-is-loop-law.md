@@ -119,3 +119,5 @@ still ran in its own cold session of a different model family, briefed
 only from the instantiated brief under the change's reviews/.
 
 Reconfirmed-by: comments-are-shape-only — lib/loop-law.mjs citations and test banners swept; reviewer-independence law unchanged.
+
+Reconfirmed-by: backlog-revalidate — no reviewer-independence text changed; this change's R3 ran as two cold sessions of a different model family, one per axis, briefed only from the change's reviews/.

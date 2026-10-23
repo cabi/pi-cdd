@@ -83,3 +83,5 @@ stating the 1-5 observable-criteria contract — and every scaffold block
 Reconfirmed by guard-glob-fix on 2026-10-23: scripts/spec-drift.mjs changed (globToRe fix plus a new memory-claim check with an under-correction exemption), but the decision holds: every requirement still carries exactly one Feature block, pins stay inside the gherkin fence as the only comment line, and the two new requirements (glob compilation contract, memory-claim law) follow the same one-doc-per-requirement shape with their own acceptance pins.
 
 Reconfirmed-by: comments-are-shape-only — lib/gherkin.mjs, lib/validate.mjs, lib/templates.mjs, scripts/spec-drift.mjs comments swept; the format rulings unchanged.
+
+Reconfirmed-by: backlog-revalidate — lib/templates.mjs changes only rule 13's literal text inside RULES_MD (the op's actions named non-enumeratively); no new feature block, every requirement keeps exactly one.

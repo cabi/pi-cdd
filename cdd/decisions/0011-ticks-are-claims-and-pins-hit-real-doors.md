@@ -87,3 +87,5 @@ it failed on the loose brief pre-move exactly as claimed before going
 green, and every Close tick cites an exact command.
 
 Reconfirmed-by: comments-are-shape-only — lib/templates.mjs and tests/acceptance/loop-law-hardening.test.js comments swept; every tick still cites an exact command.
+
+Reconfirmed-by: backlog-revalidate — every new tick cites an exact command (task 4.4 records the green evidence) and the new pins drive the real door; rule 11 text unchanged.

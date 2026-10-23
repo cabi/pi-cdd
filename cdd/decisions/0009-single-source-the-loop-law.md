@@ -112,3 +112,5 @@ its byte-identical mirror — pinned byte-exact by LDW2 (r3store ===
 r3render) — no second statement of the rule exists.
 
 Reconfirmed-by: comments-are-shape-only — lib/loop-law.mjs header banners removed; the loop law stays single-sourced in cdd/rules.md.
+
+Reconfirmed-by: backlog-revalidate — rule 13's reworded sentence is authored once in RULES_MD and byte-mirrored to cdd/rules.md (an existing store keeps its rules.md — the mirror rewrite is deliberate); single-sourcing unchanged, byte-identity still pinned by the single-source suite.
