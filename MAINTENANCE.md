@@ -142,6 +142,17 @@ copied verbatim into adopting stores (`DOOR_SCRIPTS` in
 - Tests that copy door scripts into a sandbox copy the whole set
   (`grammar-law.mjs` is an import, not a standalone).
 
+## Contributor setup (git hooks)
+
+Fresh clones need nothing manual: `npm install` (or `npm ci`) runs the root
+`package.json` `prepare` script — `[ -d .git ] && git config core.hooksPath
+.githooks || true` — which points the clone at `.githooks/` so the pre-commit
+and commit-msg doors run locally. Hooks wiring is clone-local git config:
+CI checkouts never need it, and without a `.git` directory (pack/tarball
+contexts) the script is a silent no-op. Manual equivalent, e.g. after a
+config reset: `git config core.hooksPath .githooks`. Root cause: PF-16 —
+two CI-only guard reds from commits made in unwired clones.
+
 ## Known debts (one-pass-one-close review, 2026-10-20)
 
 - `lib/store.mjs` ↔ `lib/validate.mjs` import cycle: `archiveChange` gates
