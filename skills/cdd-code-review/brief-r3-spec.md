@@ -83,8 +83,7 @@ Never red/green verdicts; gate authority stays with the deterministic validators
 
 ## Output
 
-Write your findings — under a `## Spec axis` heading — to
-`cdd/changes/<change-name>/reviews/r3-code-review.md` (output path per
-`reviewPoint("R3").findings` in `lib/loop-law.mjs`; both axes share the file,
-each in its own section). Header records your reviewer form (cold sub-agent /
+Write your findings to `cdd/changes/<change-name>/reviews/r3-spec-code-review.md`
+(output path per `reviewPoint("R3").findingsSpec` in `lib/loop-law.mjs` — the
+spec-axis file; you write only this file, never the standards axis's). Header records your reviewer form (cold sub-agent /
 same-session re-read) and your model family vs. the author's.

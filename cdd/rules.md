@@ -18,9 +18,11 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
     on disk — and `cdd validate` draft mode passes), before the first
     implementation task, skill `cdd-spec-review` runs in package mode
     (findings: `reviews/r2-change-review.md`). R3: at Close before
-    archive, skill `cdd-code-review` runs (findings:
-    `reviews/r3-code-review.md`) as two separate cold sessions — rule 2b
-    governs both axes, and if the change drafted an ADR or amended one's decision content — a Reconfirmed-by paragraph or a typo fix does not count,
+    archive, skill `cdd-code-review` runs as two separate cold
+    sessions — rule 2b governs both axes — with findings at
+    `reviews/r3-standards-code-review.md` for the standards axis and
+    `reviews/r3-spec-code-review.md` for the spec axis, and
+    if the change drafted an ADR or amended one's decision content — a Reconfirmed-by paragraph or a typo fix does not count,
     skill `cdd-adr-review` runs on them (findings:
     `reviews/adr-review.md`). Every ADR lives in `cdd/decisions/` —
     0001–0007 the product decisions, 0008 and later the loop decisions —

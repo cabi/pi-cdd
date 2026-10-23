@@ -68,7 +68,8 @@ check("RW1", "rule 2a names R1, R2, R3 and the ADR review with skills, modes, fi
   includes(r, "r2-change-review.md", "rule 2a");
   includes(r, "R3", "rule 2a");
   includes(r, "cdd-code-review", "rule 2a");
-  includes(r, "r3-code-review.md", "rule 2a");
+  includes(r, "r3-standards-code-review.md", "rule 2a");
+  includes(r, "r3-spec-code-review.md", "rule 2a");
   includes(r, "cdd-adr-review", "rule 2a");
   includes(r, "adr-review.md", "rule 2a");
   includes(r, "decision content", "rule 2a");
@@ -149,12 +150,12 @@ check("RW9", "the tasks scaffold places 3.1 Change review before the placeholder
   includes(t, "no blocker is open", "tasks scaffold");
 });
 
-check("RW16", "the scaffold's 4.2 line states the precise ADR-review trigger", () => {
+check("RW16", "the scaffold's 4.3 line states the precise ADR-review trigger", () => {
   const t = tpl.tasksTemplate("sample-change");
-  const line = t.split("\n").find((l) => l.includes("4.2 ADR review"));
-  assert(line, "no 4.2 ADR review line in the tasks scaffold");
-  includes(line, "decision content", "scaffold 4.2");
-  includes(line, "Reconfirmed-by", "scaffold 4.2");
+  const line = t.split("\n").find((l) => l.includes("4.3 ADR review"));
+  assert(line, "no 4.3 ADR review line in the tasks scaffold");
+  includes(line, "decision content", "scaffold 4.3");
+  includes(line, "Reconfirmed-by", "scaffold 4.3");
 });
 
 check("RW10", "the Close scaffold gates archive on disposed R3 and ADR reviews", () => {
@@ -162,14 +163,17 @@ check("RW10", "the Close scaffold gates archive on disposed R3 and ADR reviews",
   const close = t.indexOf("## 4. Close");
   assert(close >= 0, "no Close section in the scaffold");
   const tail = t.slice(close);
-  const codeReview = tail.indexOf("cdd-code-review");
+  const standards = tail.indexOf("4.1 Standards-axis change code review");
+  const spec = tail.indexOf("4.2 Spec-axis change code review");
   const adrReview = tail.indexOf("cdd-adr-review");
   const validate = tail.indexOf("cdd validate strict green");
   const archive = tail.indexOf("Archive");
-  assert(codeReview >= 0 && adrReview >= 0, "Close lacks the review tasks");
-  includes(tail, "r3-code-review.md", "Close section");
+  assert(standards >= 0 && spec >= 0 && adrReview >= 0, "Close lacks the review tasks");
+  includes(tail, "r3-standards-code-review.md", "Close section");
+  includes(tail, "r3-spec-code-review.md", "Close section");
   includes(tail, "adr-review.md", "Close section");
-  assert(codeReview < validate && adrReview < validate, "review tasks must precede validate-and-guard");
+  assert(standards < spec && spec < adrReview, "the two code-review axes precede the ADR review");
+  assert(adrReview < validate, "review tasks must precede validate-and-guard");
   assert(validate < archive, "validate-and-guard must precede archive");
 });
 

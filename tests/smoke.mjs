@@ -410,7 +410,7 @@ check("S30", "grammar-law.mjs owns the tasks grammar: template parses, duplicate
   // template ↔ parser pin: the scaffolded tasks.md parses as the canonical shape
   const t = lib.parseTasks(tasksTemplate("x"));
   assert(JSON.stringify(t.sections.map((s) => s.num)) === "[1,2,3,4]", `skeleton wrong: ${JSON.stringify(t.sections.map((s) => s.num))}`);
-  assert(t.close && t.close.items.length === 4 && t.close.items.every((i) => i.box === " "), "Close section must hold the four unticked closing boxes (code review, ADR review, validate, archive)");
+  assert(t.close && t.close.items.length === 5 && t.close.items.every((i) => i.box === " "), "Close section must hold the five unticked closing boxes (standards code review, spec code review, ADR review, validate, archive)");
   assert(t.implementation && t.implementation.items.length === 2, "scaffolded implementation: task 3.1 Change review plus one placeholder task");
   // regression: the old template's duplicated Close header now fails validation
   const dup = tasksTemplate("x").replace("## Done When Traceability\n\n| criterion |", "## 4. Close\n\n## Done When Traceability\n\n| criterion |");
@@ -824,12 +824,13 @@ check("S34", "tasks template wires the review points into the scaffold", () => {
   assert(/package mode/.test(t) && /r2-change-review\.md/.test(t) && /no blocker is open/.test(t), "3.1 must run cdd-spec-review in package mode with a checkable no-blocker condition");
   // R3 + ADR review: Close gates archive
   const closeAt = t.indexOf("## 4. Close");
-  const reviewAt = t.indexOf("4.1 Change code review");
-  const adrAt = t.indexOf("4.2 ADR review");
-  const validateAt = t.indexOf("4.3 cdd validate strict green");
-  const archiveAt = t.indexOf("4.4 Archive");
-  assert(closeAt !== -1 && reviewAt > closeAt && adrAt > reviewAt && validateAt > adrAt && archiveAt > validateAt, "Close must order code review and ADR review before validate and archive");
-  assert(/r3-code-review\.md/.test(t) && /adr-review\.md/.test(t), "Close review tasks must name their findings files");
+  const stdAt = t.indexOf("4.1 Standards-axis change code review");
+  const specAt = t.indexOf("4.2 Spec-axis change code review");
+  const adrAt = t.indexOf("4.3 ADR review");
+  const validateAt = t.indexOf("4.4 cdd validate strict green");
+  const archiveAt = t.indexOf("4.5 Archive");
+  assert(closeAt !== -1 && stdAt > closeAt && specAt > stdAt && adrAt > specAt && validateAt > adrAt && archiveAt > validateAt, "Close must order both code-review axes and the ADR review before validate and archive");
+  assert(/r3-standards-code-review\.md/.test(t) && /r3-spec-code-review\.md/.test(t) && /adr-review\.md/.test(t), "Close review tasks must name their findings files");
 });
 // --- S35: the extension entry refuses silent direct execution ---------------------
 check("S35", "node index.ts with no args prints one usage line and exits 2 (no silent exit-0)", () => {
@@ -844,20 +845,24 @@ check("S35", "node index.ts with no args prints one usage line and exits 2 (no s
 // --- S36: the reviewer brief templates live next to their skills ------------------
 check("S36", "five reviewer briefs pin law citations, grammar, and output filenames", () => {
   const briefs = [
-    ["cdd-spec-review", "brief-r1.md", "R1"],
-    ["cdd-spec-review", "brief-r2.md", "R2"],
-    ["cdd-code-review", "brief-r3-standards.md", "R3"],
-    ["cdd-code-review", "brief-r3-spec.md", "R3"],
-    ["cdd-adr-review", "brief-adr.md", "ADR"],
+    ["cdd-spec-review", "brief-r1.md", "R1", null],
+    ["cdd-spec-review", "brief-r2.md", "R2", null],
+    ["cdd-code-review", "brief-r3-standards.md", "R3", "standards"],
+    ["cdd-code-review", "brief-r3-spec.md", "R3", "spec"],
+    ["cdd-adr-review", "brief-adr.md", "ADR", null],
   ];
-  for (const [skill, file, point] of briefs) {
+  for (const [skill, file, point, axis] of briefs) {
     const p = path.join(REPO, "skills", skill, file);
     assert(fs.existsSync(p), `missing brief ${skill}/${file}`);
     const b = fs.readFileSync(p, "utf8");
     assert(/rule 2b/.test(b), `${file} must cite rule 2b`);
     assert(/family/.test(b), `${file} must state the author-family rule`);
     assert(/blocker/.test(b) && /won't-fix:/.test(b), `${file} must carry the findings grammar`);
-    assert(b.includes(loopLaw.reviewPoint(point).findings), `${file} must name its output file per reviewPoint()`);
+    const rp = loopLaw.reviewPoint(point);
+    const outputs = axis === "standards" ? [rp.findingsStandards] : axis === "spec" ? [rp.findingsSpec] : [rp.findings];
+    for (const f of outputs) assert(b.includes(f), `${file} must name its output file per reviewPoint()`);
+    if (axis === "standards") assert(!b.includes(rp.findingsSpec), "the standards brief must not name the spec-axis findings file");
+    if (axis === "spec") assert(!b.includes(rp.findingsStandards), "the spec brief must not name the standards-axis findings file");
   }
 });
 sb.dispose();

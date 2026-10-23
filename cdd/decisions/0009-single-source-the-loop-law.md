@@ -98,3 +98,10 @@ and 3; cdd/rules.md moved only by the deliberate mirror regeneration and
 stays byte-identical (pinned by DD8/DD9 alongside the single-source-law
 suite). No second statement of the rule exists — briefs and the SKILL
 charter cite it.
+
+Reconfirmed by r3-findings on 2026-10-23: the per-axis paths are defined
+once as findingsStandards/findingsSpec on the R3 review point in
+lib/loop-law.mjs and render from it into the law text, the statement
+surfaces, and the byte-identical cdd/rules.md mirror (pinned by the
+r3-findings and single-source-law suites) — no second statement of the
+rule exists; briefs and the SKILL charter cite it.

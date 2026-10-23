@@ -100,3 +100,9 @@ object lines grow to include design.md and every review of this change ran
 cold (fresh deepseek-v4-pro sessions vs author zai/glm-5.3 at R1, R2, and
 both R3 axes); instantiated briefs stored under the change's reviews/
 folder, read from disk, never curated by the author.
+
+Reconfirmed by r3-findings on 2026-10-23: two axes = two cold sessions =
+two findings files is now the law itself instead of a runner-side patch —
+each R3 brief names only its own findings file so neither reviewer session
+can write the other's, closing the clobber recurrence this decision's law
+could not yet express.

@@ -120,17 +120,17 @@ check("LLH5", "the test-first rule states the pin-realism clause", () => {
 // --- Requirement: Reviewer briefs live next to their skills ----------------------
 
 const BRIEFS = [
-  ["cdd-spec-review", "brief-r1.md", "R1"],
-  ["cdd-spec-review", "brief-r2.md", "R2"],
-  ["cdd-code-review", "brief-r3-standards.md", "R3"],
-  ["cdd-code-review", "brief-r3-spec.md", "R3"],
-  ["cdd-adr-review", "brief-adr.md", "ADR"],
+  ["cdd-spec-review", "brief-r1.md", "R1", null],
+  ["cdd-spec-review", "brief-r2.md", "R2", null],
+  ["cdd-code-review", "brief-r3-standards.md", "R3", "standards"],
+  ["cdd-code-review", "brief-r3-spec.md", "R3", "spec"],
+  ["cdd-adr-review", "brief-adr.md", "ADR", null],
 ];
 const readBrief = (skill, file) =>
   fs.readFileSync(path.join(REPO, "skills", skill, file), "utf8");
 
 check("LLH6", "the five briefs carry the common skeleton", () => {
-  for (const [skill, file, point] of BRIEFS) {
+  for (const [skill, file, point, axis] of BRIEFS) {
     const b = readBrief(skill, file);
     includes(b, "Reviewer session requirements", `${file}`);
     includes(b, "family", `${file}`);
@@ -142,7 +142,9 @@ check("LLH6", "the five briefs carry the common skeleton", () => {
     includes(b, "blocker", `${file}`);
     includes(b, "won't-fix:", `${file}`);
     includes(b, "advisory", `${file}`);
-    includes(b, law.reviewPoint(point).findings, `${file}`);
+    const rp = law.reviewPoint(point);
+    const outputs = axis === "standards" ? [rp.findingsStandards] : axis === "spec" ? [rp.findingsSpec] : [rp.findings];
+    for (const f of outputs) includes(b, f, `${file}`);
   }
   for (const file of ["brief-r3-standards.md", "brief-r3-spec.md"]) {
     includes(norm(readBrief("cdd-code-review", file)), "two separate cold sessions", `${file}`);

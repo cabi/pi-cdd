@@ -83,7 +83,7 @@ Present the two reports under `## Standards` and `## Spec` headings, verbatim or
 
 End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes: that's the reranking the separation exists to prevent.
 
-When this review belongs to an open change (the Close-section code-review task), write the findings to `cdd/changes/<name>/reviews/r3-code-review.md` using the shared findings grammar — severity (`blocker` / `should` / `note`), finding, evidence (file + line or quoted spec), disposition (`fixed: <where>` / `open` / `won't-fix: <reason>`). Blockers must carry a disposition other than `open` before the change archives. The review is advisory: it never flips a deterministic door's verdict, and the human keeps the close button.
+When this review belongs to an open change (the Close-section code-review task), write per axis: the standards-axis session's findings go to `cdd/changes/<name>/reviews/r3-standards-code-review.md` and the spec-axis session's to `cdd/changes/<name>/reviews/r3-spec-code-review.md` (paths per `reviewPoint("R3").findingsStandards`/`findingsSpec` in `lib/loop-law.mjs`), each using the shared findings grammar — severity (`blocker` / `should` / `note`), finding, evidence (file + line or quoted spec), disposition (`fixed: <where>` / `open` / `won't-fix: <reason>`). Blockers must carry a disposition other than `open` before the change archives. The review is advisory: it never flips a deterministic door's verdict, and the human keeps the close button.
 
 ## Why two axes
 

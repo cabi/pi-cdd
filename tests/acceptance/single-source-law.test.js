@@ -65,7 +65,7 @@ check("SSL1", "the module defines exactly the 4 canonical review points and the 
   const r1 = rp("R1"), r2 = rp("R2"), r3 = rp("R3"), adr = rp("ADR");
   assert(r1.skill === "cdd-spec-review" && r1.mode === "proposal" && r1.findings === "reviews/r1-proposal-review.md", "R1 facts diverge");
   assert(r2.skill === "cdd-spec-review" && r2.mode === "package" && r2.findings === "reviews/r2-change-review.md", "R2 facts diverge");
-  assert(r3.skill === "cdd-code-review" && r3.findings === "reviews/r3-code-review.md", "R3 facts diverge");
+  assert(r3.skill === "cdd-code-review" && r3.findingsStandards === "reviews/r3-standards-code-review.md" && r3.findingsSpec === "reviews/r3-spec-code-review.md" && !("findings" in r3), "R3 facts diverge");
   assert(adr.skill === "cdd-adr-review" && adr.findings === "reviews/adr-review.md", "ADR facts diverge");
   assert(norm(r1.trigger) === "after the proposal, if the design gate answered T1 or T2 YES", `R1 trigger diverges: ${r1.trigger}`);
   assert(norm(r2.trigger) === "always, at draft-green, before the first implementation task", `R2 trigger diverges: ${r2.trigger}`);
@@ -101,7 +101,8 @@ check("SSL2", "RULES_MD rules 2/2a are the module's rendered fragments verbatim"
   const r = ruleBlock(tpl.RULES_MD, "2a");
   for (const p of law.REVIEW_POINTS) {
     includes(r, p.skill, "rule 2a");
-    includes(r, path.basename(p.findings), "rule 2a");
+    const files = p.findings ? [p.findings] : [p.findingsStandards, p.findingsSpec];
+    for (const f of files) includes(r, path.basename(f), "rule 2a");
     if (p.mode) includes(r, `${p.mode} mode`, "rule 2a");
   }
   includes(r, norm(rp("R1").trigger), "rule 2a");
@@ -131,7 +132,8 @@ check("SSL4", "the proposal and tasks instructions interpolate the module's fact
   const t = ins.TASKS_INSTRUCTION;
   for (const p2 of [rp("R2"), rp("R3"), rp("ADR")]) {
     includes(t, p2.skill, "tasks instruction");
-    includes(t, path.basename(p2.findings), "tasks instruction");
+    const files = p2.findings ? [p2.findings] : [p2.findingsStandards, p2.findingsSpec];
+    for (const f of files) includes(t, path.basename(f), "tasks instruction");
   }
   includes(t, `in ${rp("R2").mode} mode`, "tasks instruction");
   includes(t, "before the first implementation task", "tasks instruction");

@@ -86,3 +86,9 @@ designTemplate scaffold beside the existing artifact scaffolds; review
 findings stay advisory (R1/R2/R3 dispositions were fixed or argued, never
 overridden); design.md has no validator door by the sponsor's
 charter-only decision, so reviews remain its only check.
+
+Reconfirmed by r3-findings on 2026-10-23: splitting the R3 findings file
+per axis changes where findings land, not what they are — the advisory
+grammar (blocker/should/note plus fixed:/open/won't-fix:) and the
+never-verdicts rule carry into both files unchanged, and dispositions
+still never gate on their own.
