@@ -25,6 +25,7 @@ const CddStatusView = statusUiMod?.CddStatusView ?? null;
 const { tasksTemplate } = await import(path.join(REPO, "lib", "templates.mjs"));
 const law = await import(path.join(REPO, "scripts", "grammar-law.mjs"));
 const loopLaw = await import(path.join(REPO, "lib", "loop-law.mjs"));
+const { STATUSES: BACKLOG_STATUSES } = await import(path.join(REPO, "lib", "backlog.mjs"));
 let pass = 0;
 let fail = 0;
 const failures = [];
@@ -878,6 +879,42 @@ check("S36", "five reviewer briefs pin law citations, grammar, and output filena
     if (axis === "standards") assert(!b.includes(rp.findingsSpec), "the standards brief must not name the spec-axis findings file");
     if (axis === "spec") assert(!b.includes(rp.findingsStandards), "the spec brief must not name the standards-axis findings file");
   }
+});
+
+// --- S37: the bundled triage skill carries the backlog triage rubric --------------
+check("S37", "skills/ holds the cdd-backlog-triage skill, frontmatter valid, rubric anchors present", () => {
+  const s = "cdd-backlog-triage";
+  const file = path.join(REPO, "skills", s, "SKILL.md");
+  assert(fs.existsSync(file), `skills/${s}/SKILL.md missing`);
+  const text = fs.readFileSync(file, "utf8");
+  const fm = text.match(/^---\n([\s\S]*?)\n---\n/);
+  assert(fm, `skills/${s}: no frontmatter block`);
+  const name = fm[1].match(/^name:\s*(\S+)$/m);
+  assert(name?.[1] === s, `skills/${s}: frontmatter name "${name?.[1]}" must match the directory (portable form)`);
+  const desc = fm[1].match(/^description:\s*"([\s\S]*)"\s*$/m);
+  assert(desc && desc[1].length > 20 && desc[1].length <= 1024, `skills/${s}: description missing or out of spec bounds`);
+  assert(/cdd/.test(desc[1]), `skills/${s}: description must scope routing to cdd projects`);
+  // cites rule 13 (the backlog's place in the loop) without restating the law
+  assert(/rule 13/.test(text), `skills/${s}: must cite loop law rule 13`);
+  // the rubric: every grammar status of the backlog op, single-sourced from lib/backlog.mjs
+  for (const st of BACKLOG_STATUSES) assert(text.includes(st), `skills/${s}: grammar status "${st}" missing`);
+  // and the taxonomy teaches exactly those statuses — no stray sixth
+  const tax = text.split(/^## /m).find((sec) => sec.startsWith("The status taxonomy"));
+  assert(tax, `skills/${s}: status taxonomy section missing`);
+  const taught = [...tax.matchAll(/^- `([a-z'-]+)`/gm)].map((m) => m[1]);
+  assert(taught.length === BACKLOG_STATUSES.length && taught.every((st) => BACKLOG_STATUSES.includes(st)), `skills/${s}: taxonomy must list exactly the ${BACKLOG_STATUSES.length} grammar statuses, got: ${taught.join(", ")}`);
+  // evaluate-on-recurrence is taught as a note pattern, never a grammar status
+  assert(/evaluate on recurrence[^.]*is not a grammar status/i.test(text), `skills/${s}: evaluate-on-recurrence must be marked not a grammar status`);
+  // the item grammar line, as the backlog op enforces it
+  assert(text.includes("- PF-n [status] summary | source: ref"), `skills/${s}: item grammar line missing`);
+  // both inviolable conventions
+  assert(/on-disk artifact/.test(text), `skills/${s}: steer-believed-only-with-on-disk-artifact convention missing`);
+  assert(/PF-n ids/.test(text), `skills/${s}: reports-cite-PF-n-ids convention missing`);
+  // the change-worthy rule against record-only
+  assert(/two independent recurrences|two recurrences/.test(text) && /structural fix/.test(text) && /record-only/.test(text), `skills/${s}: change-worthy rule missing`);
+  // op-only minting with the exactly-one freehand note-edit exception
+  assert(/backlog op/.test(text), `skills/${s}: cdd-backlog-op minting rule missing`);
+  assert(/note/.test(text) && /freehand|direct note edit/.test(text), `skills/${s}: the note-edit freehand exception missing`);
 });
 sb.dispose();
 sb2.dispose();
