@@ -57,3 +57,5 @@ no validator change, no new door) — the briefs and the cdd-code-review
 skill carry its checks; if reviews keep finding missing or bad diagrams,
 that becomes a process finding and a door later, exactly the trajectory
 this decision prescribes.
+
+Reconfirmed by r3-findings on 2026-10-23: the per-axis R3 findings rule is rendered loop law from lib/loop-law.mjs with cdd/rules.md as its byte-identical mirror, and no new validator door is added — the Capabilities placeholder joins the existing validateProposal placeholder door.

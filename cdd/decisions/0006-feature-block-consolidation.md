@@ -72,3 +72,5 @@ Reconfirmed by design-docs on 2026-10-23: lib/templates.mjs grows
 designTemplate beside the existing artifact scaffolds and the tasks
 skeleton's design-gate line gains the design.md shape clause; the
 scaffold-block format and every existing scaffold are unchanged.
+
+Reconfirmed by r3-findings on 2026-10-23: the per-axis R3 rule lands inside the existing artifact blocks — tasksTemplate's Close items, the two brief templates, and the cdd-code-review charter — and proposalTemplate's new Capabilities section joins its existing scaffold block; no scaffold surface is split out.

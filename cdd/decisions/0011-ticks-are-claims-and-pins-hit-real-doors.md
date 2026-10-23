@@ -71,3 +71,5 @@ byte-identity now double-pinned (single-source-law suite plus
 tests/acceptance/design-docs.test.js DD9, with DD8 pinning 2c's rendered
 position between 2b and rule 3). Ticks-still-claims and pins-hit-real-doors
 are untouched.
+
+Reconfirmed by r3-findings on 2026-10-23: cdd/rules.md changed only as the byte-identical render of the single source, every tick in this change maps to an observable verify line, and the pins hit real doors — the R3 cold review found the red suite the runner's green claim had papered over.

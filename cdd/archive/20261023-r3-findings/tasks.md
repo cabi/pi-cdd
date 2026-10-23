@@ -38,4 +38,4 @@
 - [x] 4.3 ADR review — this change adds only Reconfirmed-by paragraphs to ADR-0008/0009/0010, which is not a decision-content change; skip recorded on this line, verify by the skip recorded on this line
 - [x] 4.4 cdd validate strict green, guard green — validate strict PASS, spec-drift clean (5 specs, 20 acceptance test files, full scan) after all R3 disposal edits
 - [x] 4.5 Close PF-8 and PF-13 in cdd/backlog.md as done with the change reference via the cdd backlog op, verify by cdd backlog listing both done — plus PF-14 minted (false-green self-report caught by the standards R3)
-- [ ] 4.6 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.6 Archive — pair-commit: feature commit, then archive commit
