@@ -40,6 +40,11 @@
 //     ticks). The split procedure lives in the schema's tasks
 //     instruction. A recorded `split-considered:` decision passes;
 //
+// L4 memory claims (full scan): a Code: line claiming cdd/decisions/**
+//     (by prefix or by compiled glob) reds — decision memory answers to the
+//     A-checks, never to spec travel; a living claim skips once, loudly,
+//     while an open change of the same capability corrects it.
+//
 // A architectural decisions (cdd/decisions/, full scan) — memory beside
 //     the contract, created only when a decision is hard to reverse,
 //     surprising without context, a real trade-off, and crosses capability
@@ -218,10 +223,29 @@ function accFiles(dir, acc = []) {
 const accRel = accDirs.flatMap((d) => accFiles(d).map(rel));
 
 function globToRe(glob) {
-  const re = glob
-    .split('**')
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*'))
-    .join('.*');
+  // PF-20: translate, never double-escape. A `[...]` span passes through as a
+  // character class (leading `!` negates), a single `*` becomes `[^/]*`, every
+  // other regex metacharacter is escaped so literals stay literal, and an
+  // unterminated or empty `[` is literal text — a compiled claim is exactly
+  // the files the glob names, never silently zero.
+  const partToRe = (part) => {
+    let out = '';
+    for (let i = 0; i < part.length; i++) {
+      const c = part[i];
+      if (c === '*') out += '[^/]*';
+      else if (c === '[') {
+        const end = part.indexOf(']', i + 1);
+        const body = end === -1 ? null : part.slice(i + 1, end);
+        if (body === null || body.replace(/^!/, '').length === 0) out += '\\[';
+        else {
+          out += body.startsWith('!') ? `[^${body.slice(1)}]` : `[${body}]`;
+          i = end;
+        }
+      } else out += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    return out;
+  };
+  const re = glob.split('**').map(partToRe).join('.*');
   return new RegExp(`^${re}$`);
 }
 
@@ -326,6 +350,99 @@ if (isRepo && fs.existsSync(path.join(root, '.githooks', 'pre-commit')) && !fs.e
 
 const tracked = isRepo ? (git(['ls-files']) ?? '').split('\n').filter(Boolean) : [];
 
+// ==============================================================================
+// L4 — decision memory is not implementation surface: no Code line may claim
+// cdd/decisions/**. ADRs answer to the A-checks (A0/A1/A2) unconditionally, so
+// binding them to a capability's travel doors double-governs them — and makes
+// a staged ADR reconfirmation unlawful (PF-19: the staged-pair check demanded
+// a spec travel with the ADR). The full scan owns this law. An open delta's
+// claim reds unconditionally; a living claim reds unless an open change of the
+// same capability is correcting that very requirement (heading-matched) with a
+// clean restated Code line — then one informational skip line, never silent.
+// The same under-correction predicate exempts the claim from the travel doors
+// (L2 topology + staged-pair): the correction clears it at the archive
+// pair-commit, so demanding spec travel on it mid-Close is transition noise.
+// ==============================================================================
+const l4Skips = [];
+const globClaimsMemory = (glob) =>
+  glob.startsWith('cdd/decisions/') ||
+  tracked.some((f) => f.startsWith('cdd/decisions/') && globToRe(glob).test(f));
+const memoryClaimsOf = (specRel) => {
+  const text = fs.readFileSync(path.join(root, specRel), 'utf8');
+  const claims = [];
+  const blocks = text.split(/^### Requirement: /m);
+  for (const block of blocks.slice(1)) {
+    const nl = block.indexOf('\n');
+    const heading = (nl === -1 ? block : block.slice(0, nl)).trim();
+    for (const m of block.matchAll(CODE_LINE)) {
+      for (const g of m[1].split(/[,\s]+/).filter(Boolean)) {
+        const glob = g.replace(/`/g, '');
+        if (globClaimsMemory(glob)) claims.push({ heading, glob });
+      }
+    }
+  }
+  return claims;
+};
+// open corrections: per capability, heading -> [change names], built from
+// MODIFIED blocks whose restated Code line names real surface and claims no
+// memory. A correction earns the skip, never silence; the exemption is
+// per-requirement and heading-matched exactly — no fuzzy matching, no
+// cross-change cover.
+const correctionsByCap = new Map();
+for (const specRel of deltaSpecs) {
+  const cap = capOf(specRel);
+  const change = changeOf(specRel);
+  const text = fs.readFileSync(path.join(root, specRel), 'utf8');
+  const modStart = text.indexOf('## MODIFIED Requirements');
+  if (modStart === -1) continue;
+  const modEnd = text.indexOf('\n## ', modStart + 1);
+  const section = text.slice(modStart, modEnd === -1 ? undefined : modEnd);
+  const blocks = section.split(/^### Requirement: /m);
+  for (const block of blocks.slice(1)) {
+    const nl = block.indexOf('\n');
+    const heading = (nl === -1 ? block : block.slice(0, nl)).trim();
+    const globs = [...block.matchAll(CODE_LINE)].flatMap((m) =>
+      m[1].split(/[,\s]+/).filter(Boolean).map((g) => g.replace(/`/g, ''))
+    );
+    if (!globs.length || globs.some((g) => globClaimsMemory(g))) continue;
+    if (!correctionsByCap.has(cap)) correctionsByCap.set(cap, new Map());
+    const byHeading = correctionsByCap.get(cap);
+    if (!byHeading.has(heading)) byHeading.set(heading, []);
+    byHeading.get(heading).push(change);
+  }
+}
+// living memory globs under correction, per spec — every requirement of the
+// spec carrying the glob must be under correction, or the glob stays policed
+const exemptMemoryGlobs = new Map(); // living specRel -> Set(glob)
+for (const specRel of livingSpecs) {
+  const byGlob = new Map(); // glob -> fully corrected?
+  for (const { heading, glob } of memoryClaimsOf(specRel)) {
+    const fixed = (correctionsByCap.get(capOf(specRel))?.get(heading) ?? []).length > 0;
+    if (!byGlob.has(glob)) byGlob.set(glob, true);
+    if (!fixed) byGlob.set(glob, false);
+  }
+  const exempt = new Set([...byGlob].filter(([, ok]) => ok).map(([g]) => g));
+  if (exempt.size) exemptMemoryGlobs.set(specRel, exempt);
+}
+const l4Issue = (specRel, heading, glob) => `[L4] ${specRel} requirement "${heading}" claims decision memory in Code line "${glob}" — decision memory answers to the A-checks (A0/A1/A2 govern cdd/decisions/ unconditionally); a Code line claims implementation surface (name the enforcing acceptance test instead)`;
+if (isRepo && !staged) {
+  for (const specRel of deltaSpecs) {
+    for (const { heading, glob } of memoryClaimsOf(specRel)) {
+      issues.push(l4Issue(specRel, heading, glob));
+    }
+  }
+  for (const specRel of livingSpecs) {
+    for (const { heading, glob } of memoryClaimsOf(specRel)) {
+      const fixers = correctionsByCap.get(capOf(specRel))?.get(heading) ?? [];
+      if (fixers.length) {
+        l4Skips.push(`living Code line "${glob}" in ${specRel} (requirement "${heading}") claims decision memory but is being corrected by open change ${fixers.join(', ')} — clears at the archive pair-commit`);
+      } else {
+        issues.push(l4Issue(specRel, heading, glob));
+      }
+    }
+  }
+}
+
 if (isRepo) {
   // applied specs must own real files (open deltas may point at future files)
   for (const specRel of livingSpecs) {
@@ -345,7 +462,8 @@ if (isRepo) {
     if (!caps.has(cap)) caps.set(cap, { specRels: [], globs: [] });
     const c = caps.get(cap);
     c.specRels.push(specRel);
-    c.globs.push(...(codeGlobs.get(specRel) ?? []));
+    const exempt = exemptMemoryGlobs.get(specRel);
+    c.globs.push(...(codeGlobs.get(specRel) ?? []).filter((g) => !exempt?.has(g)));
   }
   for (const [cap, { specRels, globs }] of caps) {
     if (!globs.length) continue;
@@ -617,6 +735,10 @@ if (l2StaleFiles.length) {
   }
 }
 
+// informational, never silent: living memory claims under open correction
+for (const s of l4Skips) {
+  console.log(`spec-drift: [L4-skip] ${s}`);
+}
 // --- report --------------------------------------------------------------------
 if (issues.length) {
   console.error(`spec-drift: ${issues.length} issue(s) in ${path.basename(root)} — the spec, its acceptance tests, and the code must travel together:`);
