@@ -50,7 +50,7 @@ status, not a resolution.
 
 ## The item grammar (one line, ids strictly increasing PF-1..)
 
-`- PF-n [status] summary | source: ref [| change: name] [| note: text]`
+`- PF-n [status] summary | source: ref [| change: name] [| note: text] [| premise: micro-form] [| verified: dates]`
 
 - summary — the finding in one line, no pipes.
 - source — the run, review, or archived change that raised it. A steer is
@@ -61,6 +61,12 @@ status, not a resolution.
 - note — triage reasoning: why-record, the fix shape, evaluate-on-recurrence
   deferrals, corrections dated in place (PF-19's CORRECTED note is the
   precedent).
+- premise — optional micro-form (`exists:<path>`, `absent:<path>`,
+  `grep:<literal>@<path>=<count>`) stating the finding's minimal checkable
+  claim; the backlog op's revalidate action evaluates it against the store.
+  Items without a premise are legal and honestly non-mechanical.
+- verified — the op-stamped history of revalidation dates, append-only;
+  never written by hand.
 
 ## The two inviolable conventions
 
@@ -84,17 +90,36 @@ status, not a resolution.
   finds its precedent: won't-do with the reason (PF-5, PF-7), open/watch
   with an evaluate-on-recurrence note (PF-3, PF-4).
 
+## The revalidation law
+
+An open item's premise rots: the fix lands under another change, the anchor
+file vanishes, drift overtakes the finding. Before dispatch — before acting
+on any open item in a milestone or Close report — re-verify it against disk
+(the backlog op's revalidate action evaluates every premise-bearing item and
+stamps a verified date):
+
+- A false premise closes the item done with the evidence named; a premise
+  that merely moved (anchor renamed, fix reshaped) rewrites the premise
+  line, not the finding.
+- The three strikes: an open or watch item surviving 3 revalidations
+  unchanged is forced to a disposition — a fix via change, a won't-do with
+  reason, or a superseded-by. The backlog's job is to empty itself; nothing
+  camps.
+- Staleness never auto-closes: revalidate reports rotted premises and
+  strike counts, and the triager decides. Items without a premise
+  revalidate by reading, not by grep.
+
 ## Minting and resolving — only through the cdd backlog op
 
 Items are minted (add: summary + source required, status defaults to open)
 and resolved (resolve: status required; seeded-into-change requires the
-change name) only through the cdd backlog op — never freehand. The exactly
-one freehand exception: direct edits to an existing item's note field that
-extend framing, grammar intact — note-field edits on existing items are
-neither minting nor resolving, the two paths rule 13's op list (list, add,
-resolve) names, so the exception reads as no contradiction of the law.
-Rewriting statuses or summaries by hand is never note editing — route it
-through resolve.
+change name) only through the cdd backlog op — never freehand. The only 2
+freehand exceptions, both on existing items with the grammar kept intact: a
+direct edit to the note field that extends framing, and a premise edit —
+a premise backfill that adds the segment, or a rewrite when the premise
+merely moved — so revalidate keeps checking the item. Neither is
+minting or resolving. Rewriting statuses or summaries by hand is never
+freehand editing — route it through resolve.
 
 ## Findings-file hygiene
 

@@ -279,14 +279,18 @@ await check("T3g", "op help returns the full per-op parameters (nothing trimmed 
 
 await check("T3h", "op backlog add/list/resolve round-trips through the library", async () => {
   const bo = sandbox();
-  let r = await call({ op: "backlog", options: JSON.stringify({ action: "add", summary: "fixture finding", source: "tools T3h" }) }, bo.root);
+  let r = await call({ op: "backlog", options: JSON.stringify({ action: "add", summary: "fixture finding", source: "tools T3h", premise: "exists:cdd/backlog.md" }) }, bo.root);
   assert(!r.isError && /PF-1/.test(textOf(r)), textOf(r));
   r = await call({ op: "backlog" }, bo.root);
   assert(!r.isError && /PF-1 \[open\]/.test(textOf(r)), textOf(r));
+  r = await call({ op: "backlog", options: JSON.stringify({ action: "revalidate" }) }, bo.root);
+  assert(!r.isError && /PF-1 \[open\] hold/.test(textOf(r)), textOf(r));
   r = await call({ op: "backlog", options: JSON.stringify({ action: "resolve", id: "PF-1", status: "done" }) }, bo.root);
   assert(!r.isError && /PF-1 \[done\]/.test(textOf(r)), textOf(r));
+  r = await call({ op: "backlog", options: '{"action":"revalidate"}' }, bo.root);
+  assert(!r.isError && /no active items/.test(textOf(r)), textOf(r));
   r = await call({ op: "backlog", options: '{"action":"purge"}' }, bo.root);
-  assert(r.isError && /unknown action.*allowed: list, add, resolve/.test(textOf(r)), textOf(r));
+  assert(r.isError && /unknown action.*allowed: list, add, resolve, revalidate/.test(textOf(r)), textOf(r));
   bo.dispose();
 });
 

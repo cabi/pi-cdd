@@ -15,7 +15,7 @@ import * as path from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { initStore, createChange, archiveChange } from "./lib/store.mjs";
 import { validateChange, validateStore, formatVerdict } from "./lib/validate.mjs";
-import { listBacklog, addBacklogItem, resolveBacklogItem } from "./lib/backlog.mjs";
+import { ACTIONS, listBacklog, addBacklogItem, resolveBacklogItem, revalidateBacklog } from "./lib/backlog.mjs";
 import { buildAmbientBlock } from "./lib/context.mjs";
 import { status, statusTable } from "./lib/status.mjs";
 import { CddStatusView } from "./lib/status-ui.ts";
@@ -103,11 +103,11 @@ const OPS_DOC = {
   },
   backlog: {
     description:
-      "Maintain cdd/backlog.md, the process-finding backlog. Item grammar: - PF-n [status] summary | source: ref [| change: name] [| note: text]; status: open, watch, done, won't-do, seeded-into-change. Milestone and Close reports cite PF-n ids, never prose.",
+      "Maintain cdd/backlog.md, the process-finding backlog. Item grammar: - PF-n [status] summary | source: ref [| change: name] [| note: text] [| premise: micro-form] [| verified: dates]; status: open, watch, done, won't-do, seeded-into-change. premise micro-form: exists:<path> | absent:<path> | grep:<literal>@<path>=<count> — revalidate checks premises in-process and stamps one verified date per run-day; list annotates staleness. Milestone and Close reports cite PF-n ids, never prose.",
     parameters: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["list", "add", "resolve"], description: "default list" },
+        action: { type: "string", enum: [...ACTIONS], description: "default list" },
         id: { type: "string", description: "item id for resolve, e.g. PF-1" },
         summary: { type: "string", description: "one-line finding (add)" },
         source: { type: "string", description: "the run, review, or archived change that raised it (add)" },
@@ -342,7 +342,7 @@ export default function cddExtension(pi: ExtensionAPI) {
           return { ...result(r.ok ? `archived:\n${json(r)}\nPair-commit: feature commit, then this archive commit.` : json(r), r), isError: !r.ok };
         }
         case "backlog": {
-          const o = parseOptions(params.options, ["action", "id", "summary", "source", "status", "change", "note"]);
+          const o = parseOptions(params.options, ["action", "id", "summary", "source", "status", "change", "note", "premise"]);
           if (!o.ok) return fail(o.error);
           const action = o.value.action ?? "list";
           if (action === "list") {
@@ -357,7 +357,11 @@ export default function cddExtension(pi: ExtensionAPI) {
             const r = resolveBacklogItem(ctx.cwd, o.value);
             return r.ok ? { ...result(r.text, r), isError: false } : fail(r.error);
           }
-          return fail(`unknown action ${JSON.stringify(action)} (allowed: list, add, resolve)`);
+          if (action === "revalidate") {
+            const r = revalidateBacklog(ctx.cwd);
+            return r.ok ? result(r.text, { ok: true, items: r.items }) : fail(r.error);
+          }
+          return fail(`unknown action ${JSON.stringify(action)} (allowed: ${ACTIONS.join(", ")})`);
         }
         case "help":
           return result(

@@ -61,7 +61,7 @@ const api = fakeApi();
 mod.default(api);
 const call = async (args, cwd) => api.tools[0].execute(1, args, undefined, undefined, { cwd });
 
-const GRAMMAR = /^- PF-(\d+) \[(open|watch|done|won't-do|seeded-into-change)\] .+ \| source: .+(?: \| change: .+)?(?: \| note: .+)?$/;
+const GRAMMAR = /^- PF-(\d+) \[(open|watch|done|won't-do|seeded-into-change)\] .+ \| source: .+(?: \| change: .+)?(?: \| note: .+)?(?: \| premise: .+)?(?: \| verified: .+)?$/;
 const itemsOf = (text) => text.split("\n").filter((l) => l.startsWith("- PF-"));
 
 // a store whose cdd/backlog.md holds exactly these item lines under the
@@ -160,6 +160,8 @@ await check("BO10", "rule 13 names cdd/backlog.md and PF-n citations in RULES_MD
     assert(text.includes("cdd/backlog.md"), `${label} names the destination file`);
     assert(/PF-n/.test(text), `${label} carries the PF-n citation duty`);
     assert(/never check its content/.test(text), `${label} pins the not-gated boundary`);
+    assert(/its actions\s+are listed by the tool's help/.test(text), `${label} names the op non-enumeratively`);
+    assert(!/\(list, add/.test(text), `${label} enumerates no actions`);
   }
 });
 

@@ -939,6 +939,13 @@ check("S37", "skills/ holds the cdd-backlog-triage skill, frontmatter valid, rub
   // op-only minting with the exactly-one freehand note-edit exception
   assert(/backlog op/.test(text), `skills/${s}: cdd-backlog-op minting rule missing`);
   assert(/note/.test(text) && /freehand|direct note edit/.test(text), `skills/${s}: the note-edit freehand exception missing`);
+  // the revalidation law: before dispatch, three strikes with watch items, never auto-closes
+  assert(/before dispatch/i.test(text), `skills/${s}: revalidation-before-dispatch law missing`);
+  assert(/three strikes/.test(text) && /open or watch/.test(text), `skills/${s}: three-strikes rule with watch items missing`);
+  assert(/forced to a disposition/.test(text), `skills/${s}: three-strikes disposition fork missing`);
+  assert(/never auto-?closes/.test(text), `skills/${s}: revalidation-never-auto-closes law missing`);
+  // premise backfills join note edits as the freehand exceptions
+  assert(/premise backfill/.test(text) && /only 2\s+freehand exceptions/.test(text), `skills/${s}: premise-backfill freehand exception missing`);
 });
 sb.dispose();
 sb2.dispose();
