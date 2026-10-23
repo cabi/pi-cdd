@@ -9,10 +9,10 @@ Every ADR lives in `cdd/decisions/` — 0001–0007 the product decisions reloca
 ```gherkin
 Feature: Product ADRs live in the store's decisions home
 
-Scenario: The store holds exactly the eleven ADRs
+Scenario: The store holds exactly the twelve ADRs
   Given a repository whose product ADRs 0001 through 0007 were moved into the store
   When the decisions home is listed
-  Then it holds exactly the 11 ADRs numbered 0001 through 0011 and the repository root holds no decisions directory
+  Then it holds exactly the 12 ADRs numbered 0001 through 0012 and the repository root holds no decisions directory
   # Verified by: tests/acceptance/decisions-home.test.js
 
 Scenario: A relocated ADR keeps its history through the move
@@ -23,14 +23,14 @@ Scenario: A relocated ADR keeps its history through the move
 
 Scenario: Relocated ADR statuses sit in the guard's enum
   Given a repository whose product ADRs 0001 through 0007 were moved into the store
-  When the frontmatter status of each of the 11 ADRs is read
+  When the frontmatter status of each of the 12 ADRs is read
   Then each is exactly one of accepted, superseded, draft, or proposed
   # Verified by: tests/acceptance/decisions-home.test.js
 
-Scenario: The door 3 full scan governs all eleven ADRs
+Scenario: The door 3 full scan governs all twelve ADRs
   Given a repository whose product ADRs 0001 through 0007 were moved into the store
   When the door 3 full scan runs
-  Then it exits 0 with no A-check finding naming any of the 11 ADRs
+  Then it exits 0 with no A-check finding naming any of the 12 ADRs
   # Verified by: tests/acceptance/decisions-home.test.js
 
 ```
