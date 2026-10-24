@@ -947,6 +947,145 @@ check("S37", "skills/ holds the cdd-backlog-triage skill, frontmatter valid, rub
   // premise backfills join note edits as the freehand exceptions
   assert(/premise backfill/.test(text) && /only 2\s+freehand exceptions/.test(text), `skills/${s}: premise-backfill freehand exception missing`);
 });
+
+// --- S38: the bundled director skill carries the director law -----------------------
+check("S38", "skills/ holds the cdd-director skill, frontmatter valid, charter consistent with the law", () => {
+  const s = "cdd-director";
+  const file = path.join(REPO, "skills", s, "SKILL.md");
+  assert(fs.existsSync(file), `skills/${s}/SKILL.md missing`);
+  const text = fs.readFileSync(file, "utf8");
+  const fm = text.match(/^---\n([\s\S]*?)\n---\n/);
+  assert(fm, `skills/${s}: no frontmatter block`);
+  const name = fm[1].match(/^name:\s*(\S+)$/m);
+  assert(name?.[1] === s, `skills/${s}: frontmatter name "${name?.[1]}" must match the directory (portable form)`);
+  const desc = fm[1].match(/^description:\s*"([\s\S]*)"\s*$/m);
+  assert(desc && desc[1].length >= 20 && desc[1].length <= 1024, `skills/${s}: description missing or out of spec bounds`);
+  assert(/\bwhen(ever)?\b/i.test(desc[1]), `skills/${s}: description must carry a when/whenever routing clause`);
+  assert(/\bcdd\b/i.test(desc[1]), `skills/${s}: description routing clause must scope to cdd projects`);
+  // every charter section is located by heading so its clauses are pinned on the
+  // section's own text, not on tokens anywhere in the file
+  const section = (heading) => {
+    const sec = text.split(/^## /m).find((x) => x.startsWith(heading));
+    assert(sec, `skills/${s}: "${heading}" section missing`);
+    return sec.toLowerCase();
+  };
+  // the director law: exactly 7 numbered points, each anchor present
+  const law = section("The director law");
+  const points = [...law.matchAll(/^\d+\. \*\*/gm)];
+  assert(points.length === 7, `skills/${s}: the law must hold exactly 7 numbered points, got ${points.length}`);
+  for (const a of [
+    "verifier, never the author",
+    "milestones are the only control points",
+    "let the doors teach",
+    "lawful shape before bypass",
+    "the ledger is the only memory",
+    "spawn briefs carry the protocol",
+    "escalate to the human",
+  ]) assert(law.includes(a), `skills/${s}: law point missing: ${a}`);
+  // the milestone gate table: exactly the 4 asks
+  const gate = section("The milestone gate table");
+  const rows = [...gate.matchAll(/^\| m\d/gm)];
+  assert(rows.length === 4, `skills/${s}: gate table must hold exactly the 4 asks M1-M4, got ${rows.length}`);
+  for (const m of ["m1", "m2", "m3", "m4"]) assert(gate.includes(m), `skills/${s}: gate table row ${m.toUpperCase()} missing`);
+  // the evidence protocol: each clause pinned on its own section
+  const evidence = section("The evidence protocol");
+  assert(/command/.test(evidence) && /tail/.test(evidence), `skills/${s}: command+tail evidence law missing`);
+  assert(/re-?run/.test(evidence) && /before blessing/.test(evidence), `skills/${s}: director re-runs gates before blessing law missing`);
+  assert(/ff-only/.test(evidence), `skills/${s}: ff-only merge law missing`);
+  assert(/only the director pushes/.test(evidence), `skills/${s}: director-pushes law missing`);
+  // the findings harvest: the director's own actions, the rubric's home named
+  const harvest = section("Findings harvest");
+  assert(/backlog op/.test(harvest) && /in flight/.test(harvest), `skills/${s}: mint-in-flight-through-the-backlog-op law missing`);
+  assert(/revalidate/.test(harvest) && /before (every|each) dispatch/.test(harvest), `skills/${s}: revalidate-before-dispatch law missing`);
+  assert(/cdd-backlog-triage/.test(harvest) && /rubric/.test(harvest), `skills/${s}: harvest must name the cdd-backlog-triage skill as the rubric's home`);
+  // the pi delivery mechanics: instruction halves, not bare tokens
+  const mech = section("Delivery mechanics");
+  assert(mech.includes("no pending ask"), `skills/${s}: idle-pane ask-failure mechanic missing`);
+  assert(/plain send/.test(mech), `skills/${s}: follow-the-failed-ask-with-a-send mechanic missing`);
+  assert(/benign/.test(mech), `skills/${s}: benign-crash-exit mechanic missing`);
+  assert(/landed on disk|work landed/.test(mech), `skills/${s}: verify-work-landed mechanic missing`);
+  assert(/logical id/.test(mech), `skills/${s}: stop-by-logical-id mechanic missing`);
+  assert(/relay/.test(mech), `skills/${s}: reviewer-leaf relay mechanic missing`);
+  assert(/re-?list/.test(mech), `skills/${s}: re-list-roster mechanic missing`);
+  assert(/nudge/.test(mech), `skills/${s}: answer-nudges mechanic missing`);
+  // anti-patterns section naming the six
+  const anti = section("Anti-patterns");
+  for (const a of ["pre-narrow", "without tails", "session memory", "contract files", "merge or push"]) {
+    assert(anti.includes(a), `skills/${s}: anti-pattern missing: ${a}`);
+  }
+  assert(/(2|two) writers/.test(anti), `skills/${s}: anti-pattern missing: 2 writers on one repo`);
+  // charter↔law consistency: every cited rule number resolves to a numbered item in
+  // cdd/rules.md whose bold title carries its obligation keyword; the five obligations
+  // the director law operationalizes are cited
+  const rules = fs.readFileSync(path.join(REPO, "cdd", "rules.md"), "utf8");
+  const KEYWORDS = { "2a": "advisory", "2b": "run cold", "9a": "bypass", "11": "archive", "13": "backlog" };
+  const cited = new Set();
+  for (const m of text.matchAll(/rules?\s+(\d+[a-z]?(?:\s*[/,]\s*\d+[a-z]?)*)/gi)) {
+    for (const n of m[1].split(/\s*[/,]\s*/)) cited.add(n);
+  }
+  assert(cited.size > 0, `skills/${s}: cites no loop-law rule`);
+  for (const n of ["2a", "2b", "9a", "11", "13"]) assert(cited.has(n), `skills/${s}: must cite rule ${n} for the obligations it operationalizes`);
+  for (const n of cited) {
+    const item = rules.match(new RegExp(`^${n}\\. .*$`, "m"));
+    assert(item, `skills/${s}: cites rule ${n} but cdd/rules.md has no item ${n}`);
+    if (KEYWORDS[n]) assert(item[0].toLowerCase().includes(KEYWORDS[n]), `skills/${s}: rule ${n} obligation keyword "${KEYWORDS[n]}" not in its cdd/rules.md item`);
+  }
+  // and no restating: no whitespace-normalized law fragment of 60+ characters in the
+  // skill — windows walk the whole normalized law text, so a sentence the law wraps
+  // across short lines cannot evade the comparison
+  const norm = (t) => t.replace(/\s+/g, " ");
+  const skillNorm = norm(text);
+  const lawNorm = norm(rules);
+  let at = 0;
+  for (const word of lawNorm.split(" ")) {
+    const frag = lawNorm.slice(at, at + 60);
+    if (frag.length === 60 && skillNorm.includes(frag)) {
+      throw new Error(`skills/${s}: restates law text: "${frag}..."`);
+    }
+    at += word.length + 1;
+  }
+  // the mission-brief template under assets carries the anatomy
+  const briefPath = path.join(REPO, "skills", s, "assets", "mission-brief.md");
+  assert(fs.existsSync(briefPath), `skills/${s}/assets/mission-brief.md missing`);
+  const brief = fs.readFileSync(briefPath, "utf8");
+  const briefL = brief.toLowerCase();
+  for (const a of [
+    "bounded outcome",
+    "out of scope",
+    "out-of-scope boundary",
+    "read first",
+    "family",
+    "least capable",
+    "floor model",
+    "free rung",
+    "floor-down",
+    "least capable",
+    "stop",
+    "wait",
+    "verify the premise",
+    "handshake",
+    "branch",
+    "never push",
+  ]) assert(briefL.includes(a), `skills/${s}: mission-brief anchor missing: ${a}`);
+  // the protocol skeleton: the named steps, pinned on the brief's own protocol section
+  const briefSection = (heading) => {
+    const sec = brief.split(/^## /m).find((x) => x.startsWith(heading));
+    assert(sec, `skills/${s}: mission-brief "${heading}" section missing`);
+    return sec.toLowerCase();
+  };
+  const proto = briefSection("The protocol");
+  for (const a of ["design gate", "before the proposal", "draft-green", "red first", "two axes", "two cold sessions", "strict", "guard", "pair-commit"]) {
+    assert(proto.includes(a), `skills/${s}: mission-brief protocol skeleton step missing: ${a}`);
+  }
+  // the milestone asks: exactly 4, each ending in a WAIT
+  const asks = briefSection("Milestone asks");
+  const askLines = asks.split("\n").filter((l) => /^-\s+\*\*m\d/.test(l));
+  assert(askLines.length === 4, `skills/${s}: mission-brief must hold exactly the 4 milestone asks, got ${askLines.length}`);
+  for (const l of askLines) assert(/wait/.test(l), `skills/${s}: every milestone ask ends in a WAIT, this one does not: "${l.slice(0, 40)}..."`);
+  // the reviewer constraints: the floor qualifier and the floor-down halt target
+  const constraints = briefSection("Reviewer constraints");
+  assert(constraints.includes("floor-down") && constraints.includes("stop") && constraints.includes("human decision"), `skills/${s}: floor-down halts for a human decision missing`);
+});
 sb.dispose();
 sb2.dispose();
 g.dispose();
