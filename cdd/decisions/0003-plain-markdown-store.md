@@ -15,3 +15,4 @@ Reasons:
 Consequence: the extension's store layer is a thin `fs` module, and any future format change is an ADR plus a migration note — never a silent version bump.
 
 - Reconfirmed by comments-are-shape-only on 2026-10-23: lib/store.mjs lesson prose and pointer comments removed; the plain-markdown store unchanged.
+- Reconfirmed by spec-model on 2026-10-24: spec-model kept the store plain markdown: parseDelta/parseLivingSpec are thin adapters over the law model, store formats unchanged

@@ -105,4 +105,4 @@ proposal as Non-Goals or a future change.
   - Tick: SKIP recorded — this change drafts no ADR and amends no decision content: the spec-model extension rides ADR-0007's existing single-sourcing mechanism (design gate record, tasks §2.1), and the only ADR-file touches are the archive-commit reconfirmation lines (sanctioned mechanism, not decision content), so the rule-2a trigger does not fire.
 - [x] 4.4 cdd validate strict green, guard green
   - Tick: `node -e "...validateChange(process.cwd(),'spec-model',{})"` → `strict: true errors: [] warnings: []`; `node scripts/spec-drift.mjs` → `spec-drift: clean (5 specs, 35 acceptance test files, full scan)`, exit 0.
-- [ ] 4.5 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.5 Archive — pair-commit: feature commit, then archive commit

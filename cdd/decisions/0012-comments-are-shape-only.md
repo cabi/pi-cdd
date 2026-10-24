@@ -74,3 +74,4 @@ sweep, and landed the pins. cdd-adr-review runs on this ADR at Close.
 - Reconfirmed by gitlab-ci-parity on 2026-10-23: the new comment lines live inside the CI_GITLAB scaffold output string (rendered text, explicitly exempt as "Rendered text is untouched"); the new test file' source comments follow the swept test-header convention (PF-24).
 
 - Reconfirmed by adr-ops on 2026-10-24: the new scripts/adr-index.mjs and the scripts/spec-drift.mjs import refactor carry shape-only comments (what the module is and who consumes it — no law prose, no corpus routing); the guard's behavior surface is unchanged.
+- Reconfirmed by spec-model on 2026-10-24: spec-model comments are shape-of-code only; the R3 standards finding trimmed the last WHY-prose sites

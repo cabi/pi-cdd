@@ -80,3 +80,4 @@ the current format.
 - Reconfirmed by gitlab-ci-parity on 2026-10-23: lib/templates.mjs changes only the CI_GITLAB scaffold string; no feature-block format touched, and the new requirement lands as exactly one Feature block with its own acceptance pin.
 
 - Reconfirmed by adr-ops on 2026-10-24: the glob matcher and ADR-index construction moved verbatim from scripts/spec-drift.mjs to scripts/adr-index.mjs (one shared source for the guard and the new ops); the corpus-format verdicts — one Feature block per requirement, pins as the only comment inside the fence — are untouched, and the new requirements follow the same shape.
+- Reconfirmed by spec-model on 2026-10-24: spec-model re-pointed the guard to the law model; pins stay fence-interior comments, one dialect (SM1)
