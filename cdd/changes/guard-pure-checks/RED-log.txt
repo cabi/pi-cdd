@@ -1,0 +1,4 @@
+  FAIL GPC1  gathering is the only I/O seam — the pure-check region holds no filesystem, git, or console access
+       scripts/spec-drift.mjs has no gatherFacts() — the gather pass is the one I/O seam
+spec-drift: no cdd/ directory found upward from cwd
+PIN-EXIT=2

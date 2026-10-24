@@ -17,33 +17,86 @@
 //
 // Checks: A0 A1 A2 G H L1 L2 L3 L4 L4-skip M O
 //
+// Structure: one gather pass (gatherMode/gatherFacts) collects every fact the
+// laws need — files on disk, the one parse per spec, resolved pins, git state,
+// open-change claims — then each law is a pure function of that snapshot
+// (the ===== pure checks region holds no I/O); the runner alone maps findings
+// to the report.
+//
 // exit 0 = no drift · 1 = drift found · 2 = usage/setup error
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { MECH_GREP, TASK_LIMIT, checkFenceBody, isPlaceholderPin, parseSpecModel, splitTaskSections } from './grammar-law.mjs';
 import { ADR_STATUSES, buildAdrIndex, globToRe } from './adr-index.mjs';
 
-const argv = process.argv.slice(2);
-const msgIdx = argv.indexOf('--commit-msg');
-const msgFile = msgIdx !== -1 ? argv[msgIdx + 1] : null;
-const preCommit = argv.includes('--staged');
-// --staged (pre-commit) sees the index but never the message: it runs only
-// message-independent checks. --commit-msg <file> (commit-msg hook) sees both:
-// it runs the message-dependent ones — the L2 travel check, with the
-// mechanical exemption, and the M integrity check on the staged set.
-const staged = preCommit || msgFile !== null;
-const unknown = argv.filter((a, i) => a !== '--staged' && a !== '--commit-msg' && argv[i - 1] !== '--commit-msg');
-if (unknown.length || (msgIdx !== -1 && !msgFile)) {
-  console.error(`usage: spec-drift.mjs [--staged | --commit-msg <file>]  (unknown args: ${unknown.join(' ')})`);
-  process.exit(2);
-}
-const mechanical = msgFile
-  ? /^Mechanical-Change:|^\[mechanical\]/m.test(fs.readFileSync(msgFile, 'utf8'))
-  : false;
+// --- the runner: mode → root → facts → laws → report ----------------------------
 
-// --- locate the project root (the dir that owns cdd/) --------------------
+async function main() {
+  const base = gatherMode(process.argv.slice(2));
+  if (base.unknown.length || (base.msgIdx !== -1 && !base.msgFile)) {
+    console.error(`usage: spec-drift.mjs [--staged | --commit-msg <file>]  (unknown args: ${base.unknown.join(' ')})`);
+    process.exit(2);
+  }
+  const mode = { ...base, mechanical: gatherMechanical(base.msgFile) };
+  const root = findRoot(process.cwd());
+  if (!root) {
+    console.error('spec-drift: no cdd/ directory found upward from cwd');
+    process.exit(2);
+  }
+  const facts = await gatherFacts(root, mode);
+  report(facts, runLaws(facts));
+}
+
+function runLaws(facts) {
+  const l1 = checkL1(facts);
+  const h = checkH(facts);
+  const l4 = checkL4(facts);
+  const l2 = checkL2(facts);
+  const m = checkM(facts);
+  // the G position: a missing parser is fatal — findings from earlier laws are discarded
+  if (facts.gherkin.scope && facts.gherkin.missing) {
+    console.error('spec-drift: door 3 re-parses scenario fences with @cucumber/gherkin, which is not installed in this repository.');
+    console.error('spec-drift: npm install --save-dev @cucumber/gherkin');
+    process.exit(1);
+  }
+  const g = checkG(facts);
+  const o = checkO(facts);
+  const l3 = checkL3(facts);
+  const a0 = checkA0(facts);
+  const a1 = checkA1(facts);
+  const a2 = checkA2(facts);
+  const issues = [
+    ...l1.issues, ...h.issues, ...l4.issues, ...l2.issues, ...m.issues,
+    ...g.issues, ...o.issues, ...l3.issues, ...a0.issues, ...a1.issues, ...a2.issues,
+  ];
+  return { issues, placeholderSkips: l1.placeholderSkips, l2StaleFiles: l2.l2StaleFiles, l4Skips: l4.l4Skips };
+}
+
+// ===== gather — the only filesystem/git seam above the laws =====================
+
+// argv carries the door identity: --staged (pre-commit) sees the index but
+// never the message — it runs only message-independent checks. --commit-msg
+// <file> (commit-msg hook) sees both: it runs the message-dependent ones — the
+// L2 travel check, with the mechanical exemption, and the M integrity check on
+function gatherMode(argv) {
+  const msgIdx = argv.indexOf('--commit-msg');
+  const msgFile = msgIdx !== -1 ? argv[msgIdx + 1] : null;
+  const preCommit = argv.includes('--staged');
+  const staged = preCommit || msgFile !== null;
+  const unknown = argv.filter((a, i) => a !== '--staged' && a !== '--commit-msg' && argv[i - 1] !== '--commit-msg');
+  return { msgIdx, msgFile, preCommit, staged, unknown };
+}
+
+// the mechanical marker (MECH_GREP, grammar-law.mjs); the message-file read is gathering
+function gatherMechanical(msgFile) {
+  return msgFile
+    ? new RegExp(MECH_GREP, 'm').test(fs.readFileSync(msgFile, 'utf8'))
+    : false;
+}
+
 function findRoot(start) {
   let dir = path.resolve(start);
   for (;;) {
@@ -53,133 +106,212 @@ function findRoot(start) {
     dir = parent;
   }
 }
-const root = findRoot(process.cwd());
-if (!root) {
-  console.error('spec-drift: no cdd/ directory found upward from cwd');
-  process.exit(2);
-}
 
-// --- git helpers ----------------------------------------------------------------
-function git(args) {
-  try {
-    return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
-  } catch {
-    return null;
-  }
-}
-const isRepo = git(['rev-parse', '--is-inside-work-tree']) === 'true';
-
-// MECH_GREP (the mechanical-commit marker) is imported from grammar-law.mjs —
-// commits marked mechanical carry no contract information, so they advance
-// neither side of the staleness clock.
-
-function lastCommit(file) {
-  return (
+async function gatherFacts(root, mode) {
+  const git = (args) => {
+    try {
+      return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+    } catch {
+      return null;
+    }
+  };
+  const isRepo = git(['rev-parse', '--is-inside-work-tree']) === 'true';
+  const lastCommit = (file) =>
     git([
       'log', '-1', '--format=%H',
       '--extended-regexp', '--grep', MECH_GREP, '--invert-grep',
       '--', file,
-    ]) || null
-  );
-}
+    ]) || null;
 
-// --- collect specs: pins + code globs -------------------------------------------
-const issues = [];
-
-function specsIn(dir, acc = []) {
-  if (!fs.existsSync(dir)) return acc;
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) specsIn(p, acc);
-    else if (e.name === 'spec.md') acc.push(p);
+  // --- collect specs: pins + code globs --------------------------------------
+  function specsIn(dir, acc = []) {
+    if (!fs.existsSync(dir)) return acc;
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) specsIn(p, acc);
+      else if (e.name === 'spec.md') acc.push(p);
+    }
+    return acc;
   }
-  return acc;
-}
-const rel = (p) => path.relative(root, p).split(path.sep).join('/');
-const livingSpecs = specsIn(path.join(root, 'cdd', 'specs')).map(rel);
-const deltaSpecs = specsIn(path.join(root, 'cdd', 'changes'))
-  .map(rel)
-  .filter((r) => !r.startsWith('cdd/archive/')); // archive = frozen history, never a claimant
-const allSpecs = [...livingSpecs, ...deltaSpecs];
+  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
+  const livingSpecs = specsIn(path.join(root, 'cdd', 'specs')).map(rel);
+  const deltaSpecs = specsIn(path.join(root, 'cdd', 'changes'))
+    .map(rel)
+    .filter((r) => !r.startsWith('cdd/archive/')); // archive = frozen history, never a claimant
+  const allSpecs = [...livingSpecs, ...deltaSpecs];
 
-/** Resolve a pin the way pi-cdd layouts work: project root first (living
- *  specs), then the change dir the spec belongs to (in-flight changes). */
-function pinCandidates(pin, specRel) {
-  const out = [pin];
-  const m = specRel.match(/^cdd\/changes\/[^/]+\//);
-  if (m) out.push(m[0] + pin);
-  return out;
-}
-function pinResolve(pin, specRel) {
-  for (const c of pinCandidates(pin, specRel)) {
-    if (fs.existsSync(path.join(root, c))) return c;
+  /** Resolve a pin the way pi-cdd layouts work: project root first (living
+   * specs), then the change dir the spec belongs to (in-flight changes). */
+  const pinResolve = (pin, specRel) => {
+    for (const c of pinCandidates(pin, specRel)) {
+      if (fs.existsSync(path.join(root, c))) return c;
+    }
+    return null;
+  };
+  const models = new Map(); // specRel -> the one parse (grammar-law.mjs parseSpecModel)
+  const pinsOf = new Map(); // specRel -> [{ pin, resolved }]
+  const codeGlobs = new Map(); // specRel -> [globs]
+  for (const specRel of allSpecs) {
+    // One parse per spec file (grammar-law.mjs): pins, Code globs, fences,
+    // and the requirement blocks; the mask keeps only gherkin-fence interiors.
+    const model = parseSpecModel(fs.readFileSync(path.join(root, specRel), 'utf8'));
+    models.set(specRel, model);
+    pinsOf.set(specRel, model.pins.map((pin) => ({ pin, resolved: pinResolve(pin, specRel) })));
+    codeGlobs.set(specRel, model.codeGlobs.map((c) => c.glob));
   }
-  return null;
-}
-
-const models = new Map(); // specRel -> the one parse (grammar-law.mjs parseSpecModel)
-const pinsOf = new Map(); // specRel -> [{ pin, resolved }]
-const codeGlobs = new Map(); // specRel -> [globs]
-for (const specRel of allSpecs) {
-  // One parse per spec file (grammar-law.mjs): pins, Code globs, fences,
-  // and the requirement blocks; the mask keeps only gherkin-fence interiors.
-  const model = parseSpecModel(fs.readFileSync(path.join(root, specRel), 'utf8'));
-  models.set(specRel, model);
-  pinsOf.set(
-    specRel,
-    model.pins.map((pin) => ({ pin, resolved: null }))
+  const pinnedAbs = new Set(
+    allSpecs.flatMap((s) => pinsOf.get(s).map((p) => p.resolved)).filter(Boolean)
   );
-  for (const p of pinsOf.get(specRel)) p.resolved = pinResolve(p.pin, specRel);
-  codeGlobs.set(specRel, model.codeGlobs.map((c) => c.glob));
+
+  // --- acceptance-test dirs (convention) ---------------------------------------
+  const accDirRels = ['tests/acceptance', 'test/acceptance']
+    .filter((d) => fs.existsSync(path.join(root, d)));
+  function accFiles(dir, acc = []) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) accFiles(p, acc);
+      else acc.push(p);
+    }
+    return acc;
+  }
+  const accRel = accDirRels.flatMap((d) => accFiles(path.join(root, d)).map(rel));
+
+  // --- git state: the staged/pre-commit distinction, tracked files, history ----
+  const stagedSet = new Set(
+    mode.staged && isRepo ? (git(['diff', '--cached', '--name-only']) ?? '').split('\n').filter(Boolean) : []
+  );
+  const stagedAdds = mode.preCommit && isRepo
+    ? (git(['diff', '--cached', '--name-only', '--diff-filter=A']) ?? '').split('\n').filter(Boolean)
+    : [];
+  const stagedDels = mode.preCommit && isRepo
+    ? (git(['diff', '--cached', '--name-only', '--diff-filter=D']) ?? '').split('\n').filter(Boolean)
+    : [];
+  const tracked = isRepo ? (git(['ls-files']) ?? '').split('\n').filter(Boolean) : [];
+  const hooksHalfUpgraded =
+    isRepo &&
+    fs.existsSync(path.join(root, '.githooks', 'pre-commit')) &&
+    !fs.existsSync(path.join(root, '.githooks', 'commit-msg'));
+  const mechLog = isRepo && !mode.staged
+    ? git(['log', '-n', '1000', '--extended-regexp', '--grep', MECH_GREP, '--format=%h', '--name-only'])
+    : null;
+
+  // --- open-change claims: task texts, ADR index, change docs ------------------
+  const tasksTexts = new Map(); // change -> { rel, text }
+  const changesDir = path.join(root, 'cdd', 'changes');
+  if (fs.existsSync(changesDir)) {
+    for (const e of fs.readdirSync(changesDir, { withFileTypes: true })) {
+      if (!e.isDirectory() || e.name === 'archive') continue;
+      const tasksRel = `cdd/changes/${e.name}/tasks.md`;
+      if (!fs.existsSync(path.join(root, tasksRel))) continue;
+      tasksTexts.set(e.name, { rel: tasksRel, text: fs.readFileSync(path.join(root, tasksRel), 'utf8') });
+    }
+  }
+  const adrIndex = buildAdrIndex(root);
+  const changeDocs = new Map(); // open change (its delta claims surface) -> joined md text
+  for (const specRel of deltaSpecs) {
+    if (!(codeGlobs.get(specRel) ?? []).length) continue;
+    const change = specRel.split('/')[2];
+    if (changeDocs.has(change)) continue;
+    const cdir = path.join(root, 'cdd', 'changes', change);
+    changeDocs.set(
+      change,
+      fs
+        .readdirSync(cdir, { withFileTypes: true })
+        .filter((e) => e.isFile() && e.name.endsWith('.md'))
+        .map((e) => fs.readFileSync(path.join(cdir, e.name), 'utf8'))
+        .join('\n')
+    );
+  }
+
+  // --- G (door 3 only): the official parser — doors 1-2 stay zero-dependency ----
+  let gherkin = { scope: false, missing: false, mkParse: null };
+  if (isRepo && !mode.staged && !mode.msgFile && allSpecs.length) {
+    gherkin.scope = true;
+    try {
+      const Gherkin = await import('@cucumber/gherkin');
+      const mkParser = () =>
+        new Gherkin.Parser(new Gherkin.AstBuilder(() => 'cdd'), new Gherkin.GherkinClassicTokenMatcher());
+      gherkin.mkParse = (b) => mkParser().parse(b);
+    } catch {
+      gherkin.missing = true;
+    }
+  }
+
+  // --- topology answers for L2/A2, asked once: last meaningful commit per file,
+  // and is-ancestor for exactly the pairs those laws will compare (derived with
+  // the same pure helpers the laws use, so question set and verdict walk match).
+  const facts = {
+    root, isRepo,
+    preCommit: mode.preCommit, msgFile: mode.msgFile, staged: mode.staged, mechanical: mode.mechanical,
+    livingSpecs, deltaSpecs, allSpecs, models, pinsOf, codeGlobs, pinnedAbs,
+    accDirRels, accRel, stagedSet, stagedAdds, stagedDels, tracked,
+    hooksHalfUpgraded, mechLog, tasksTexts, adrIndex, changeDocs, gherkin,
+    topology: null,
+  };
+  if (isRepo && !mode.preCommit) {
+    const lastCommitOf = new Map();
+    for (const f of new Set([...allSpecs, ...tracked, ...adrIndex.map((a) => a.fileRel)])) {
+      lastCommitOf.set(f, lastCommit(f));
+    }
+    const ancestorOf = new Map();
+    const ask = (a, b) => {
+      const k = `${a}|${b}`;
+      if (!ancestorOf.has(k)) ancestorOf.set(k, git(['merge-base', '--is-ancestor', a, b]) === '');
+    };
+    for (const { specRels, globs } of capsIndex(facts).values()) {
+      if (!globs.length) continue;
+      const res = globs.map(globToRe);
+      const matches = tracked.filter((f) => res.some((re) => re.test(f)));
+      if (!matches.length) continue;
+      const specCs = specRels.map((s) => lastCommitOf.get(s)).filter(Boolean);
+      for (const codeC of matches.map((f) => lastCommitOf.get(f)).filter(Boolean)) {
+        for (const specC of specCs) {
+          if (specC !== codeC) ask(specC, codeC);
+        }
+      }
+    }
+    for (const a of acceptedAdrsOf(facts)) {
+      const adrC = lastCommitOf.get(a.fileRel);
+      if (!adrC) continue;
+      const res = a.globs.map(globToRe);
+      for (const f of tracked.filter((f) => res.some((re) => re.test(f)))) {
+        const codeC = lastCommitOf.get(f);
+        if (codeC && codeC !== adrC) ask(adrC, codeC);
+      }
+    }
+    facts.topology = { lastCommitOf, ancestorOf };
+  }
+  return facts;
 }
 
-// --- capability model: a living spec plus its open deltas are ONE spec line ---
+// ===== pure checks — every law below is a pure function of the facts ============
+// (no filesystem, no git, no console — gatherFacts collects, report writes)
+
 const changeOf = (specRel) => (specRel.match(/^cdd\/changes\/([^/]+)\//) ?? [])[1] ?? '';
 const capOf = (specRel) =>
   specRel
     .replace(/^cdd\/specs\//, '')
     .replace(/^cdd\/changes\/[^/]+\/specs\//, '')
     .replace(/\/spec\.md$/, '');
-const pinnedAbs = new Set(
-  allSpecs.flatMap((s) => pinsOf.get(s).map((p) => p.resolved)).filter(Boolean)
-);
 
-// --- acceptance-test dirs (convention) ------------------------------------------
-const accDirs = ['tests/acceptance', 'test/acceptance']
-  .map((d) => path.join(root, d))
-  .filter((d) => fs.existsSync(d));
-function accFiles(dir, acc = []) {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) accFiles(p, acc);
-    else acc.push(p);
-  }
-  return acc;
+function pinCandidates(pin, specRel) {
+  const out = [pin];
+  const m = specRel.match(/^cdd\/changes\/[^/]+\//);
+  if (m) out.push(m[0] + pin);
+  return out;
 }
-const accRel = accDirs.flatMap((d) => accFiles(d).map(rel));
 
+const isAcceptancePath = (f, facts) =>
+  facts.accDirRels.some((d) => f.startsWith(d + '/'));
 
-// ==============================================================================
-// L1 — forward: every pin resolves (staged mode: only specs staged in this commit)
-// ==============================================================================
-const stagedSet = new Set(
-  staged && isRepo ? (git(['diff', '--cached', '--name-only']) ?? '').split('\n').filter(Boolean) : []
-);
-const specsToCheck = preCommit ? allSpecs.filter((s) => stagedSet.has(s)) : allSpecs;
-// A placeholder pin (scaffold marker, grammar-law.mjs) inside an OPEN delta is
-// template text, not a claim: skip it here and report the skip after the
-// verdict — a skip is never silent. Living specs (and archive = frozen
-// history, already excluded from deltaSpecs) keep full strictness, and an
-// unrecognized marker shape fails L1 everywhere.
-const l2StaleFiles = []; // staleness-flagged files, for the expected-mid-Close hint — see filesClaimedByChange
 // One matching pass, two readers: the A1 citation check and the L2
 // expected-mid-Close hint both ask "which of these files does each open
 // change's delta Code: globs claim?" — answer it once, as a map of open
 // change name -> Set of matched files.
-const filesClaimedByChange = (files) => {
+const filesClaimedByChange = (files, facts) => {
   const claims = new Map();
-  for (const specRel of deltaSpecs) {
-    const globs = codeGlobs.get(specRel) ?? [];
+  for (const specRel of facts.deltaSpecs) {
+    const globs = facts.codeGlobs.get(specRel) ?? [];
     if (!globs.length) continue;
     const res = globs.map(globToRe);
     const change = specRel.split('/')[2];
@@ -192,73 +324,147 @@ const filesClaimedByChange = (files) => {
   }
   return claims;
 };
-const placeholderSkips = new Map(); // open change name -> skipped pin count
-for (const specRel of specsToCheck) {
-  const openChange = specRel.match(/^cdd\/changes\/([^/]+)\//)?.[1] ?? null;
-  for (const { pin, resolved } of pinsOf.get(specRel)) {
-    if (!resolved) {
-      if (openChange && isPlaceholderPin(pin)) {
-        placeholderSkips.set(openChange, (placeholderSkips.get(openChange) ?? 0) + 1);
-        continue;
+
+// L4's memory-claim derivations — pure over the snapshot, shared by the L4
+// verdict and the L2 capability index (both must see the same exemptions).
+const globClaimsMemory = (glob, facts) =>
+  glob.startsWith('cdd/decisions/') ||
+  facts.tracked.some((f) => f.startsWith('cdd/decisions/') && globToRe(glob).test(f));
+const memoryClaimsOf = (specRel, facts) => {
+  const claims = [];
+  for (const r of facts.models.get(specRel).requirements) {
+    for (const glob of r.codeGlobs) {
+      if (globClaimsMemory(glob, facts)) claims.push({ heading: r.requirement, glob });
+    }
+  }
+  return claims;
+};
+// open corrections: per capability, heading -> [change names], built from
+// MODIFIED blocks whose restated Code line names real surface and claims no
+// memory. A correction earns the skip, never silence; the exemption is
+// per-requirement and heading-matched exactly — no fuzzy matching, no
+// cross-change cover.
+function correctionsByCap(facts) {
+  const out = new Map();
+  for (const specRel of facts.deltaSpecs) {
+    const cap = capOf(specRel);
+    const change = changeOf(specRel);
+    for (const o of facts.models.get(specRel).ops) {
+      if (o.op !== 'MODIFIED') continue;
+      const globs = o.codeGlobs;
+      if (!globs.length || globs.some((g) => globClaimsMemory(g, facts))) continue;
+      if (!out.has(cap)) out.set(cap, new Map());
+      const byHeading = out.get(cap);
+      if (!byHeading.has(o.requirement)) byHeading.set(o.requirement, []);
+      byHeading.get(o.requirement).push(change);
+    }
+  }
+  return out;
+}
+// living memory globs under correction, per spec — every requirement of the
+// spec carrying the glob must be under correction, or the glob stays policed
+function exemptMemoryGlobs(facts) {
+  const corrections = correctionsByCap(facts);
+  const out = new Map(); // living specRel -> Set(glob)
+  for (const specRel of facts.livingSpecs) {
+    const byGlob = new Map(); // glob -> fully corrected?
+    for (const { heading, glob } of memoryClaimsOf(specRel, facts)) {
+      const fixed = (corrections.get(capOf(specRel))?.get(heading) ?? []).length > 0;
+      if (!byGlob.has(glob)) byGlob.set(glob, true);
+      if (!fixed) byGlob.set(glob, false);
+    }
+    const exempt = new Set([...byGlob].filter(([, ok]) => ok).map(([g]) => g));
+    if (exempt.size) out.set(specRel, exempt);
+  }
+  return out;
+}
+
+// capability model: a living spec plus its open deltas are ONE spec line. The
+// index is the L2 walk itself: per capability, its spec files and its
+// (exemption-filtered) code globs, in allSpecs order.
+function capsIndex(facts) {
+  const caps = new Map(); // cap -> { specRels: [], globs: [] }
+  const exemptBySpec = exemptMemoryGlobs(facts);
+  for (const specRel of facts.allSpecs) {
+    const cap = capOf(specRel);
+    if (!caps.has(cap)) caps.set(cap, { specRels: [], globs: [] });
+    const c = caps.get(cap);
+    c.specRels.push(specRel);
+    const exempt = exemptBySpec.get(specRel);
+    c.globs.push(...(facts.codeGlobs.get(specRel) ?? []).filter((g) => !exempt?.has(g)));
+  }
+  return caps;
+}
+
+const acceptedAdrsOf = (facts) =>
+  facts.adrIndex.filter((a) => a.status === 'accepted' && a.globs.length);
+
+// ==============================================================================
+// L1 — forward: every pin resolves (staged mode: only specs staged in this commit)
+// + reverse: every acceptance test is pinned somewhere (staged mode: only files
+// newly added to tests/acceptance/) + the commit door: staged deletions of
+// pinned tests. A placeholder pin (scaffold marker, grammar-law.mjs) inside an
+// OPEN delta is template text, not a claim: skip it here and report the skip
+// after the verdict — a skip is never silent. Living specs (and archive =
+// frozen history, already excluded from deltaSpecs) keep full strictness, and
+// an unrecognized marker shape fails L1 everywhere.
+// ==============================================================================
+function checkL1(facts) {
+  const issues = [];
+  const placeholderSkips = new Map(); // open change name -> skipped pin count
+  const specsToCheck = facts.preCommit ? facts.allSpecs.filter((s) => facts.stagedSet.has(s)) : facts.allSpecs;
+  for (const specRel of specsToCheck) {
+    const openChange = specRel.match(/^cdd\/changes\/([^/]+)\//)?.[1] ?? null;
+    for (const { pin, resolved } of facts.pinsOf.get(specRel)) {
+      if (!resolved) {
+        if (openChange && isPlaceholderPin(pin)) {
+          placeholderSkips.set(openChange, (placeholderSkips.get(openChange) ?? 0) + 1);
+          continue;
+        }
+        issues.push(`[L1] ${specRel} pins "${pin}" but that file does not exist — restore the acceptance test or update the Verified by line`);
       }
-      issues.push(`[L1] ${specRel} pins "${pin}" but that file does not exist — restore the acceptance test or update the Verified by line`);
     }
   }
-}
-
-// ==============================================================================
-// L1 — reverse: every acceptance test is pinned somewhere
-// (staged mode: only files newly added to tests/acceptance/)
-// ==============================================================================
-if (preCommit && isRepo) {
-  const stagedAdds = (git(['diff', '--cached', '--name-only', '--diff-filter=A']) ?? '')
-    .split('\n')
-    .filter(Boolean);
-  for (const f of stagedAdds) {
-    if (accDirs.some((d) => path.join(root, f).startsWith(d + path.sep)) && !pinnedAbs.has(f)) {
-      issues.push(`[L1] new acceptance test ${f} is pinned by no spec — add a "Verified by" scenario or move it out of tests/acceptance/`);
+  if (facts.preCommit && facts.isRepo) {
+    for (const f of facts.stagedAdds) {
+      if (isAcceptancePath(f, facts) && !facts.pinnedAbs.has(f)) {
+        issues.push(`[L1] new acceptance test ${f} is pinned by no spec — add a "Verified by" scenario or move it out of tests/acceptance/`);
+      }
     }
-  }
-} else {
-  for (const f of accRel) {
-    if (!pinnedAbs.has(f)) {
-      issues.push(`[L1] orphan acceptance test ${f} — pinned by no spec; update the spec's scenarios or delete the test`);
-    }
-  }
-}
-
-// ==============================================================================
-// L1 — the commit door: staged deletions of pinned tests
-// ==============================================================================
-if (preCommit && isRepo) {
-  const stagedDels = (git(['diff', '--cached', '--name-only', '--diff-filter=D']) ?? '')
-    .split('\n')
-    .filter(Boolean);
-  for (const f of stagedDels) {
-    for (const specRel of allSpecs) {
-      const hit = pinsOf
-        .get(specRel)
-        .some((p) => p.resolved === f || pinCandidates(p.pin, specRel).includes(f));
-      if (hit && !stagedSet.has(specRel)) {
-        issues.push(`[L1] staged deletion of ${f} but ${specRel} still pins it — update the spec in this same commit`);
+  } else {
+    for (const f of facts.accRel) {
+      if (!facts.pinnedAbs.has(f)) {
+        issues.push(`[L1] orphan acceptance test ${f} — pinned by no spec; update the spec's scenarios or delete the test`);
       }
     }
   }
+  if (facts.preCommit && facts.isRepo) {
+    for (const f of facts.stagedDels) {
+      for (const specRel of facts.allSpecs) {
+        const hit = facts.pinsOf
+          .get(specRel)
+          .some((p) => p.resolved === f || pinCandidates(p.pin, specRel).includes(f));
+        if (hit && !facts.stagedSet.has(specRel)) {
+          issues.push(`[L1] staged deletion of ${f} but ${specRel} still pins it — update the spec in this same commit`);
+        }
+      }
+    }
+  }
+  return { issues, placeholderSkips };
 }
 
-// ==============================================================================
-// L2 — staleness: code matching Code: globs must not out-commit its spec
-// ==============================================================================
 // ==============================================================================
 // H — hook health: this script knows --commit-msg. If the repo still runs the
 // old single-hook scaffold, upgrading the script alone would silently drop
 // the L2 travel check from the commit door (and without CI, from anywhere).
 // ==============================================================================
-if (isRepo && fs.existsSync(path.join(root, '.githooks', 'pre-commit')) && !fs.existsSync(path.join(root, '.githooks', 'commit-msg'))) {
-  issues.push(`[H] .githooks has pre-commit but no commit-msg — the guard is newer than its hooks; re-run cdd_init (it refreshes an existing store and installs missing hooks) so code-and-spec travel and the mechanical lane stay enforced`);
+function checkH(facts) {
+  const issues = [];
+  if (facts.hooksHalfUpgraded) {
+    issues.push(`[H] .githooks has pre-commit but no commit-msg — the guard is newer than its hooks; re-run cdd_init (it refreshes an existing store and installs missing hooks) so code-and-spec travel and the mechanical lane stay enforced`);
+  }
+  return { issues };
 }
-
-const tracked = isRepo ? (git(['ls-files']) ?? '').split('\n').filter(Boolean) : [];
 
 // ==============================================================================
 // L4 — decision memory is not implementation surface: no Code line may claim
@@ -272,122 +478,81 @@ const tracked = isRepo ? (git(['ls-files']) ?? '').split('\n').filter(Boolean) :
 // (L2 topology + staged-pair): the correction clears it at the archive
 // pair-commit, so demanding spec travel on it mid-Close is transition noise.
 // ==============================================================================
-const l4Skips = [];
-const globClaimsMemory = (glob) =>
-  glob.startsWith('cdd/decisions/') ||
-  tracked.some((f) => f.startsWith('cdd/decisions/') && globToRe(glob).test(f));
-const memoryClaimsOf = (specRel) => {
-  const claims = [];
-  for (const r of models.get(specRel).requirements) {
-    for (const glob of r.codeGlobs) {
-      if (globClaimsMemory(glob)) claims.push({ heading: r.requirement, glob });
-    }
-  }
-  return claims;
-};
-// open corrections: per capability, heading -> [change names], built from
-// MODIFIED blocks whose restated Code line names real surface and claims no
-// memory. A correction earns the skip, never silence; the exemption is
-// per-requirement and heading-matched exactly — no fuzzy matching, no
-// cross-change cover.
-const correctionsByCap = new Map();
-for (const specRel of deltaSpecs) {
-  const cap = capOf(specRel);
-  const change = changeOf(specRel);
-  for (const o of models.get(specRel).ops) {
-    if (o.op !== 'MODIFIED') continue;
-    const globs = o.codeGlobs;
-    if (!globs.length || globs.some((g) => globClaimsMemory(g))) continue;
-    if (!correctionsByCap.has(cap)) correctionsByCap.set(cap, new Map());
-    const byHeading = correctionsByCap.get(cap);
-    if (!byHeading.has(o.requirement)) byHeading.set(o.requirement, []);
-    byHeading.get(o.requirement).push(change);
-  }
-}
-// living memory globs under correction, per spec — every requirement of the
-// spec carrying the glob must be under correction, or the glob stays policed
-const exemptMemoryGlobs = new Map(); // living specRel -> Set(glob)
-for (const specRel of livingSpecs) {
-  const byGlob = new Map(); // glob -> fully corrected?
-  for (const { heading, glob } of memoryClaimsOf(specRel)) {
-    const fixed = (correctionsByCap.get(capOf(specRel))?.get(heading) ?? []).length > 0;
-    if (!byGlob.has(glob)) byGlob.set(glob, true);
-    if (!fixed) byGlob.set(glob, false);
-  }
-  const exempt = new Set([...byGlob].filter(([, ok]) => ok).map(([g]) => g));
-  if (exempt.size) exemptMemoryGlobs.set(specRel, exempt);
-}
-const l4Issue = (specRel, heading, glob) => `[L4] ${specRel} requirement "${heading}" claims decision memory in Code line "${glob}" — decision memory answers to the A-checks (A0/A1/A2 govern cdd/decisions/ unconditionally); a Code line claims implementation surface (name the enforcing acceptance test instead)`;
-if (isRepo && !staged) {
-  for (const specRel of deltaSpecs) {
-    for (const { heading, glob } of memoryClaimsOf(specRel)) {
-      issues.push(l4Issue(specRel, heading, glob));
-    }
-  }
-  for (const specRel of livingSpecs) {
-    for (const { heading, glob } of memoryClaimsOf(specRel)) {
-      const fixers = correctionsByCap.get(capOf(specRel))?.get(heading) ?? [];
-      if (fixers.length) {
-        l4Skips.push(`living Code line "${glob}" in ${specRel} (requirement "${heading}") claims decision memory but is being corrected by open change ${fixers.join(', ')} — clears at the archive pair-commit`);
-      } else {
+function checkL4(facts) {
+  const issues = [];
+  const l4Skips = [];
+  const l4Issue = (specRel, heading, glob) => `[L4] ${specRel} requirement "${heading}" claims decision memory in Code line "${glob}" — decision memory answers to the A-checks (A0/A1/A2 govern cdd/decisions/ unconditionally); a Code line claims implementation surface (name the enforcing acceptance test instead)`;
+  if (facts.isRepo && !facts.staged) {
+    for (const specRel of facts.deltaSpecs) {
+      for (const { heading, glob } of memoryClaimsOf(specRel, facts)) {
         issues.push(l4Issue(specRel, heading, glob));
       }
     }
+    for (const specRel of facts.livingSpecs) {
+      for (const { heading, glob } of memoryClaimsOf(specRel, facts)) {
+        const fixers = correctionsByCap(facts).get(capOf(specRel))?.get(heading) ?? [];
+        if (fixers.length) {
+          l4Skips.push(`living Code line "${glob}" in ${specRel} (requirement "${heading}") claims decision memory but is being corrected by open change ${fixers.join(', ')} — clears at the archive pair-commit`);
+        } else {
+          issues.push(l4Issue(specRel, heading, glob));
+        }
+      }
+    }
   }
+  return { issues, l4Skips };
 }
 
-if (isRepo) {
-  // applied specs must own real files (open deltas may point at future files)
-  for (const specRel of livingSpecs) {
-    const globs = codeGlobs.get(specRel);
+// ==============================================================================
+// L2 — staleness: code matching Code: globs must not out-commit its spec.
+// Applied specs must own real files (open deltas may point at future files);
+// staleness is per CAPABILITY: the tip is the newest commit of the living
+// spec or any open delta. Code may out-commit older parts of the line
+// freely — that is what an in-flight change is. At the commit-msg door the
+// staged pair is policed directly; topology staleness is committed-history
+// law: lastCommit() cannot see this commit's staged spec merge, so in
+// pre-commit mode it can only fire on the commit being made (the archive
+// pair-commit's second commit stages the merged spec without code —
+// unreachable red here). The commit-msg door polices staged pairs
+// mid-commit; the full scan (door 3) owns topology here and at every
+// checkpoint.
+// ==============================================================================
+function checkL2(facts) {
+  const issues = [];
+  const l2StaleFiles = []; // staleness-flagged files, for the expected-mid-Close hint — see filesClaimedByChange
+  if (!facts.isRepo) return { issues, l2StaleFiles };
+  for (const specRel of facts.livingSpecs) {
+    const globs = facts.codeGlobs.get(specRel);
     if (!globs.length) continue;
     const res = globs.map(globToRe);
-    if (!tracked.some((f) => res.some((re) => re.test(f)))) {
+    if (!facts.tracked.some((f) => res.some((re) => re.test(f)))) {
       issues.push(`[L2] ${specRel} declares Code: ${globs.join(', ')} but no tracked file matches — fix the glob or remove the line`);
     }
   }
-  // staleness is per CAPABILITY: the tip is the newest commit of the living
-  // spec or any open delta. Code may out-commit older parts of the line
-  // freely — that is what an in-flight change is.
-  const caps = new Map(); // cap -> { specRels: [], globs: [] }
-  for (const specRel of allSpecs) {
-    const cap = capOf(specRel);
-    if (!caps.has(cap)) caps.set(cap, { specRels: [], globs: [] });
-    const c = caps.get(cap);
-    c.specRels.push(specRel);
-    const exempt = exemptMemoryGlobs.get(specRel);
-    c.globs.push(...(codeGlobs.get(specRel) ?? []).filter((g) => !exempt?.has(g)));
-  }
-  for (const [cap, { specRels, globs }] of caps) {
+  for (const [cap, { specRels, globs }] of capsIndex(facts)) {
     if (!globs.length) continue;
     const res = globs.map(globToRe);
-    const matches = tracked.filter((f) => res.some((re) => re.test(f)));
+    const matches = facts.tracked.filter((f) => res.some((re) => re.test(f)));
     if (!matches.length) continue;
-    if (msgFile && !mechanical) {
-      const stagedCode = matches.filter((f) => stagedSet.has(f));
-      if (stagedCode.length && !specRels.some((s) => stagedSet.has(s))) {
+    if (facts.msgFile && !facts.mechanical) {
+      const stagedCode = matches.filter((f) => facts.stagedSet.has(f));
+      if (stagedCode.length && !specRels.some((s) => facts.stagedSet.has(s))) {
         issues.push(`[L2] staged code ${stagedCode.join(', ')} but no spec of ${cap} is in this commit — spec and code travel together (update the living spec or the change's delta)`);
       }
-    } else if (!preCommit) {
-      // topology L2 is committed-history law: lastCommit() cannot see this
-      // commit's staged spec merge, so in pre-commit mode it can only fire
-      // on the commit being made (the archive pair-commit's second commit
-      // stages the merged spec without code — unreachable red here). The
-      // commit-msg door polices staged pairs mid-commit; the full scan
-      // (door 3) owns topology here and at every checkpoint.
-      const specCs = specRels.map(lastCommit).filter(Boolean);
+    } else if (!facts.preCommit && facts.topology) {
+      const specCs = specRels.map((s) => facts.topology.lastCommitOf.get(s)).filter(Boolean);
       if (!specCs.length) continue; // nothing committed yet — nothing to compare
       for (const f of matches) {
-        const codeC = lastCommit(f);
+        const codeC = facts.topology.lastCommitOf.get(f);
         // stale = EVERY spec of the capability predates the code commit
-        // (topology, not wall-clock: git timestamps have second resolution)
-        if (codeC && specCs.every((specC) => codeC !== specC && git(['merge-base', '--is-ancestor', specC, codeC]) === '')) {
+        // (topology, not wall-clock: timestamps have second resolution)
+        if (codeC && specCs.every((specC) => codeC !== specC && facts.topology.ancestorOf.get(`${specC}|${codeC}`))) {
           issues.push(`[L2] ${f} changed after every spec of ${cap} last changed — update the spec (scenario or Code line) and commit them together`);
           l2StaleFiles.push(f);
         }
       }
     }
   }
+  return { issues, l2StaleFiles };
 }
 
 // ==============================================================================
@@ -395,42 +560,36 @@ if (isRepo) {
 // contract layer (specs, acceptance tests). Otherwise "mechanical" becomes a
 // smuggling route past the commit door. (History check — full scan only; at
 // the commit door the message doesn't exist yet, CI re-checks the tip.)
-// ==============================================================================
 // M at the commit door: with --commit-msg the trailer is finally visible, so
 // the mechanical claim is policed on the staged set — not only in history.
-if (msgFile && mechanical && stagedSet.size) {
-  const contract = [...stagedSet].filter(
-    (f) =>
-      f.startsWith('cdd/specs/') ||
-      accDirs.some((d) => path.join(root, f).startsWith(d + path.sep))
-  );
-  if (contract.length) {
-    issues.push(
-      `[M] commit claims Mechanical-Change: but stages contract-layer files (${contract.join(', ')}) — split it: a behavior change goes through the change loop, contract and code together`
+// ==============================================================================
+function checkM(facts) {
+  const issues = [];
+  if (facts.msgFile && facts.mechanical && facts.stagedSet.size) {
+    const contract = [...facts.stagedSet].filter(
+      (f) => f.startsWith('cdd/specs/') || isAcceptancePath(f, facts)
     );
+    if (contract.length) {
+      issues.push(
+        `[M] commit claims Mechanical-Change: but stages contract-layer files (${contract.join(', ')}) — split it: a behavior change goes through the change loop, contract and code together`
+      );
+    }
   }
-}
-if (isRepo && !staged) {
-  const mechLog = git([
-    'log', '-n', '1000', '--extended-regexp', '--grep', MECH_GREP,
-    '--format=%h', '--name-only',
-  ]);
-  if (mechLog) {
+  if (facts.mechLog) {
     let hash = '';
-    for (const line of mechLog.split('\n')) {
+    for (const line of facts.mechLog.split('\n')) {
       if (!line) continue;
       if (/^[0-9a-f]{7,40}$/.test(line)) {
         hash = line;
         continue;
       }
-      const isContract =
-        line.startsWith('cdd/specs/') ||
-        accDirs.some((d) => path.join(root, line).startsWith(d + path.sep));
+      const isContract = line.startsWith('cdd/specs/') || isAcceptancePath(line, facts);
       if (isContract) {
         issues.push(`[M] mechanical commit ${hash} touches the contract (${line}) — split it: a behavior change goes through the change loop, contract and code together`);
       }
     }
   }
+  return { issues };
 }
 
 // ==============================================================================
@@ -439,20 +598,11 @@ if (isRepo && !staged) {
 // same wording as `cdd validate` (grammar-law.mjs). Doors 1-2 (staged/commit-msg)
 // stay zero-dependency: they never import it.
 // ==============================================================================
-
-if (isRepo && !staged && !msgFile && allSpecs.length) {
-  let Gherkin;
-  try {
-    Gherkin = await import('@cucumber/gherkin');
-  } catch {
-    console.error('spec-drift: door 3 re-parses scenario fences with @cucumber/gherkin, which is not installed in this repository.');
-    console.error('spec-drift: npm install --save-dev @cucumber/gherkin');
-    process.exit(1);
-  }
-  const mkParser = () =>
-    new Gherkin.Parser(new Gherkin.AstBuilder(() => 'cdd'), new Gherkin.GherkinClassicTokenMatcher());
-  for (const specRel of allSpecs) {
-    for (const f of models.get(specRel).fences) {
+function checkG(facts) {
+  const issues = [];
+  if (!facts.gherkin.scope || facts.gherkin.missing) return { issues };
+  for (const specRel of facts.allSpecs) {
+    for (const f of facts.models.get(specRel).fences) {
       if (!f.closed) {
         issues.push(`[G] ${specRel}: line ${f.line}: unterminated gherkin fence`);
         continue;
@@ -461,12 +611,13 @@ if (isRepo && !staged && !msgFile && allSpecs.length) {
         issues.push(`[G] ${specRel}: line ${f.line}: markdown "Verified by:" pins are gone (ADR-0006) — the pin is a "# Verified by:" comment on the scenario's last line`);
         continue;
       }
-      const res = checkFenceBody(f.body, (b) => mkParser().parse(b));
+      const res = checkFenceBody(f.body, facts.gherkin.mkParse);
       for (const fe of res.errors.slice(0, 3)) {
         issues.push(`[G] ${specRel}: line ${f.line + fe.line - 1}: ${fe.message}`);
       }
     }
   }
+  return { issues };
 }
 
 // ==============================================================================
@@ -476,12 +627,14 @@ if (isRepo && !staged && !msgFile && allSpecs.length) {
 // changes claiming one capability collide at apply — merge or serialize
 // with "Depends on:". archive/ is frozen history and never a claimant.
 // ==============================================================================
-if (isRepo) {
+function checkO(facts) {
+  const issues = [];
+  if (!facts.isRepo) return { issues };
   const owner = new Map(); // file -> Map(cap -> Set(changeId | ''))
-  for (const specRel of allSpecs) {
-    const res = (codeGlobs.get(specRel) ?? []).map(globToRe);
+  for (const specRel of facts.allSpecs) {
+    const res = (facts.codeGlobs.get(specRel) ?? []).map(globToRe);
     if (!res.length) continue;
-    for (const f of tracked) {
+    for (const f of facts.tracked) {
       if (!res.some((re) => re.test(f))) continue;
       if (!owner.has(f)) owner.set(f, new Map());
       const byCap = owner.get(f);
@@ -501,6 +654,7 @@ if (isRepo) {
       }
     }
   }
+  return { issues };
 }
 
 // ==============================================================================
@@ -509,31 +663,29 @@ if (isRepo) {
 // was skipped or wrong. The exception is explicit, not silent: a recorded
 // split-considered decision passes, matching the skip-record pattern.
 // ==============================================================================
-const changesDir = path.join(root, 'cdd', 'changes');
-if (fs.existsSync(changesDir)) {
-  for (const e of fs.readdirSync(changesDir, { withFileTypes: true })) {
-    if (!e.isDirectory() || e.name === 'archive') continue;
-    const tasksRel = `cdd/changes/${e.name}/tasks.md`;
-    if (!fs.existsSync(path.join(root, tasksRel))) continue;
-    if (staged && !stagedSet.has(tasksRel)) continue;
-    const text = fs.readFileSync(path.join(root, tasksRel), 'utf8');
+function checkL3(facts) {
+  const issues = [];
+  for (const { rel, text } of facts.tasksTexts.values()) {
+    if (facts.staged && !facts.stagedSet.has(rel)) continue;
     const n = splitTaskSections(text).reduce((a, s) => a + s.items.length, 0);
     if (n > TASK_LIMIT && !/split-considered:/i.test(text)) {
-      issues.push(`[L3] ${tasksRel} holds ${n} tracked tasks (> ${TASK_LIMIT}) — a long task file is a decomposition signal, not a work plan; split the proposal (the Done When Traceability table shows the cut lines) or record "<!-- split-considered: kept whole because <reason> -->"`);
+      issues.push(`[L3] ${rel} holds ${n} tracked tasks (> ${TASK_LIMIT}) — a long task file is a decomposition signal, not a work plan; split the proposal (the Done When Traceability table shows the cut lines) or record "<!-- split-considered: kept whole because <reason> -->"`);
     }
   }
+  return { issues };
 }
 
 // ==============================================================================
 // A — architectural decisions (the decisions directory): the memory that replaces
 // osmosis. Beside the contract tree in form, visible to the guard in fact.
 // ==============================================================================
-const adrs = buildAdrIndex(root);
-const adrByNum = new Map(adrs.map((a) => [a.id.replace(/^ADR-/, ''), a]));
 
-if (adrs.length) {
-  // A0 — lifecycle integrity
-  for (const a of adrs) {
+// A0 — lifecycle integrity
+function checkA0(facts) {
+  const issues = [];
+  if (!facts.adrIndex.length) return { issues };
+  const adrByNum = new Map(facts.adrIndex.map((a) => [a.id.replace(/^ADR-/, ''), a]));
+  for (const a of facts.adrIndex) {
     if (!ADR_STATUSES.includes(a.status)) {
       issues.push(`[A0] ${a.fileRel} has unknown status "${a.status}" — use accepted, superseded, draft, or proposed`);
     }
@@ -546,85 +698,97 @@ if (adrs.length) {
       }
     }
   }
-
-  const acceptedAdrs = adrs.filter((a) => a.status === 'accepted' && a.globs.length);
-  const filesOf = (globs) => {
-    const res = globs.map(globToRe);
-    return tracked.filter((f) => res.some((re) => re.test(f)));
-  };
-
-
-  // A1 — citation on touch: follow it or supersede it, never drift past it
-  if (!staged) {
-    const changeFiles = filesClaimedByChange(tracked);
-    for (const [change, files] of changeFiles) {
-      const cdir = path.join(root, 'cdd', 'changes', change);
-      const docs = fs
-        .readdirSync(cdir, { withFileTypes: true })
-        .filter((e) => e.isFile() && e.name.endsWith('.md'))
-        .map((e) => fs.readFileSync(path.join(cdir, e.name), 'utf8'))
-        .join('\n');
-      for (const a of acceptedAdrs) {
-        const governed = new Set(filesOf(a.globs));
-        const overlap = [...files].filter((f) => governed.has(f));
-        if (!overlap.length) continue;
-        if (!docs.includes(a.id)) {
-          issues.push(`[A1] change ${change} touches code governed by ${a.id} (${a.fileRel}; e.g. ${overlap[0]}) — run \`cdd adrs --code ${overlap[0]}\` to find every governing ADR, then cite "${a.id}" in the proposal (follow it) or supersede the decision first`);
-        }
-      }
-    }
-  }
-
-  // A2 — staleness: silent rot detection. Same topology trick as L2: the
-  // decision is stale when the code commit is a descendant of the decision's
-  // last commit. Reconfirming = touching the decision in the same commit.
-  if (isRepo && !staged) {
-    for (const a of acceptedAdrs) {
-      const adrC = lastCommit(a.fileRel);
-      if (!adrC) continue; // decision not committed yet — nothing to compare
-      for (const f of filesOf(a.globs)) {
-        const codeC = lastCommit(f);
-        if (codeC && adrC !== codeC && git(['merge-base', '--is-ancestor', adrC, codeC]) === '') {
-          issues.push(`[A2] ${f} moved after ${a.id} was last touched — silent rot: run \`cdd reconfirm ${a.id} --evidence "<one line>"\` to record the reconfirmation (update ${a.fileRel} in this commit) or supersede it with a new ADR that marks this one superseded`);
-          break; // one finding per decision is enough to ring the bell
-        }
-      }
-    }
-  }
+  return { issues };
 }
 
-// --- L2 expected-mid-Close hint -----------------------------------------------
+// A1 — citation on touch: follow it or supersede it, never drift past it
+function checkA1(facts) {
+  const issues = [];
+  if (facts.staged || !facts.adrIndex.length) return { issues };
+  const acceptedAdrs = acceptedAdrsOf(facts);
+  const changeFiles = filesClaimedByChange(facts.tracked, facts);
+  for (const [change, files] of changeFiles) {
+    const docs = facts.changeDocs.get(change) ?? '';
+    for (const a of acceptedAdrs) {
+      const res = a.globs.map(globToRe);
+      const governed = new Set(facts.tracked.filter((f) => res.some((re) => re.test(f))));
+      const overlap = [...files].filter((f) => governed.has(f));
+      if (!overlap.length) continue;
+      if (!docs.includes(a.id)) {
+        issues.push(`[A1] change ${change} touches code governed by ${a.id} (${a.fileRel}; e.g. ${overlap[0]}) — run \`cdd adrs --code ${overlap[0]}\` to find every governing ADR, then cite "${a.id}" in the proposal (follow it) or supersede the decision first`);
+      }
+    }
+  }
+  return { issues };
+}
+
+// A2 — staleness: silent rot detection. Same topology trick as L2: the
+// decision is stale when the code commit is a descendant of the decision's
+// last commit. Reconfirming = touching the decision in the same commit.
+function checkA2(facts) {
+  const issues = [];
+  if (!facts.isRepo || facts.staged || !facts.topology) return { issues };
+  for (const a of acceptedAdrsOf(facts)) {
+    const adrC = facts.topology.lastCommitOf.get(a.fileRel);
+    if (!adrC) continue; // decision not committed yet — nothing to compare
+    const res = a.globs.map(globToRe);
+    for (const f of facts.tracked.filter((f) => res.some((re) => re.test(f)))) {
+      const codeC = facts.topology.lastCommitOf.get(f);
+      if (codeC && adrC !== codeC && facts.topology.ancestorOf.get(`${adrC}|${codeC}`)) {
+        issues.push(`[A2] ${f} moved after ${a.id} was last touched — silent rot: run \`cdd reconfirm ${a.id} --evidence "<one line>"\` to record the reconfirmation (update ${a.fileRel} in this commit) or supersede it with a new ADR that marks this one superseded`);
+        break; // one finding per decision is enough to ring the bell
+      }
+    }
+  }
+  return { issues };
+}
+
+// ===== report — the runner alone writes findings and exits ======================
+
 // Between a change's spec updates landing in the working tree and the archive
 // pair-commit, the guard is L2-red BY DESIGN (specs updated, code committed,
 // the pair not yet). When an open change's delta Code: globs claim one of the
 // L2-affected files, that change explains the red — say so, once, as an
 // informational line. Never fires without a matching open change, and never
 // suppresses, reclassifies, or greens anything.
-if (l2StaleFiles.length) {
-  const openOwners = filesClaimedByChange(l2StaleFiles);
-  if (openOwners.size) {
-    const names = [...openOwners.keys()];
-    const claimed = [...openOwners.values()].reduce((n, s) => n + s.size, 0);
-    console.log(`spec-drift: ${claimed} L2 line(s) are expected mid-Close for open change ${names.join(', ')} (its delta claims the affected code) — they clear at the archive pair-commit`);
+function report(facts, outcome) {
+  const { issues, l2StaleFiles, l4Skips, placeholderSkips } = outcome;
+  if (l2StaleFiles.length) {
+    const openOwners = filesClaimedByChange(l2StaleFiles, facts);
+    if (openOwners.size) {
+      const names = [...openOwners.keys()];
+      const claimed = [...openOwners.values()].reduce((n, s) => n + s.size, 0);
+      console.log(`spec-drift: ${claimed} L2 line(s) are expected mid-Close for open change ${names.join(', ')} (its delta claims the affected code) — they clear at the archive pair-commit`);
+    }
+  }
+  // informational, never silent: living memory claims under open correction
+  for (const s of l4Skips) {
+    console.log(`spec-drift: [L4-skip] ${s}`);
+  }
+  if (issues.length) {
+    console.error(`spec-drift: ${issues.length} issue(s) in ${path.basename(facts.root)} — the spec, its acceptance tests, and the code must travel together:`);
+    for (const i of issues) console.error(`  ${i}`);
+    process.exit(1);
+  }
+  console.log(
+    facts.allSpecs.length
+      ? `spec-drift: clean (${facts.allSpecs.length} spec${facts.allSpecs.length > 1 ? 's' : ''}, ${facts.accRel.length} acceptance test file${facts.accRel.length === 1 ? '' : 's'}, ${facts.staged ? 'staged' : 'full'} scan)`
+      : 'spec-drift: no specs found — nothing to guard'
+  );
+  // informational, never silent: skipped scaffold placeholders in open deltas
+  for (const [change, n] of placeholderSkips) {
+    console.log(`spec-drift: ${n} placeholder pin(s) skipped in open delta ${change} — expected until implementation`);
   }
 }
 
-// informational, never silent: living memory claims under open correction
-for (const s of l4Skips) {
-  console.log(`spec-drift: [L4-skip] ${s}`);
-}
-// --- report --------------------------------------------------------------------
-if (issues.length) {
-  console.error(`spec-drift: ${issues.length} issue(s) in ${path.basename(root)} — the spec, its acceptance tests, and the code must travel together:`);
-  for (const i of issues) console.error(`  ${i}`);
-  process.exit(1);
-}
-console.log(
-  allSpecs.length
-    ? `spec-drift: clean (${allSpecs.length} spec${allSpecs.length > 1 ? 's' : ''}, ${accRel.length} acceptance test file${accRel.length === 1 ? '' : 's'}, ${staged ? 'staged' : 'full'} scan)`
-    : 'spec-drift: no specs found — nothing to guard'
-);
-// informational, never silent: skipped scaffold placeholders in open deltas
-for (const [change, n] of placeholderSkips) {
-  console.log(`spec-drift: ${n} placeholder pin(s) skipped in open delta ${change} — expected until implementation`);
-}
+const runningAsScript =
+  process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (runningAsScript) await main();
+
+export {
+  gatherFacts,
+  checkA0, checkA1, checkA2,
+  checkG, checkH,
+  checkL1, checkL2, checkL3, checkL4,
+  checkM, checkO,
+};

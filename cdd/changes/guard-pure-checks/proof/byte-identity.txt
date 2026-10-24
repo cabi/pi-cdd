@@ -1,0 +1,50 @@
+PF-27 worktree byte-identity proof — guard-pure-checks (run 2026-10-24)
+=====================================================================
+Recipe: worktree at baseline main tip, capture guard output on the
+untouched tree, copy in ONLY the changed source pair (scripts/spec-drift.mjs
++ cdd/scripts/spec-drift.mjs from branch guard-pure-checks), rerun, compare
+all three observable streams. The delta spec and the new acceptance test are
+deliberately NOT copied: the branch tree carries them uncommitted, and the
+proof pins the guard's behavior on identical inputs, not identical repo state.
+
+Commands (from the extension repo root):
+  git worktree add --detach /tmp/guard-pure-proof 3f484a5
+  ln -s "$(pwd)/node_modules" /tmp/guard-pure-proof/node_modules
+  cd /tmp/guard-pure-proof
+  node scripts/spec-drift.mjs > /tmp/base-stdout.txt 2> /tmp/base-stderr.txt; echo $? > /tmp/base-exit.txt
+  cp <branch>/scripts/spec-drift.mjs scripts/spec-drift.mjs
+  cp <branch>/cdd/scripts/spec-drift.mjs cdd/scripts/spec-drift.mjs
+  node scripts/spec-drift.mjs > /tmp/after-stdout.txt 2> /tmp/after-stderr.txt; echo $? > /tmp/after-exit.txt
+  cmp /tmp/base-stdout.txt /tmp/after-stdout.txt   -> identical
+  cmp /tmp/base-stderr.txt /tmp/after-stderr.txt   -> identical
+  cmp /tmp/base-exit.txt /tmp/after-exit.txt       -> identical
+
+Baseline commit: 3f484a5 (docs(cdd): revalidate ledger (pre-dispatch stamps))
+Corpus at baseline: full scan over the committed repo (cdd/specs + cdd/changes
+as of the tip; 35 acceptance test files, 4 living specs).
+
+Observed streams (both runs byte-identical):
+  stdout: "spec-drift: clean (4 specs, 35 acceptance test files, full scan)"
+  stderr: (0 bytes)
+  exit:   0
+
+Result: cmp identical on stdout, stderr, and exit code. The restructured
+guard (gather pass + pure checks + runner) is observably identical to the
+per-law guard on the full corpus at the baseline tip.
+
+--- Third pass (operative final state, after R3 dispositions trimmed two comment
+blocks in scripts/spec-drift.mjs per ADR-0012) ---
+Method identical: git worktree --detach @ 3f484a5 (node_modules symlinked),
+baseline captured BEFORE any copy, only the changed source pair copied in
+(scripts/spec-drift.mjs + cdd/scripts/spec-drift.mjs), rerun.
+
+  cmp base-stdout.txt after-stdout.txt  -> identical
+  cmp base-stderr.txt after-stderr.txt  -> identical
+  cmp base-exit.txt after-exit.txt      -> identical
+
+after-stdout: spec-drift: clean (4 specs, 35 acceptance test files, full scan)
+after-stderr: (0 bytes)
+after-exit: 0
+
+The cited numbers describe the method; this final-state pass is the operative one.
+Store copies regenerated via writeDoorScripts and cmp-identical x5 after the trim.
