@@ -1,0 +1,59 @@
+RED observed 2026-10-24 — node tests/acceptance/spec-model.test.js (exit 1, 0 ok, 4 FAIL), pre-implementation tree @ bc4b867 + change artifacts
+
+  FAIL SM1  one parse yields ops, requirements, fence-interior pins, and compiled globs
+       law.parseSpecModel is not a function
+  FAIL SM2  one definition in the law, three readers, no private re-statement
+       parseSpecModel must be defined exactly once, in scripts/grammar-law.mjs — found 0
+  FAIL SM3  a # Verified-by lookalike inside a documentation fence is not a pin
+       a lookalike quoted in a documentation fence must pin nothing:
+{
+  "root": "cdd-sm-rCCV8B",
+  "specs": {
+    "living": 1,
+    "inFlight": 0
+  },
+  "territory": 8,
+  "owned": 0,
+  "burnDown": 0,
+  "extractionCandidates": [
+    "tests/acceptance/spec-model.test.js"
+  ],
+  "unowned": [
+    ".githooks/commit-msg",
+    ".githooks/pre-commit",
+    ".github/workflows/cdd.yml",
+    ".gitlab-ci.yml",
+    "node_modules",
+    "tests/acceptance/pin-loose.test.js",
+    "tests/acceptance/pin-strict.test.js",
+    "tests/acceptance/spec-model.test.js"
+  ]
+}
+
+  FAIL SM4  a star glob claims the files it names
+       the star glob must claim the files it names:
+{
+  "root": "cdd-sm-spk0N3",
+  "specs": {
+    "living": 1,
+    "inFlight": 0
+  },
+  "territory": 9,
+  "owned": 0,
+  "burnDown": 0,
+  "extractionCandidates": [],
+  "unowned": [
+    ".githooks/commit-msg",
+    ".githooks/pre-commit",
+    ".github/workflows/cdd.yml",
+    ".gitlab-ci.yml",
+    "node_modules",
+    "src/other.js",
+    "src/thing-a.mjs",
+    "src/thing-b.mjs",
+    "tests/acceptance/spec-model.test.js"
+  ]
+}
+
+
+spec-model: 0 ok, 4 FAIL

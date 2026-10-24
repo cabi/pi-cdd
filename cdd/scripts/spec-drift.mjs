@@ -22,7 +22,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { CODE_LINE, MECH_GREP, PIN_COMMENT, TASK_LIMIT, checkFenceBody, extractFences, isPlaceholderPin, splitTaskSections } from './grammar-law.mjs';
+import { MECH_GREP, TASK_LIMIT, checkFenceBody, isPlaceholderPin, parseSpecModel, splitTaskSections } from './grammar-law.mjs';
 import { ADR_STATUSES, buildAdrIndex, globToRe } from './adr-index.mjs';
 
 const argv = process.argv.slice(2);
@@ -85,7 +85,6 @@ function lastCommit(file) {
 
 // --- collect specs: pins + code globs -------------------------------------------
 const issues = [];
-const pinRe = new RegExp(PIN_COMMENT.source, 'gm'); // the one pin dialect (grammar-law.mjs)
 
 function specsIn(dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -118,42 +117,20 @@ function pinResolve(pin, specRel) {
   return null;
 }
 
+const models = new Map(); // specRel -> the one parse (grammar-law.mjs parseSpecModel)
 const pinsOf = new Map(); // specRel -> [{ pin, resolved }]
 const codeGlobs = new Map(); // specRel -> [globs]
 for (const specRel of allSpecs) {
-  const text = fs.readFileSync(path.join(root, specRel), 'utf8');
-  // Pins live inside the gherkin fences as "# Verified by:" comments;
-  // markdown outside fences is blanked so a quoted phrase cannot pose
-  // as a pin.
-  let inFence = false;
-  const masked = text
-    .split('\n')
-    .map((l) => {
-      if (!inFence && /^\s*```\s*gherkin\s*$/.test(l)) {
-        inFence = true;
-        return '';
-      }
-      if (inFence) {
-        if (/^\s*```\s*$/.test(l)) inFence = false;
-        return l;
-      }
-      return '';
-    })
-    .join('\n');
+  // One parse per spec file (grammar-law.mjs): pins, Code globs, fences,
+  // and the requirement blocks; the mask keeps only gherkin-fence interiors.
+  const model = parseSpecModel(fs.readFileSync(path.join(root, specRel), 'utf8'));
+  models.set(specRel, model);
   pinsOf.set(
     specRel,
-    [...masked.matchAll(pinRe)].map((m) => ({ pin: m[1], resolved: null }))
+    model.pins.map((pin) => ({ pin, resolved: null }))
   );
   for (const p of pinsOf.get(specRel)) p.resolved = pinResolve(p.pin, specRel);
-  codeGlobs.set(
-    specRel,
-    [...text.matchAll(CODE_LINE)].flatMap((m) =>
-      m[1]
-        .split(/[,\s]+/)
-        .filter(Boolean)
-        .map((g) => g.replace(/`/g, ''))
-    )
-  );
+  codeGlobs.set(specRel, model.codeGlobs.map((c) => c.glob));
 }
 
 // --- capability model: a living spec plus its open deltas are ONE spec line ---
@@ -300,17 +277,10 @@ const globClaimsMemory = (glob) =>
   glob.startsWith('cdd/decisions/') ||
   tracked.some((f) => f.startsWith('cdd/decisions/') && globToRe(glob).test(f));
 const memoryClaimsOf = (specRel) => {
-  const text = fs.readFileSync(path.join(root, specRel), 'utf8');
   const claims = [];
-  const blocks = text.split(/^### Requirement: /m);
-  for (const block of blocks.slice(1)) {
-    const nl = block.indexOf('\n');
-    const heading = (nl === -1 ? block : block.slice(0, nl)).trim();
-    for (const m of block.matchAll(CODE_LINE)) {
-      for (const g of m[1].split(/[,\s]+/).filter(Boolean)) {
-        const glob = g.replace(/`/g, '');
-        if (globClaimsMemory(glob)) claims.push({ heading, glob });
-      }
+  for (const r of models.get(specRel).requirements) {
+    for (const glob of r.codeGlobs) {
+      if (globClaimsMemory(glob)) claims.push({ heading: r.requirement, glob });
     }
   }
   return claims;
@@ -324,23 +294,14 @@ const correctionsByCap = new Map();
 for (const specRel of deltaSpecs) {
   const cap = capOf(specRel);
   const change = changeOf(specRel);
-  const text = fs.readFileSync(path.join(root, specRel), 'utf8');
-  const modStart = text.indexOf('## MODIFIED Requirements');
-  if (modStart === -1) continue;
-  const modEnd = text.indexOf('\n## ', modStart + 1);
-  const section = text.slice(modStart, modEnd === -1 ? undefined : modEnd);
-  const blocks = section.split(/^### Requirement: /m);
-  for (const block of blocks.slice(1)) {
-    const nl = block.indexOf('\n');
-    const heading = (nl === -1 ? block : block.slice(0, nl)).trim();
-    const globs = [...block.matchAll(CODE_LINE)].flatMap((m) =>
-      m[1].split(/[,\s]+/).filter(Boolean).map((g) => g.replace(/`/g, ''))
-    );
+  for (const o of models.get(specRel).ops) {
+    if (o.op !== 'MODIFIED') continue;
+    const globs = o.codeGlobs;
     if (!globs.length || globs.some((g) => globClaimsMemory(g))) continue;
     if (!correctionsByCap.has(cap)) correctionsByCap.set(cap, new Map());
     const byHeading = correctionsByCap.get(cap);
-    if (!byHeading.has(heading)) byHeading.set(heading, []);
-    byHeading.get(heading).push(change);
+    if (!byHeading.has(o.requirement)) byHeading.set(o.requirement, []);
+    byHeading.get(o.requirement).push(change);
   }
 }
 // living memory globs under correction, per spec — every requirement of the
@@ -491,8 +452,7 @@ if (isRepo && !staged && !msgFile && allSpecs.length) {
   const mkParser = () =>
     new Gherkin.Parser(new Gherkin.AstBuilder(() => 'cdd'), new Gherkin.GherkinClassicTokenMatcher());
   for (const specRel of allSpecs) {
-    const text = fs.readFileSync(path.join(root, specRel), 'utf8');
-    for (const f of extractFences(text)) {
+    for (const f of models.get(specRel).fences) {
       if (!f.closed) {
         issues.push(`[G] ${specRel}: line ${f.line}: unterminated gherkin fence`);
         continue;

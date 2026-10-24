@@ -9,6 +9,10 @@
 /** Law grammar version — bump when the grammar changes; cdd init refreshes adopting copies.
  * v2: placeholder pins in open deltas are skip-reported, not L1 failures (isPlaceholderPin). */
 import { pathToFileURL } from "node:url";
+// The glob matcher for Code: lines lives in adr-index.mjs; the law module
+// re-exports it next to the model that consumes it.
+import { globToRe } from "./adr-index.mjs";
+export { globToRe };
 
 // Refuse silent direct execution: run as a command, this module prints
 // nothing and exits 0. It prints one stderr line and exits 2 instead. The
@@ -271,6 +275,126 @@ export function checkFenceBody(body, parse) {
   });
 
   return { name: feature.name, scenarios: out, errors };
+}
+
+//
+// Chapter: the spec model — one parse of a spec file, living or delta:
+// requirements are REQ_HEADER heading lines, delta operations live under
+// `## ADDED|MODIFIED|REMOVED Requirements` headings, pins are the one
+// dialect inside gherkin fences, Code lines are glob claims. The model never
+// touches the filesystem: resolving a pin, matching a file, and shaping
+// requirement text for the store are door work.
+//
+
+/** A delta operation heading: `## ADDED|MODIFIED|REMOVED Requirements`. */
+export const OP_HEADER = /^## (ADDED|MODIFIED|REMOVED) Requirements\s*$/;
+
+/** A requirement heading line; the capture group is the requirement's name. */
+export const REQ_HEADER = /^### Requirement: (.+)$/;
+
+const PIN_SCAN = new RegExp(PIN_COMMENT.source, "gm");
+
+/** Split one Code-line capture into its glob claims, backticks stripped. */
+const splitGlobs = (line) => line.split(/[,\s]+/).filter(Boolean).map((g) => g.replace(/`/g, ""));
+
+/**
+ * Keep only gherkin-fence interiors (the closing marker stays): everything
+ * else is markdown, and markdown cannot pose as a pin.
+ */
+function maskToGherkinInteriors(lines) {
+  let inFence = false;
+  return lines.map((line) => {
+    if (!inFence && OPEN_FENCE.test(line)) {
+      inFence = true;
+      return "";
+    }
+    if (inFence) {
+      if (CLOSE_FENCE.test(line)) inFence = false;
+      return line;
+    }
+    return "";
+  });
+}
+
+/**
+ * Parse a spec file once into its parts:
+ *
+ * - `ops` — delta-semantics operation blocks: an `## ADDED|MODIFIED|REMOVED
+ *   Requirements` heading sets the operation; each REQ_HEADER line under
+ *   it opens a block that ends at the next `##` heading or
+ *   EOF. `[{ op, requirement, startLine, block, codeGlobs }]`.
+ * - `requirements` — living-semantics blocks: every REQ_HEADER line opens one; any other `##` heading or EOF ends it. Same shape
+ *   minus `op`.
+ * - `pins` — the pin paths found by the one dialect inside gherkin fences.
+ * - `codeGlobs` — every Code-line glob claim in the file, compiled with the
+ *   shared matcher: `[{ glob, re }]`.
+ * - `fences` — extractFences(text).
+ *
+ * Blocks carry their heading line as `block[0]`; the store adapters shape
+ * `text` from the block. `startLine` is 1-based. Per-block `codeGlobs` are
+ * the glob strings; the file-level list is the compiled claims.
+ */
+export function parseSpecModel(text) {
+  const lines = String(text).split("\n");
+
+  const requirements = [];
+  const ops = [];
+  let op = null;
+  let living = null;
+  let deltaBlock = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const opMark = line.match(OP_HEADER);
+    if (opMark) {
+      if (deltaBlock) ops.push(deltaBlock);
+      deltaBlock = null;
+      op = opMark[1];
+      if (living) {
+        requirements.push(living);
+        living = null;
+      }
+      continue;
+    }
+    const r = line.match(REQ_HEADER);
+    if (r) {
+      if (living) requirements.push(living);
+      living = { requirement: r[1].trim(), block: [line], startLine: i + 1 };
+      if (op) {
+        if (deltaBlock) ops.push(deltaBlock);
+        deltaBlock = { op, requirement: r[1].trim(), block: [line], startLine: i + 1 };
+      }
+      continue;
+    }
+    if (/^## /.test(line) && !/^### /.test(line)) {
+      if (living) {
+        requirements.push(living);
+        living = null;
+      }
+      if (deltaBlock) ops.push(deltaBlock);
+      deltaBlock = null; // `op` survives a section end — delta semantics
+      continue;
+    }
+    if (living) living.block.push(line);
+    if (deltaBlock) deltaBlock.block.push(line);
+  }
+  if (living) requirements.push(living);
+  if (deltaBlock) ops.push(deltaBlock);
+
+  for (const e of [...requirements, ...ops]) {
+    e.codeGlobs = [...e.block.join("\n").matchAll(CODE_LINE)].flatMap((m) => splitGlobs(m[1]));
+  }
+
+  const fenceText = maskToGherkinInteriors(lines).join("\n");
+  return {
+    ops,
+    requirements,
+    pins: [...fenceText.matchAll(PIN_SCAN)].map((m) => m[1]),
+    codeGlobs: [...String(text).matchAll(CODE_LINE)]
+      .flatMap((m) => splitGlobs(m[1]))
+      .map((glob) => ({ glob, re: globToRe(glob) })),
+    fences: extractFences(text),
+  };
 }
 
 //

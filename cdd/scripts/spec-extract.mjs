@@ -30,7 +30,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { CODE_LINE, PIN_COMMENT } from './grammar-law.mjs';
+import { globToRe, parseSpecModel } from './grammar-law.mjs';
 
 // --- args -----------------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -91,7 +91,6 @@ const files = isRepo
 // the contract itself (cdd/) is not territory; .git/node_modules never are
 
 // --- collect specs: pins + code globs (the grammar lives in grammar-law.mjs) ------------
-const pinRe = new RegExp(PIN_COMMENT.source, 'gm'); // the one pin dialect — strict pins only
 
 function specsIn(dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -118,25 +117,19 @@ function pinResolve(pin, specRel) {
   return null;
 }
 
-function globToRe(glob) {
-  const re = glob
-    .split('**')
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*'))
-    .join('.*');
-  return new RegExp(`^${re}$`);
-}
 
 const pinned = new Set();
 const globRes = [];
 for (const specRel of [...livingSpecs, ...deltaSpecs]) {
-  const text = fs.readFileSync(path.join(root, specRel), 'utf8');
-  for (const m of text.matchAll(pinRe)) {
-    const r = pinResolve(m[1], specRel);
+  // One parse per spec file (grammar-law.mjs): pins are the fence-interior
+  // "# Verified by:" comments; Code globs compile through the shared
+  // matcher (globToRe, re-exported by the law module).
+  const model = parseSpecModel(fs.readFileSync(path.join(root, specRel), 'utf8'));
+  for (const pin of model.pins) {
+    const r = pinResolve(pin, specRel);
     if (r) pinned.add(r);
   }
-  for (const m of text.matchAll(CODE_LINE)) {
-    for (const g of m[1].split(/[,\s]+/).filter(Boolean)) globRes.push(globToRe(g.replace(/`/g, '')));
-  }
+  for (const c of model.codeGlobs) globRes.push(c.re);
 }
 
 // --- owned territory -------------------------------------------------------------
