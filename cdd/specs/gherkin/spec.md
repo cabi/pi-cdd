@@ -1356,3 +1356,47 @@ Scenario: The dogfood copy stays byte-identical to the render
 ```
 
 Code: lib/templates.mjs, .gitlab-ci.yml, tests/acceptance/gitlab-ci-parity.test.js
+
+### Requirement: The director skill is bundled
+
+The extension SHALL bundle a `cdd-director` skill — the director law for
+review-loop directors: seven law points, a milestone gate table for the
+4 milestone asks, the evidence protocol, findings harvest, pi delivery
+mechanics, and anti-patterns — plus an instantiable mission-brief template
+under its assets. The skill advises; it never enforces (gate authority
+stays with the deterministic validators and the human, rule 2a), and its
+loop-law citations stay consistent with `cdd/rules.md` without restating
+rule text.
+
+```gherkin
+Feature: The director skill is bundled
+
+Scenario: The director skill is a loadable pi skill
+  Given the bundled skill skills/cdd-director/SKILL.md
+  When its frontmatter and body are read
+  Then its frontmatter name matches its directory and its quoted description stays within the 20 to 1024 character bounds and carries a when or whenever routing clause to cdd projects
+  And every loop-law rule it cites by number names that obligation in cdd/rules.md, covering at least rules 2a, 2b, 9a, 11, and 13
+  And its body restates no fragment of the law text in cdd/rules.md under a whitespace-normalized comparison
+  # Verified by: tests/smoke.mjs
+
+Scenario: The skill carries the director law
+  Given the bundled director skill on disk
+  When its charter is read
+  Then it teaches exactly the 7 points of the director law: the verifier never authors, milestones are the only control points, the doors teach, lawful shape comes before bypass, the ledger is the only memory, spawn briefs carry the protocol, and the human is the escalation point
+  And it carries a milestone gate table covering exactly the 4 asks M1, M2, M3, and M4
+  And it carries the evidence protocol: green claims cite the exact command and tail excerpt, the director re-runs gates before blessing, merges are ff-only on held branches, and only the director pushes
+  And it carries the findings harvest: mint process findings in flight through the backlog op, revalidate the ledger before every dispatch, and name the cdd-backlog-triage skill as the rubric's home for dispositions and statuses instead of restating them
+  And it carries the pi delivery mechanics: idled-pane asks fail with No pending ask so follow with a send, crashed runner panes are benign exits verified by work landed, reviewer leaves relay through the director, re-list the roster before re-addressing, and nudges are answered
+  And it carries an anti-patterns section naming pre-narrowing door checks, trusting green claims without tails, dispatching from session memory, direct edits on contract files, 2 writers on one repo, and letting a runner merge or push
+  # Verified by: tests/smoke.mjs
+
+Scenario: The mission-brief template is bundled under assets
+  Given the bundled director skill's assets/mission-brief.md on disk
+  When the template is read
+  Then it carries the anatomy of a runner mission brief: 1 bounded outcome as the mission, an out-of-scope boundary of what is explicitly out, context files to read first, the protocol skeleton from design gate to archive pair-commit, reviewer constraints covering the family rule, the floor model as the least capable model a reviewer may fall back to, free rungs taken only when available and never relied on, and floor-down halting the run for a human decision, and milestone asks that each end in a WAIT
+  And it orders the first action as verify the premise on disk then a handshake ask
+  And it names the branch rule and the never-push rule for the runner
+  # Verified by: tests/smoke.mjs
+```
+
+Code: skills/cdd-director/SKILL.md, skills/cdd-director/assets/mission-brief.md, tests/smoke.mjs
