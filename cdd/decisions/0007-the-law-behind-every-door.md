@@ -65,3 +65,4 @@ law behind every door).
 - Reconfirmed by spec-model on 2026-10-24: spec-model extended the one grammar module with parseSpecModel; guard, extractor, and store read it, no private re-statement (SM2)
 - Reconfirmed by guard-pure-checks on 2026-10-24: one law, one door script still — the restructure stays inside spec-drift.mjs and its store copy, imports the parse and matcher from the law modules, adds no door file
 - Reconfirmed by claim-map on 2026-10-24: the claim map joins the single-law scheme — derived once in scripts/adr-index.mjs, both doors import it, DOOR_SCRIPTS stays five, store copy travels (ADR-0013)
+- Reconfirmed by ops-registry on 2026-10-24: the op registry adds no door and moves no law: scripts/ untouched, guard and validator byte-identical, and the op-surface agreement is pinned by tests/acceptance/ops-registry.test.js driving the real tool

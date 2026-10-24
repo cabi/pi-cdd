@@ -76,3 +76,4 @@ export is no longer local.
 - Reconfirmed by gitlab-ci-parity on 2026-10-23: CI_GITLAB grows in lib/templates.mjs only; the root .gitlab-ci.yml stays a byte-identical dogfood mirror of the render, now pinned byte-exact by GL6 — the same single-source mirror pattern as RULES_MD ↔ cdd/rules.md; no rule text duplicated.
 
 - Reconfirmed by adr-ops on 2026-10-24: lib/templates.mjs changes only the DOOR_SCRIPTS list; the loop-law facts in lib/loop-law.mjs are untouched and this change's review-point answers (R1, R2) were read from them unchanged.
+- Reconfirmed by ops-registry on 2026-10-24: the two Commands-and-tools rows now render from the single op registry like every other shared line

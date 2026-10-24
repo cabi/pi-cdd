@@ -17,3 +17,4 @@ Consequence: trust in pi-cdd is trust in *deterministic checks plus injected con
 - Reconfirmed by backlog-revalidate on 2026-10-23: index.ts gains the revalidate dispatch case and a premise option inside the existing backlog op (the action enum derived from lib/backlog.mjs's ACTIONS export); no new tool or counterparty surface, the harness contract unchanged.
 
 - Reconfirmed by adr-ops on 2026-10-24: index.ts registers adrs/reconfirm as thin dispatch over lib/adr-ops.mjs — the extension facade law is untouched
+- Reconfirmed by ops-registry on 2026-10-24: every op still answers through the same single cdd tool execute contract — the registry only moves where the op table lives, no new counterparty surface

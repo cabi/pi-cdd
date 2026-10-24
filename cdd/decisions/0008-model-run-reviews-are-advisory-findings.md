@@ -67,3 +67,4 @@ a later door wanting verdict-shaped reviews must supersede this ADR.
 - Reconfirmed by gitlab-ci-parity on 2026-10-23: this change' R1 was lawfully skipped (design gate all-NO); R2 and both R3 axes ran cold and advisory (opencode-zen/deepseek-v4-pro, findings under the change' reviews/, every finding disposed, none gating the archive).
 
 - Reconfirmed by adr-ops on 2026-10-24: lib/templates.mjs changes only the DOOR_SCRIPTS list (adr-index.mjs travels to adopting stores beside the other door scripts); every review-artifact scaffold and advisory-findings text is byte-untouched.
+- Reconfirmed by ops-registry on 2026-10-24: R3 ran cold and non-author; its findings stayed advisory with dispositions recorded, never verdicts
