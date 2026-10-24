@@ -4,7 +4,10 @@
 // store, lying declared-counts file, zero-severity file. Fixture C: read-only
 // pre-existing metrics.md forces a total stamp failure. Fixture D: git store
 // with exactly 1 path commit (the elapsed boundary). Fixture E: unreadable
-// reviews file forces a derivation failure before the write.
+// reviews file forces a derivation failure before the write. Fixtures F1/F2
+// F1/F2: proposal keeps the scaffold instruction comment (and F2 a bare
+// "Done-When:" line) — the stamp's done-whens must read the validator's
+// comment-masked view, not the raw line count.
 
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -296,6 +299,58 @@ assert(vD.ok, "fixture D must be strict-valid: " + val.formatVerdict(vD));
 const rD = lib.archiveChange(D.root, "stamp-me");
 const stampD = readStamp(D.root, rD.archivedTo);
 
+// --- fixture F1: scaffold comment survives; DW column must read the masked view
+
+const maskedProposalText = ({ bare }) => `# stamp-me
+<!--
+Done-When: 1-5 completion criteria, each on its own "Done-When:" line,
+  ending with its verify-by path (the scaffold instruction comment)
+-->
+
+## Why
+
+fixture change for the metrics stamp.
+
+Done-When: it archives — verify tests/acceptance/fixture-pin.test.js
+Done-When: it counts — verify tests/acceptance/fixture-pin.test.js${bare ? "\nDone-When:" : ""}
+Done-When: it merges — verify tests/acceptance/fixture-pin.test.js
+Done-When: it stamps — verify tests/acceptance/fixture-pin.test.js
+
+## What Changes
+
+- a fixture delta and reviews folder
+
+## Solutions Considered
+
+- stdlib covers it
+
+## Non-Goals
+
+- one declined thing
+
+## Capabilities
+
+- cap
+
+Code: fixture.js
+`;
+
+const F1 = buildStore({ git: false });
+fs.writeFileSync(path.join(F1.dir, "proposal.md"), maskedProposalText({ bare: false }));
+const vF1 = val.validateChange(F1.root, "stamp-me", "strict");
+assert(vF1.ok, "fixture F1 must be strict-valid: " + val.formatVerdict(vF1));
+const rF1 = lib.archiveChange(F1.root, "stamp-me");
+const stampF1 = readStamp(F1.root, rF1.archivedTo);
+
+// --- fixture F2: adds a bare "Done-When:" line (both views count it alike) ----
+
+const F2 = buildStore({ git: false });
+fs.writeFileSync(path.join(F2.dir, "proposal.md"), maskedProposalText({ bare: true }));
+const vF2 = val.validateChange(F2.root, "stamp-me", "strict");
+assert(vF2.ok, "fixture F2 must be strict-valid: " + val.formatVerdict(vF2));
+const rF2 = lib.archiveChange(F2.root, "stamp-me");
+const stampF2 = readStamp(F2.root, rF2.archivedTo);
+
 // --- M1 ------------------------------------------------------------
 
 await check("M1", "archive writes metrics.md with the spec-strength block", () => {
@@ -411,6 +466,38 @@ await check("M7", "total stamp failure archives anyway with stamped:false + reas
   const archivedE = fs.readdirSync(path.join(E.root, "cdd", "archive"))[0];
   assert(archivedE.endsWith("-stamp-me"), "archive folder missing after derivation failure");
   assert(!fs.existsSync(path.join(E.root, "cdd", "archive", archivedE, "metrics.md")), "a stamp file landed despite derivation failure");
+});
+
+// --- M8 ---------------------------------------------------------------------
+
+await check("M8", "done-whens counts the validator's masked view, not raw lines (comment fixture: 5 raw -> 4)", () => {
+  assert(rF1.ok, "archive failed: " + JSON.stringify(rF1));
+  const raw = (maskedProposalText({ bare: false }).match(/^Done-When:/gm) ?? []).length;
+  assert(raw === 5, "fixture ground truth drifted: raw matches " + raw);
+  assert(/^done-whens: 4$/m.test(stampF1 ?? ""), "done-whens not 4 (the masked view; raw would say 5):\n" + stampF1);
+});
+
+// --- M9 ---------------------------------------------------------------------
+
+await check("M9", "bare Done-When: line yields the validator's own count (its \\s* spans newlines; agreement by construction)", () => {
+  assert(rF2.ok, "archive failed: " + JSON.stringify(rF2));
+  const text = maskedProposalText({ bare: true });
+  const raw = (text.match(/^Done-When:/gm) ?? []).length;
+  assert(raw === 6, "fixture ground truth drifted: raw matches " + raw);
+  assert(typeof val.maskHtmlComments === "function", "lib/validate.mjs does not export maskHtmlComments");
+  const validatorCount = [...val.maskHtmlComments(text).matchAll(/^Done-When:\s*\S/gm)].length;
+  assert(validatorCount === 4, "validator-view ground truth drifted: " + validatorCount);
+  assert(/^done-whens: 4$/m.test(stampF2 ?? ""), "done-whens not 4 with the bare line:\n" + stampF2);
+});
+
+// --- M10 --------------------------------------------------------------------
+
+await check("M10", "metrics.mjs imports maskHtmlComments from validate.mjs and holds no masking regex of its own", () => {
+  assert(typeof val.maskHtmlComments === "function", "lib/validate.mjs does not export maskHtmlComments");
+  const src = fs.readFileSync(path.join(REPO, "lib", "metrics.mjs"), "utf8");
+  assert(/import\s*\{[^}]*maskHtmlComments[^}]*\}\s*from\s*"\.\/validate\.mjs"/.test(src),
+    "lib/metrics.mjs does not import maskHtmlComments from ./validate.mjs");
+  assert(!src.includes("<!--[\\s\\S]*?-->"), "lib/metrics.mjs carries a private comment-masking regex");
 });
 
 for (const s of sandboxes) rmAll(s);
