@@ -17,7 +17,7 @@ import { initStore, createChange, archiveChange } from "./lib/store.mjs";
 import { validateChange, validateStore, formatVerdict } from "./lib/validate.mjs";
 import { ACTIONS, listBacklog, addBacklogItem, resolveBacklogItem, revalidateBacklog } from "./lib/backlog.mjs";
 import { adrsOp, reconfirmOp } from "./lib/adr-ops.mjs";
-import { ADR_STATUSES } from "./scripts/adr-index.mjs";
+import { OP_NAMES, OPS_DOC, OP_ALIASES, optionKeys } from "./lib/ops.mjs";
 import { buildAmbientBlock } from "./lib/context.mjs";
 import { status, statusTable } from "./lib/status.mjs";
 import { CddStatusView } from "./lib/status-ui.ts";
@@ -46,113 +46,6 @@ const result = (text, data) => ({
   details: data,
 });
 
-// plain JSON-schema parameters — no typebox import, zero resolution risk
-const nameParam = { type: "string", description: "change name, kebab-case" };
-const capsParam = {
-  type: "array",
-  items: { type: "string" },
-  description: "capabilities the change touches (defaults to the first word of the name)",
-};
-
-// The full per-op documentation, kept exactly as the five original tools
-// declared it (only the two stale cross-references were updated). op "help"
-// serves this verbatim, so the lean declaration below repeats none of it.
-const OPS_DOC = {
-  init: {
-    was: "cdd_init",
-    description:
-      "Scaffold the cdd store in the project root: cdd/rules.md, cdd/scripts (drift guard), .githooks/pre-commit + commit-msg, CI workflows, tests/acceptance/. Run once per project, before any other cdd op.",
-    parameters: {
-      type: "object",
-      properties: {
-        ci: { type: "string", enum: ["github", "gitlab", "both", "none"], description: "CI templates to write (default both)" },
-        hooks: { type: "boolean", description: "install .githooks/pre-commit + commit-msg (default true)" },
-      },
-    },
-  },
-  new: {
-    was: "cdd_new_change",
-    description:
-      "Scaffold one change folder cdd/changes/<name>/ with proposal.md, specs/<capability>/spec.md (delta template), tasks.md. Fill the placeholders, then validate with the validate op.",
-    parameters: {
-      type: "object",
-      properties: { name: nameParam, capabilities: capsParam },
-      required: ["name"],
-    },
-  },
-  validate: {
-    was: "cdd_validate",
-    description:
-      "Validate artifact shape. Draft mode checks structure (placeholders count as red); strict mode additionally requires every Verified-by pin to exist as a file and MODIFIED/REMOVED requirements to live in the spec. Returns PASS or FAIL with exact errors.",
-    parameters: {
-      type: "object",
-      properties: {
-        change: { type: "string", description: "change name; omit to validate the whole store" },
-        mode: { type: "string", enum: ["draft", "strict"], description: "default draft" },
-      },
-    },
-  },
-  status: {
-    was: "cdd_status",
-    description: "Report the store: open changes, capabilities, per-change draft and strict verdicts.",
-    parameters: { type: "object", properties: {} },
-  },
-  archive: {
-    was: "cdd_archive",
-    description:
-      "Close a change: strict validation must pass, then deltas merge into the living specs (ADDED appends, MODIFIED replaces, REMOVED deletes) and the folder moves to cdd/archive/<date>-<name>/.",
-    parameters: { type: "object", properties: { name: nameParam }, required: ["name"] },
-  },
-  backlog: {
-    description:
-      "Maintain cdd/backlog.md, the process-finding backlog. Item grammar: - PF-n [status] summary | source: ref [| change: name] [| note: text] [| premise: micro-form] [| verified: dates]; status: open, watch, done, won't-do, seeded-into-change. premise micro-form: exists:<path> | absent:<path> | grep:<literal>@<path>=<count> — revalidate checks premises in-process and stamps one verified date per run-day; list annotates staleness. Milestone and Close reports cite PF-n ids, never prose.",
-    parameters: {
-      type: "object",
-      properties: {
-        action: { type: "string", enum: [...ACTIONS], description: "default list" },
-        id: { type: "string", description: "item id for resolve, e.g. PF-1" },
-        summary: { type: "string", description: "one-line finding (add)" },
-        source: { type: "string", description: "the run, review, or archived change that raised it (add)" },
-        status: { type: "string", enum: ["open", "watch", "done", "won't-do", "seeded-into-change"], description: "default open (add); required (resolve)" },
-        change: { type: "string", description: "adopting change name (required for seeded-into-change)" },
-        note: { type: "string", description: "free-form context" },
-      },
-    },
-  },
-  adrs: {
-    description: `adrs discovers the store's decisions in cdd/decisions/: a table of every ADR (id, title, status, code globs), a status filter, and a --code reverse lookup. Statuses: ${ADR_STATUSES.join(", ")} — an unknown value refuses with a nearest-match hint. --code <path> returns every governing ADR (accepted, id order) for a file or directory; paths normalize (./, absolute) and paths outside the store root refuse.`,
-    parameters: {
-      type: "object",
-      properties: {
-        status: { type: "string", enum: [...ADR_STATUSES], description: "filter the table by status" },
-        code: { type: "string", description: "reverse lookup: a file or directory path inside the store root" },
-      },
-    },
-  },
-  reconfirm: {
-    description: 'reconfirm records decision reconfirmation: appends "- Reconfirmed by <change> on <date>: <evidence>" to an ADR. Defaults to the open change; --change <name> works post-archive (the lawful path for reconfirmations that cannot ride an archive commit). Refuses superseded ADRs (suggests the supersede path), unknown ids, missing evidence, and a change that already reconfirmed the ADR. --check pre-flights: ADRs whose claimed files moved since their latest reconfirmation, for the open change.',
-    parameters: {
-      type: "object",
-      properties: {
-        id: { type: "string", description: 'ADR id, e.g. "ADR-0008"' },
-        change: { type: "string", description: "change name; defaults to the open change, required post-archive" },
-        evidence: { type: "string", description: "one line: why the decision still holds" },
-        check: { type: "boolean", description: "pre-flight moved claims instead of appending" },
-      },
-    },
-  },
-};
-
-// Legacy tool names the model may still use as op (history, older prompts).
-const OP_ALIASES: Record<string, string> = {
-  cdd_init: "init",
-  cdd_new_change: "new",
-  cdd_new: "new",
-  new_change: "new",
-  cdd_validate: "validate",
-  cdd_status: "status",
-  cdd_archive: "archive",
-};
 
 // Fill-ins for call shapes the model sends often. Every rewrite is
 // unambiguous: a legacy tool name as op, legacy top-level parameters folded
@@ -303,7 +196,7 @@ export default function cddExtension(pi: ExtensionAPI) {
     parameters: {
       type: "object",
       properties: {
-        op: { type: "string", enum: ["init", "new", "validate", "status", "archive", "backlog", "adrs", "reconfirm", "help"] },
+        op: { type: "string", enum: OP_NAMES },
         name: { type: "string", description: "change name, kebab-case" },
         options: { type: "string", description: 'extra params as JSON, e.g. {"mode":"strict"}' },
       },
@@ -313,7 +206,7 @@ export default function cddExtension(pi: ExtensionAPI) {
     async execute(_id, params, _signal, _onUpdate, ctx) {
       switch (params.op) {
         case "init": {
-          const o = parseOptions(params.options, ["ci", "hooks"]);
+          const o = parseOptions(params.options, optionKeys("init"));
           if (!o.ok) return fail(o.error);
           const r = initStore(ctx.cwd, EXT_DIR, { ci: o.value.ci ?? "both", hooks: o.value.hooks ?? true });
           return result(
@@ -326,7 +219,7 @@ export default function cddExtension(pi: ExtensionAPI) {
           );
         }
         case "new": {
-          const o = parseOptions(params.options, ["name", "capabilities"]);
+          const o = parseOptions(params.options, optionKeys("new"));
           if (!o.ok) return fail(o.error);
           const name = pickName(params.name, o.value.name);
           if (!name.ok) return fail(name.error);
@@ -335,7 +228,7 @@ export default function cddExtension(pi: ExtensionAPI) {
           return { ...result(r.ok ? `change scaffolded:\n${json(r)}${redBlock(r)}` : json(r), r), isError: !r.ok };
         }
         case "validate": {
-          const o = parseOptions(params.options, ["change", "mode"]);
+          const o = parseOptions(params.options, optionKeys("validate"));
           if (!o.ok) return fail(o.error);
           if (o.value.change !== undefined && params.name !== undefined && o.value.change !== params.name)
             return fail('got both "name" and options "change" with different values — pass one');
@@ -347,7 +240,7 @@ export default function cddExtension(pi: ExtensionAPI) {
           const s = status(ctx.cwd);
           return result(json(s), s);
         case "archive": {
-          const o = parseOptions(params.options, ["name"]);
+          const o = parseOptions(params.options, optionKeys("archive"));
           if (!o.ok) return fail(o.error);
           const name = pickName(params.name, o.value.name);
           if (!name.ok) return fail(name.error);
@@ -366,7 +259,7 @@ export default function cddExtension(pi: ExtensionAPI) {
           return { ...result(r.ok ? `archived:\n${json(r)}\nPair-commit: feature commit, then this archive commit.` : json(r), r), isError: !r.ok };
         }
         case "backlog": {
-          const o = parseOptions(params.options, ["action", "id", "summary", "source", "status", "change", "note", "premise"]);
+          const o = parseOptions(params.options, optionKeys("backlog"));
           if (!o.ok) return fail(o.error);
           const action = o.value.action ?? "list";
           if (action === "list") {
@@ -388,13 +281,13 @@ export default function cddExtension(pi: ExtensionAPI) {
           return fail(`unknown action ${JSON.stringify(action)} (allowed: ${ACTIONS.join(", ")})`);
         }
         case "adrs": {
-          const o = parseOptions(params.options, ["status", "code"]);
+          const o = parseOptions(params.options, optionKeys("adrs"));
           if (!o.ok) return fail(o.error);
           const r = adrsOp(ctx.cwd, o.value);
           return r.ok ? result(r.text, { ok: true }) : fail(r.error);
         }
         case "reconfirm": {
-          const o = parseOptions(params.options, ["id", "change", "evidence", "check"]);
+          const o = parseOptions(params.options, optionKeys("reconfirm"));
           if (!o.ok) return fail(o.error);
           const id = o.value.id !== undefined ? o.value.id : params.name;
           const r = reconfirmOp(ctx.cwd, { ...o.value, id });

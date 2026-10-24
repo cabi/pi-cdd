@@ -23,7 +23,7 @@ same author, private project, no license file; attribution lives at the top of
 | registered tools | 5 (`cdd_init`, `cdd_new_change`, `cdd_validate`, `cdd_status`, `cdd_archive`) | 1 (`cdd`) |
 
 The verbatim descriptions and schemas of the five-tool version are preserved
-in `OPS_DOC` in `index.ts` and returned by `op: help` — that is the
+in `OPS_DOC` in `lib/ops.mjs` and returned by `op: help` — that is the
 authoritative reference for "what did the old text say", not git history.
 
 ## What was trimmed, per tool
@@ -95,8 +95,8 @@ vendor copies, trim each copied `package.json` to
 
 When changing what a tool does, treat `OPS_DOC` as the contract:
 
-1. Change the op's behavior in the `switch` in `index.ts` **and** its
-   `OPS_DOC` entry (description + parameters) in the same edit — help must
+1. Change the op's row (description + parameters) in `lib/ops.mjs` **and**
+   its behavior in the `switch` in `index.ts` in the same edit — help must
    keep returning the truthful full documentation.
 2. Keep the declaration budget: `name + description + parameters ≤ 700`
    chars (T1). If a new rule must be stated, prefer `help` over the
