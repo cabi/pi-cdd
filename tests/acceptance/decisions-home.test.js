@@ -40,15 +40,15 @@ check("DH1", "the repository root holds no decisions directory", () => {
   assert(!fs.existsSync(path.join(REPO, "decisions")), "a decisions directory still exists at the repository root");
 });
 
-check("DH2", "the decisions home holds exactly ADRs 0001 through 0012", () => {
+check("DH2", "the decisions home holds exactly ADRs 0001 through 0013", () => {
   const ids = fs
     .readdirSync(HOME)
     .filter((f) => /^\d{4}-.*\.md$/.test(f))
     .map((f) => Number(f.slice(0, 4)))
     .sort((a, b) => a - b);
   assert(
-    ids.join(",") === Array.from({ length: 12 }, (_, i) => i + 1).join(","),
-    `expected exactly ADRs 1..12, found: ${ids.join(",")}`,
+    ids.join(",") === Array.from({ length: 13 }, (_, i) => i + 1).join(","),
+    `expected exactly ADRs 1..13, found: ${ids.join(",")}`,
   );
 });
 
@@ -90,7 +90,7 @@ check("DH5", "root-path ADR references survive only as history", () => {
   assert(offenders.length === 0, `live root-path references remain:\n  ${offenders.join("\n  ")}`);
 });
 
-check("DH6", "the door 3 full scan governs all twelve ADRs and exits 0", () => {
+check("DH6", "the door 3 full scan governs all thirteen ADRs and exits 0", () => {
   const r = run(["node", path.join("cdd", "scripts", "spec-drift.mjs")]);
   const out = `${r.stdout || ""}\n${r.stderr || ""}`;
   assert(r.status === 0, `full scan exited ${r.status}:\n${out.trim()}`);

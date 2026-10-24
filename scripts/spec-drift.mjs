@@ -19,7 +19,9 @@
 //
 // Structure: one gather pass (gatherMode/gatherFacts) collects every fact the
 // laws need — files on disk, the one parse per spec, resolved pins, git state,
-// open-change claims — then each law is a pure function of that snapshot
+// and the shared claim map (adr-index.mjs buildClaimMap: which Code: globs
+// claim which files, living specs and open deltas alike) — then each law is a
+// pure function of that snapshot
 // (the ===== pure checks region holds no I/O); the runner alone maps findings
 // to the report.
 //
@@ -30,7 +32,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MECH_GREP, TASK_LIMIT, checkFenceBody, isPlaceholderPin, parseSpecModel, splitTaskSections } from './grammar-law.mjs';
-import { ADR_STATUSES, buildAdrIndex, globToRe } from './adr-index.mjs';
+import { ADR_STATUSES, buildAdrIndex, buildClaimMap } from './adr-index.mjs';
 
 // --- the runner: mode → root → facts → laws → report ----------------------------
 
@@ -240,12 +242,19 @@ async function gatherFacts(root, mode) {
   // --- topology answers for L2/A2, asked once: last meaningful commit per file,
   // and is-ancestor for exactly the pairs those laws will compare (derived with
   // the same pure helpers the laws use, so question set and verdict walk match).
+  // The shared claim map (scripts/adr-index.mjs): the one derivation of which
+  // Code: globs claim which files — living specs, open deltas, and ADR globs.
+  const claimMap = buildClaimMap({
+    specs: allSpecs.map((rel) => ({ rel, model: models.get(rel) })),
+    adrIndex,
+    tracked,
+  });
   const facts = {
     root, isRepo,
     preCommit: mode.preCommit, msgFile: mode.msgFile, staged: mode.staged, mechanical: mode.mechanical,
     livingSpecs, deltaSpecs, allSpecs, models, pinsOf, codeGlobs, pinnedAbs,
     accDirRels, accRel, stagedSet, stagedAdds, stagedDels, tracked,
-    hooksHalfUpgraded, mechLog, tasksTexts, adrIndex, changeDocs, gherkin,
+    hooksHalfUpgraded, mechLog, tasksTexts, adrIndex, changeDocs, gherkin, claimMap,
     topology: null,
   };
   if (isRepo && !mode.preCommit) {
@@ -260,8 +269,7 @@ async function gatherFacts(root, mode) {
     };
     for (const { specRels, globs } of capsIndex(facts).values()) {
       if (!globs.length) continue;
-      const res = globs.map(globToRe);
-      const matches = tracked.filter((f) => res.some((re) => re.test(f)));
+      const matches = claimMap.filesOfGlobs(globs);
       if (!matches.length) continue;
       const specCs = specRels.map((s) => lastCommitOf.get(s)).filter(Boolean);
       for (const codeC of matches.map((f) => lastCommitOf.get(f)).filter(Boolean)) {
@@ -273,8 +281,7 @@ async function gatherFacts(root, mode) {
     for (const a of acceptedAdrsOf(facts)) {
       const adrC = lastCommitOf.get(a.fileRel);
       if (!adrC) continue;
-      const res = a.globs.map(globToRe);
-      for (const f of tracked.filter((f) => res.some((re) => re.test(f)))) {
+      for (const f of facts.claimMap.filesOfAdr.get(a.id) ?? []) {
         const codeC = lastCommitOf.get(f);
         if (codeC && codeC !== adrC) ask(adrC, codeC);
       }
@@ -306,21 +313,14 @@ const isAcceptancePath = (f, facts) =>
 
 // One matching pass, two readers: the A1 citation check and the L2
 // expected-mid-Close hint both ask "which of these files does each open
-// change's delta Code: globs claim?" — answer it once, as a map of open
-// change name -> Set of matched files.
+// change's delta Code: globs claim?" — answer it from the shared claim map
+// (the claiming happened once, in adr-index.mjs), as a map of open change
+// name -> Set of matched files, in the caller's file order.
 const filesClaimedByChange = (files, facts) => {
   const claims = new Map();
-  for (const specRel of facts.deltaSpecs) {
-    const globs = facts.codeGlobs.get(specRel) ?? [];
-    if (!globs.length) continue;
-    const res = globs.map(globToRe);
-    const change = specRel.split('/')[2];
-    for (const f of files) {
-      if (res.some((re) => re.test(f))) {
-        if (!claims.has(change)) claims.set(change, new Set());
-        claims.get(change).add(f);
-      }
-    }
+  for (const [change, set] of facts.claimMap.filesOfChange) {
+    const matched = files.filter((f) => set.has(f));
+    if (matched.length) claims.set(change, new Set(matched));
   }
   return claims;
 };
@@ -329,7 +329,7 @@ const filesClaimedByChange = (files, facts) => {
 // verdict and the L2 capability index (both must see the same exemptions).
 const globClaimsMemory = (glob, facts) =>
   glob.startsWith('cdd/decisions/') ||
-  facts.tracked.some((f) => f.startsWith('cdd/decisions/') && globToRe(glob).test(f));
+  [...(facts.claimMap.filesOfGlob.get(glob) ?? [])].some((f) => f.startsWith('cdd/decisions/'));
 const memoryClaimsOf = (specRel, facts) => {
   const claims = [];
   for (const r of facts.models.get(specRel).requirements) {
@@ -523,15 +523,13 @@ function checkL2(facts) {
   for (const specRel of facts.livingSpecs) {
     const globs = facts.codeGlobs.get(specRel);
     if (!globs.length) continue;
-    const res = globs.map(globToRe);
-    if (!facts.tracked.some((f) => res.some((re) => re.test(f)))) {
+    if (!globs.some((g) => facts.claimMap.filesOfGlob.get(g)?.size)) {
       issues.push(`[L2] ${specRel} declares Code: ${globs.join(', ')} but no tracked file matches — fix the glob or remove the line`);
     }
   }
   for (const [cap, { specRels, globs }] of capsIndex(facts)) {
     if (!globs.length) continue;
-    const res = globs.map(globToRe);
-    const matches = facts.tracked.filter((f) => res.some((re) => re.test(f)));
+    const matches = facts.claimMap.filesOfGlobs(globs);
     if (!matches.length) continue;
     if (facts.msgFile && !facts.mechanical) {
       const stagedCode = matches.filter((f) => facts.stagedSet.has(f));
@@ -632,10 +630,9 @@ function checkO(facts) {
   if (!facts.isRepo) return { issues };
   const owner = new Map(); // file -> Map(cap -> Set(changeId | ''))
   for (const specRel of facts.allSpecs) {
-    const res = (facts.codeGlobs.get(specRel) ?? []).map(globToRe);
-    if (!res.length) continue;
-    for (const f of facts.tracked) {
-      if (!res.some((re) => re.test(f))) continue;
+    const claimed = facts.claimMap.filesOfSpec.get(specRel);
+    if (!claimed || !claimed.size) continue;
+    for (const f of claimed) {
       if (!owner.has(f)) owner.set(f, new Map());
       const byCap = owner.get(f);
       const cap = capOf(specRel);
@@ -710,8 +707,7 @@ function checkA1(facts) {
   for (const [change, files] of changeFiles) {
     const docs = facts.changeDocs.get(change) ?? '';
     for (const a of acceptedAdrs) {
-      const res = a.globs.map(globToRe);
-      const governed = new Set(facts.tracked.filter((f) => res.some((re) => re.test(f))));
+      const governed = facts.claimMap.filesOfAdr.get(a.id) ?? new Set();
       const overlap = [...files].filter((f) => governed.has(f));
       if (!overlap.length) continue;
       if (!docs.includes(a.id)) {
@@ -731,8 +727,7 @@ function checkA2(facts) {
   for (const a of acceptedAdrsOf(facts)) {
     const adrC = facts.topology.lastCommitOf.get(a.fileRel);
     if (!adrC) continue; // decision not committed yet — nothing to compare
-    const res = a.globs.map(globToRe);
-    for (const f of facts.tracked.filter((f) => res.some((re) => re.test(f)))) {
+    for (const f of facts.claimMap.filesOfAdr.get(a.id) ?? []) {
       const codeC = facts.topology.lastCommitOf.get(f);
       if (codeC && adrC !== codeC && facts.topology.ancestorOf.get(`${adrC}|${codeC}`)) {
         issues.push(`[A2] ${f} moved after ${a.id} was last touched — silent rot: run \`cdd reconfirm ${a.id} --evidence "<one line>"\` to record the reconfirmation (update ${a.fileRel} in this commit) or supersede it with a new ADR that marks this one superseded`);

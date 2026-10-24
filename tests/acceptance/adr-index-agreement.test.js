@@ -64,11 +64,11 @@ const adrIdx = await import(path.join(REPO, "scripts", "adr-index.mjs")).then(
 
 // --- AG1: the index builds one entry per ADR in the live store ----------------------
 
-await check("AG1", "the index holds 12 entries with the full field shape", async () => {
+await check("AG1", "the index holds 13 entries with the full field shape", async () => {
   assert(adrIdx !== null, "scripts/adr-index.mjs must exist and export the shared index");
   const entries = adrIdx.buildAdrIndex(REPO);
-  assert(Array.isArray(entries) && entries.length === 12, `12 entries, got ${entries?.length}`);
-  assert(entries[0].id === "ADR-0001" && entries[11].id === "ADR-0012", `ids in order: ${entries.map((e) => e.id).join(",")}`);
+  assert(Array.isArray(entries) && entries.length === 13, `13 entries, got ${entries?.length}`);
+  assert(entries[0].id === "ADR-0001" && entries[12].id === "ADR-0013", `ids in order: ${entries.map((e) => e.id).join(",")}`);
   // fields computed independently from the raw files (cross-validation, not tautology)
   for (const e of entries) {
     const raw = fs.readFileSync(path.join(REPO, e.fileRel), "utf8");

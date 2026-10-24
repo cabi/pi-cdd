@@ -59,7 +59,7 @@ const call = async (args, cwd) => api.tools[0].execute(1, args, undefined, undef
 
 const idsIn = (text) => (text.match(/ADR-\d{4}/g) ?? []);
 const OVERLAP = ["ADR-0006", "ADR-0007", "ADR-0008", "ADR-0009", "ADR-0011", "ADR-0012"];
-const DIR_LIB = ["ADR-0003", "ADR-0006", "ADR-0007", "ADR-0008", "ADR-0009", "ADR-0010", "ADR-0011", "ADR-0012"];
+const DIR_LIB = ["ADR-0003", "ADR-0006", "ADR-0007", "ADR-0008", "ADR-0009", "ADR-0010", "ADR-0011", "ADR-0012", "ADR-0013"];
 
 // --- the table, the filter, and the hints over the live store --------------------
 
@@ -68,8 +68,8 @@ await check("AO1", "the unfiltered table lists every ADR in id order with title 
   assert(!r.isError, `adrs must succeed over the live store: ${r.content[0].text}`);
   const text = r.content[0].text;
   const ids = idsIn(text);
-  const want = Array.from({ length: 12 }, (_, i) => `ADR-${String(i + 1).padStart(4, "0")}`);
-  assert(JSON.stringify(ids) === JSON.stringify(want), `12 ids in order, got: ${JSON.stringify(ids)}`);
+  const want = Array.from({ length: 13 }, (_, i) => `ADR-${String(i + 1).padStart(4, "0")}`);
+  assert(JSON.stringify(ids) === JSON.stringify(want), `13 ids in order, got: ${JSON.stringify(ids)}`);
   assert(text.includes("[superseded]"), `statuses render: ${text}`);
   assert(text.includes("Gherkin is the scenario language"), `titles render (ADR-0005's title): ${text}`);
 });

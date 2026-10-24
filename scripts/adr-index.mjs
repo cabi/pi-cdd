@@ -82,3 +82,76 @@ export function buildAdrIndex(root) {
   }
   return adrs;
 }
+
+/**
+ * The claim map: which Code: globs claim which files, derived exactly once
+ * for both doors. Pure over parsed inputs — spec models (grammar-law.mjs
+ * parseSpecModel), an ADR index (buildAdrIndex), and the tracked file list —
+ * never reading disk itself. Every set iterates in tracked order (ADR sets in
+ * index order), so every derived list is deterministic:
+ *
+ * - `filesOfGlob`   — glob string -> Set of tracked files it claims
+ * - `filesOfSpec`   — spec rel -> Set of tracked files its Code: globs claim
+ * - `filesOfChange` — open change -> Set of tracked files its delta specs
+ *                     claim together (non-empty only; a change is the union)
+ * - `filesOfAdr`    — ADR id -> Set of tracked files its globs govern
+ * - `filesOfGlobs`  — (globs) -> the tracked files any glob in the list
+ *                     claims, in tracked order (the capability-level union)
+ * - `governingFor`  — (path) -> the accepted index entries whose globs govern
+ *                     that path, in index order: the per-path query the adrs
+ *                     op's --code branch answers with, tracked and untracked
+ *                     paths alike
+ *
+ * The claiming loop — a compiled glob tested against files — lives here and
+ * only here; consumers read the sets and the queries, never re-derive.
+ */
+export function buildClaimMap({ specs = [], adrIndex = [], tracked = [] }) {
+  const filesOfGlob = new Map();
+  const filesOf = (glob) => {
+    if (!filesOfGlob.has(glob)) {
+      const re = globToRe(glob);
+      const set = new Set();
+      for (const f of tracked) if (re.test(f)) set.add(f);
+      filesOfGlob.set(glob, set);
+    }
+    return filesOfGlob.get(glob);
+  };
+  const unionOf = (globs) => {
+    const u = new Set();
+    for (const g of globs) for (const f of filesOf(g)) u.add(f);
+    return tracked.filter((f) => u.has(f)); // tracked order, like every set here
+  };
+
+  const filesOfSpec = new Map();
+  const changeGlobs = new Map(); // open change -> [globs], first-seen order
+  for (const { rel, model } of specs) {
+    const globs = model.codeGlobs.map((c) => c.glob);
+    filesOfSpec.set(rel, new Set(unionOf(globs)));
+    if (rel.startsWith('cdd/changes/')) {
+      const change = rel.split('/')[2];
+      if (!changeGlobs.has(change)) changeGlobs.set(change, []);
+      changeGlobs.get(change).push(...globs);
+    }
+  }
+  const filesOfChange = new Map();
+  for (const [change, globs] of changeGlobs) {
+    const set = new Set(unionOf(globs));
+    if (set.size) filesOfChange.set(change, set);
+  }
+
+  const filesOfAdr = new Map();
+  for (const a of adrIndex) filesOfAdr.set(a.id, new Set(unionOf(a.globs)));
+
+  const compiled = adrIndex.map((a) => ({ a, res: a.globs.map(globToRe) }));
+  const governingFor = (p) =>
+    compiled.filter(({ a, res }) => a.status === 'accepted' && res.some((re) => re.test(p))).map(({ a }) => a);
+
+  return {
+    filesOfGlob,
+    filesOfSpec,
+    filesOfChange,
+    filesOfAdr,
+    filesOfGlobs: unionOf,
+    governingFor,
+  };
+}
