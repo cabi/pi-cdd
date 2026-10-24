@@ -78,3 +78,4 @@ sweep, and landed the pins. cdd-adr-review runs on this ADR at Close.
 - Reconfirmed by guard-pure-checks on 2026-10-24: the new region markers and function comments describe module shape only; the R3 standards review found two WHY-prose blocks and both were trimmed before landing
 - Reconfirmed by claim-map on 2026-10-24: lib/adr-ops.mjs comments document shape — module header and reworked op flow state contracts, no history narration
 - Reconfirmed by ops-registry on 2026-10-24: moved comments stayed shape-only: the ops.mjs header dropped its corpus claim and test comments dropped their history
+- Reconfirmed by decision-scan-unify on 2026-10-24: the scan's comments stay shape-of-code — region comments name the walk, filter, and parse, no history narration (R3 standards reviewed)
