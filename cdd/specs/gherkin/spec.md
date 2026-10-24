@@ -1665,7 +1665,7 @@ Code: lib/validate.mjs, tests/acceptance/spec-size-signal.test.js
 
 ### Requirement: cdd archive stamps a derived metrics file
 
-At Close, between the Close auto-tick and the archive rename, the archive operation MUST derive and write exactly 1 metrics.md into the archive folder from the change's own artifacts; every stamped number MUST be mechanically derivable from those artifacts or explicitly labeled with its derivation basis, and stamp failure MUST never gate the archive. Split-considered: carving this stamp into its own metrics capability — deferred to the PF-6 gherkin store-ops split; the stamp is one more derived write of the same archive operation and rides its Code line.
+At Close, between the Close auto-tick and the archive rename, the archive operation MUST derive and write exactly 1 metrics.md into the archive folder from the change's own artifacts; every stamped number MUST be mechanically derivable from those artifacts or explicitly labeled with its derivation basis; the done-whens count MUST equal the proposal validator's comment-masked Done-When count — one view behind both surfaces — and stamp failure MUST never gate the archive. Split-considered: deferred to the PF-6 gherkin store-ops split; the stamp is one more derived write of the same archive operation and rides its Code line.
 
 ```gherkin
 Feature: cdd archive stamps a derived metrics file
@@ -1679,7 +1679,13 @@ Scenario: The stamp lands in the archive folder
 Scenario: Stamped counts equal direct counts over the artifacts
   Given the archived change whose stamp was derived
   When every spec-strength number is compared with a direct count over the change's own proposal, delta, and task files
-  Then each number equals the direct count — done-whens equal the Done-When line count, non-goals equal the Non-Goals bullet count, delta-requirements and delta-scenarios equal the Requirement and Scenario line counts inside the delta operations, subtasks equal the checkbox line count — all derived from the repository's single spec parse rather than a private re-parse
+  Then each number equals the direct count — done-whens equal the comment-masked Done-When count the validator uses, non-goals equal the Non-Goals bullet count, delta-requirements and delta-scenarios equal the Requirement and Scenario line counts inside the delta operations, subtasks equal the checkbox line count — the delta counts from the repository's single spec parse and the done-whens count from the validator's masked view, never a private re-parse
+  # Verified by: tests/acceptance/archive-metrics-stamp.test.js
+
+Scenario: The done-whens count matches the validator's masked view
+  Given a strictly valid change whose proposal holds 4 real Done-When lines and 1 instruction comment holding a Done-When-shaped line, for exactly 5 raw line matches
+  When the stamp is derived
+  Then the spec-strength block lists done-whens 4, equal to the validator's masked count over the same proposal text
   # Verified by: tests/acceptance/archive-metrics-stamp.test.js
 
 Scenario: Review yield counts every observed findings layout
@@ -1713,4 +1719,4 @@ Scenario: A total stamp failure never gates the archive
   # Verified by: tests/acceptance/archive-metrics-stamp.test.js
 ```
 
-Code: lib/store.mjs, lib/metrics.mjs, tests/acceptance/archive-metrics-stamp.test.js
+Code: lib/store.mjs, lib/metrics.mjs, lib/validate.mjs, tests/acceptance/archive-metrics-stamp.test.js

@@ -103,4 +103,4 @@ Design note (decisions the gate did not auto-settle — all confirmed at M0):
 - [x] 4.2 Spec-axis change code review — run skill `cdd-code-review` with the spec-axis brief (brief-r3-spec.md) over the same diff, in a second cold session; findings at `reviews/r3-spec-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-spec-code-review.md holding no open blocker
 - [x] 4.3 ADR review — skipped lawfully (director M3 ruling): this change drafted no ADR under cdd/decisions/ and amended no decision content — the proposal cites ADR-0003/0006/0007/0012 as followed, not superseded; no ADR decision content was drafted or amended, so cdd-adr-review does not fire
 - [x] 4.4 cdd validate strict green, guard green
-- [ ] 4.5 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.5 Archive — pair-commit: feature commit, then archive commit

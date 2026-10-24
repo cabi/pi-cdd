@@ -85,3 +85,4 @@ the current format.
 - Reconfirmed by claim-map on 2026-10-24: scripts/spec-drift.mjs keeps its feature-block structure — the claim map enters through the existing gather pass and pure checks read facts.claimMap
 - Reconfirmed by 20261024-scaffold-honesty on 2026-10-24: delta keeps one Feature fence per requirement with pin comments inside; the RULES_MD edit adds a rule-7 sentence only — change 20261024-scaffold-honesty, S39/SH pins green
 - Reconfirmed by 20261024-spec-size-signal on 2026-10-24: spec-size thresholds live as local constants SPEC_REQ_SIGNAL/SCENARIO_SIGNAL in lib/validate.mjs beside the task-side signal; no door consumes them and the cdd/scripts law copies stay byte-identical
+- Reconfirmed by 20261024-dw-masked-view on 2026-10-24: lib/validate.mjs gains one export keyword; no feature blocks added, moved, or split — the mask stays in its single home

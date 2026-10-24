@@ -17,3 +17,4 @@ Consequence: the extension's store layer is a thin `fs` module, and any future f
 - Reconfirmed by comments-are-shape-only on 2026-10-23: lib/store.mjs lesson prose and pointer comments removed; the plain-markdown store unchanged.
 - Reconfirmed by spec-model on 2026-10-24: spec-model kept the store plain markdown: parseDelta/parseLivingSpec are thin adapters over the law model, store formats unchanged
 - Reconfirmed by 20261024-metrics-stamp on 2026-10-24: metrics.md is one more plain-markdown file in the archive folder; the store layer stays a thin fs module — no schema, no index, no generated format beyond markdown
+- Reconfirmed by 20261024-dw-masked-view on 2026-10-24: the stamp still derives from plain files on disk; this change adds no store format or parser — the only store-adjacent edit is one export keyword in lib/validate.mjs
