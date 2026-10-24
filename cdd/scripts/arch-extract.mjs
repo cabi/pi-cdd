@@ -20,7 +20,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseDecisionFrontmatter } from './grammar-law.mjs';
+import { scanDecisionFiles } from './adr-index.mjs';
 import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
@@ -142,21 +142,17 @@ function scanChurn() {
   return [...hist.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([dir, commits]) => ({ dir, commits }));
 }
 
+// Legacy ingest preference: every .md under both decision directories,
+// statuses only where frontmatter states one.
+const LEGACY_SCAN = { dirs: ['cdd/decisions', 'docs/adr'], numberedOnly: false, defaultStatus: 'unknown' };
+
 function scanDecisions() {
-  const found = [];
-  for (const dir of ['cdd/decisions', 'docs/adr']) {
-    const base = path.join(root, dir);
-    if (!fs.existsSync(base)) continue;
-    for (const e of fs.readdirSync(base, { withFileTypes: true }).filter((e) => e.isFile() && e.name.endsWith('.md'))) {
-      if (!e.isFile() || !e.name.endsWith('.md')) continue;
-      const text = fs.readFileSync(path.join(base, e.name), 'utf8');
-      const { header, status } = parseDecisionFrontmatter(text, 'unknown');
-      const code = header.code ?? '';
-      const title = text.match(/^#\s+(.+)$/m)?.[1] ?? e.name;
-      found.push({ location: `${dir}/${e.name}`, status, code, title });
-    }
-  }
-  return found;
+  return scanDecisionFiles(root, LEGACY_SCAN).map((r) => ({
+    location: r.location,
+    status: r.status,
+    code: r.header.code ?? '',
+    title: r.titleLine?.match(/^#\s+(.+)$/)?.[1] ?? r.name,
+  }));
 }
 
 // ------------------------------------------------------------------ report --

@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 // adr-index — the ADR claims index: the single source for the decision
-// frontmatter shape (id, file, status, supersedes, title, code globs), the
-// glob matcher that turns a code glob into exactly the files it claims, and
-// the ADR status vocabulary. The drift guard (spec-drift.mjs) and the tool
-// ops (lib/adr-ops.mjs) import from here; no consumer re-states the parsing,
-// the matcher, or the vocabulary — tool and door agree by construction.
+// scan (which files are decisions, behind explicit ingest flags), the
+// decision frontmatter shape (id, file, status, supersedes, title, code
+// globs), the glob matcher that turns a code glob into exactly the files it
+// claims, and the ADR status vocabulary. The drift guard (spec-drift.mjs),
+// the tool ops (lib/adr-ops.mjs), and the architecture extractor
+// (arch-extract.mjs) import from here; no consumer re-states the scan, the
+// parsing, the matcher, or the vocabulary — tool and door agree by
+// construction.
 // This module travels byte-identical into adopting stores as
 // cdd/scripts/adr-index.mjs (refreshed by cdd init alongside grammar-law.mjs
 // and spec-drift.mjs) and depends on nothing outside that law pair.
@@ -52,35 +55,64 @@ export function globToRe(glob) {
   return new RegExp(`^${re}$`);
 }
 
+// The index preference: the ingest flags the claims index is built with —
+// also the scan's defaults.
+const INDEX_SCAN = { dirs: ['cdd/decisions'], numberedOnly: true, defaultStatus: 'accepted' };
+
+/**
+ * The decision scan: which files are decisions, defined exactly once behind
+ * explicit ingest flags — `dirs` (walked in flag order; a directory that does
+ * not exist is skipped), `numberedOnly` (only four-digit-prefixed .md names
+ * are decisions), and `defaultStatus` (the status a file whose frontmatter
+ * carries none answers with). Defaults equal the index preference. Each row
+ * is { location, name, num, header, status, titleLine } — one walk, one
+ * decision-frontmatter parse per file; callers project, never re-scan.
+ */
+export function scanDecisionFiles(
+  root,
+  { dirs = INDEX_SCAN.dirs, numberedOnly = INDEX_SCAN.numberedOnly, defaultStatus = INDEX_SCAN.defaultStatus } = {}
+) {
+  const rows = [];
+  for (const dir of dirs) {
+    const abs = path.join(root, dir);
+    if (!fs.existsSync(abs)) continue;
+    for (const e of fs.readdirSync(abs, { withFileTypes: true })) {
+      if (!e.isFile() || !e.name.endsWith('.md')) continue;
+      const num = e.name.match(/^(\d{4})-/)?.[1] ?? null;
+      if (numberedOnly && !num) continue;
+      const text = fs.readFileSync(path.join(abs, e.name), 'utf8');
+      const { header, status } = parseDecisionFrontmatter(text, defaultStatus);
+      rows.push({
+        location: `${dir}/${e.name}`,
+        name: e.name,
+        num,
+        header,
+        status,
+        titleLine: text.split('\n').find((l) => l.startsWith('# ')) ?? null,
+      });
+    }
+  }
+  return rows;
+}
+
 /**
  * The claims index: every decision file parsed into
  * { id, fileRel, status, supersedes, title, globs } — the exact shape the
- * guard's A-checks and the adrs op answer from. Files that do not match the
- * four-digit naming are not decisions and are skipped. `supersedes` stays null
- * unless the frontmatter carries the key; `title` is the first `# ` heading.
+ * guard's A-checks and the adrs op answer from. The index projection over
+ * the scan's rows (index preference): files that do not match the
+ * four-digit naming are not decisions (filtered by the scan's flags), a
+ * missing `# ` heading title is the empty string, `supersedes` stays null
+ * unless the frontmatter carries the key.
  */
 export function buildAdrIndex(root) {
-  const dir = path.join(root, 'cdd', 'decisions');
-  const adrs = [];
-  if (!fs.existsSync(dir)) return adrs;
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (!e.isFile() || !e.name.endsWith('.md')) continue;
-    const num = e.name.match(/^(\d{4})-/);
-    if (!num) continue;
-    const fileRel = `cdd/decisions/${e.name}`;
-    const text = fs.readFileSync(path.join(root, fileRel), 'utf8');
-    const { header, status } = parseDecisionFrontmatter(text);
-    const title = (text.split('\n').find((l) => l.startsWith('# ')) ?? '').slice(2);
-    adrs.push({
-      id: `ADR-${num[1]}`,
-      fileRel,
-      status,
-      supersedes: header.supersedes ?? null,
-      title,
-      globs: (header.code ?? '').split(/[,\s]+/).filter(Boolean).map((g) => g.replace(/`/g, '')),
-    });
-  }
-  return adrs;
+  return scanDecisionFiles(root, INDEX_SCAN).map((r) => ({
+    id: `ADR-${r.num}`,
+    fileRel: r.location,
+    status: r.status,
+    supersedes: r.header.supersedes ?? null,
+    title: r.titleLine?.slice(2) ?? '',
+    globs: (r.header.code ?? '').split(/[,\s]+/).filter(Boolean).map((g) => g.replace(/`/g, '')),
+  }));
 }
 
 /**
