@@ -621,11 +621,14 @@ check("S32", "the scaffold round-trips: what the harness emits, the harness acce
   // leg 1 — a fresh scaffold is draft-red on placeholders only (never structure)
   const d0 = val.validateChange(s.root, "rt", "draft");
   assert(!d0.ok && d0.errors.length === 3 && d0.errors.every((e) => /placeholders still unfilled/.test(e)), JSON.stringify(d0.errors));
-  // leg 2 — minimal fill, as in-place edits relative to the template output
-  const fillPlaceholders = (t) => t.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>\n]+>/g, "x");
-  put("proposal.md", fillPlaceholders(read("proposal.md")));
-  put("tasks.md", fillPlaceholders(read("tasks.md")).replace(/- \[ \]/g, "- [x]"));
-  put("specs/gherkin/spec.md", fillPlaceholders(read("specs/gherkin/spec.md")));
+  // leg 2 — minimal fill, as in-place edits relative to the template output.
+  // The proposal keeps its instruction comment: scaffold instruction text is
+  // not proposal content (S39), so an honest fill leaves it in place.
+  const fill = (t) => t.replace(/<[^>\n]+>/g, "x");
+  const stripComments = (t) => t.replace(/<!--[\s\S]*?-->/g, "");
+  put("proposal.md", fill(read("proposal.md")));
+  put("tasks.md", fill(stripComments(read("tasks.md"))).replace(/- \[ \]/g, "- [x]"));
+  put("specs/gherkin/spec.md", fill(stripComments(read("specs/gherkin/spec.md"))));
   fs.mkdirSync(path.join(s.root, "tests", "acceptance"), { recursive: true });
   fs.writeFileSync(path.join(s.root, "tests", "acceptance", "gherkin-x.test.js"), "// pin\n");
   const s1 = val.validateChange(s.root, "rt", "strict");
@@ -637,6 +640,38 @@ check("S32", "the scaffold round-trips: what the harness emits, the harness acce
   assert(/### Requirement: x/.test(living), "living spec must hold the scaffolded requirement");
   assert(!fs.existsSync(dir), "change folder must move");
   assert(fs.readdirSync(path.join(s.root, "cdd", "archive")).some((d) => d.endsWith("-rt")), "archive folder must exist");
+});
+
+// --- S39: the proposal scaffold's instruction text is not proposal content --
+
+check("S39", "comment-kept proposal fill passes clean; an unclosed <!-- still flags", () => {
+  const s = sandbox();
+  initStore(s.root, REPO, { ci: "none", hooks: false });
+  createChange(s.root, "cc", ["gherkin"]);
+  const dir = path.join(s.root, "cdd", "changes", "cc");
+  const read = (f) => fs.readFileSync(path.join(dir, f), "utf8");
+  const put = (f, t) => fs.writeFileSync(path.join(dir, f), t);
+  const fill = (t) => t.replace(/<[^>\n]+>/g, "x");
+  const stripComments = (t) => t.replace(/<!--[\s\S]*?-->/g, "");
+  // leg 1 — the scaffold instruction comment stays in the proposal; every
+  // body placeholder is filled in place; the author writes 5 Done-When
+  // criteria (the cap boundary): the instruction's own phrases never count
+  // as content and never trip the placeholder check
+  const five = Array.from({ length: 5 }, (_, i) => `Done-When: criterion ${i + 1} of the comment-kept change`).join("\n");
+  const proposal = fill(read("proposal.md")).replace(/^(Done-When: x\n?)+/m, `${five}\n`);
+  put("proposal.md", proposal);
+  put("tasks.md", fill(stripComments(read("tasks.md"))).replace(/- \[ \]/g, "- [x]"));
+  put("specs/gherkin/spec.md", fill(stripComments(read("specs/gherkin/spec.md"))));
+  fs.mkdirSync(path.join(s.root, "tests", "acceptance"), { recursive: true });
+  fs.writeFileSync(path.join(s.root, "tests", "acceptance", "gherkin-x.test.js"), "// pin\n");
+  const s1 = val.validateChange(s.root, "cc", "strict");
+  assert(s1.ok, formatVerdict(s1));
+  // leg 2 — an unclosed <!-- opener is not a comment block: a Done-When line
+  // that opens one is still a placeholder the pin must flag
+  const unclosed = proposal.replace("Done-When: criterion 3 of the comment-kept change", "Done-When: <!-- unclosed opener");
+  put("proposal.md", unclosed);
+  const s2 = val.validateChange(s.root, "cc", "strict");
+  assert(!s2.ok && s2.errors.some((e) => /placeholders still unfilled/.test(e)), formatVerdict(s2));
 });
 
 // --- the isolated-pi loop (spends tokens; opt-in) ------------------------------
