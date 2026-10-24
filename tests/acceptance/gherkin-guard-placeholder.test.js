@@ -193,6 +193,7 @@ await check("P5", "store copies stay byte-identical to the law sources", () => {
   const pairs = [
     ["cdd/scripts/grammar-law.mjs", "scripts/grammar-law.mjs"],
     ["cdd/scripts/spec-drift.mjs", "scripts/spec-drift.mjs"],
+    ["cdd/scripts/adr-index.mjs", "scripts/adr-index.mjs"],
   ];
   for (const [storeCopy, source] of pairs) {
     const a = fs.readFileSync(path.join(REPO, storeCopy));

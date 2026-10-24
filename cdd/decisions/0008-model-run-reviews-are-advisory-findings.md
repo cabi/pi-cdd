@@ -40,66 +40,30 @@ never write "review passed" as a gate; they report findings and
 dispositions, and the deterministic doors decide. Resolved accepted by the
 human sponsor on 2026-10-21: advisory findings are the permanent contract;
 a later door wanting verdict-shaped reviews must supersede this ADR.
-Reconfirmed by single-source-law on 2026-10-21: the review points this ADR
-ships now render from lib/loop-law.mjs (ADR-0009) into these same surfaces
-(templates, instructions, ambient, help); the advisory-findings contract is
-unchanged.
+- Reconfirmed by single-source-law on 2026-10-21: the review points this ADR ships now render from lib/loop-law.mjs (ADR-0009) into these same surfaces (templates, instructions, ambient, help); the advisory-findings contract is unchanged.
 
-Reconfirmed by reviewer-not-author on 2026-10-21: rule 2b governs who runs
-a review (a cold sub-agent, with the same-session re-read as the recorded
-fallback), not what a review may decide — the advisory-findings contract
-of this ADR is unchanged; findings stay advisory, never verdicts.
+- Reconfirmed by reviewer-not-author on 2026-10-21: rule 2b governs who runs a review (a cold sub-agent, with the same-session re-read as the recorded fallback), not what a review may decide — the advisory-findings contract of this ADR is unchanged; findings stay advisory, never verdicts.
 
-Reconfirmed by acceptance-wiring on 2026-10-21: this change alters what
-the law names (rule 7's executor sentence), not what a review may decide —
-its R1, R2, and both R3 axis findings stayed advisory throughout, disposed
-by the author with recorded dispositions, never verdicts.
+- Reconfirmed by acceptance-wiring on 2026-10-21: this change alters what the law names (rule 7's executor sentence), not what a review may decide — its R1, R2, and both R3 axis findings stayed advisory throughout, disposed by the author with recorded dispositions, never verdicts.
 
-Reconfirmed by pin-law-rename on 2026-10-21: lib/templates.mjs
-changed only its DOOR_SCRIPTS entry for the grammar-law rename; the
-advisory-findings grammar and review-point wiring this ADR records are
-unchanged.
+- Reconfirmed by pin-law-rename on 2026-10-21: lib/templates.mjs changed only its DOOR_SCRIPTS entry for the grammar-law rename; the advisory-findings grammar and review-point wiring this ADR records are unchanged.
 
-Reconfirmed by runner-ergonomics on 2026-10-21: the ADR-review trigger
-wording made precise (decision content fires, reconfirmations do not)
-changes no finding's advisory standing — reviews stay findings with
-severity and disposition, never verdicts; gate authority stays with the
-deterministic doors.
+- Reconfirmed by runner-ergonomics on 2026-10-21: the ADR-review trigger wording made precise (decision content fires, reconfirmations do not) changes no finding's advisory standing — reviews stay findings with severity and disposition, never verdicts; gate authority stays with the deterministic doors.
 
-Reconfirmed by loop-law-hardening on 2026-10-22: this change edits files
-under this ADR's code: globs (lib/templates.mjs); the advisory-findings
-contract is unchanged — findings stay advisory with severity and
-disposition, never verdicts, and gate authority stays with the
-deterministic validators and the human. The literal rules 11a and 7
-additions it carries to that file are recorded by ADR-0011, not claimed
-here.
+- Reconfirmed by loop-law-hardening on 2026-10-22: this change edits files under this ADR's code: globs (lib/templates.mjs); the advisory-findings contract is unchanged — findings stay advisory with severity and disposition, never verdicts, and gate authority stays with the deterministic validators and the human. The literal rules 11a and 7 additions it carries to that file are recorded by ADR-0011, not claimed here.
 
-Reconfirmed by backlog-op on 2026-10-22: this change edits files under
-this ADR's code: globs (lib/templates.mjs, lib/help.mjs); the
-advisory-findings contract is unchanged — R3's two cold sessions reported
-findings with severity and disposition only, all disposed by the author,
-and gate authority stayed with the deterministic doors (validate strict,
-the drift guard, and the acceptance pins) plus the human.
+- Reconfirmed by backlog-op on 2026-10-22: this change edits files under this ADR's code: globs (lib/templates.mjs, lib/help.mjs); the advisory-findings contract is unchanged — R3's two cold sessions reported findings with severity and disposition only, all disposed by the author, and gate authority stayed with the deterministic doors (validate strict, the drift guard, and the acceptance pins) plus the human.
 
-Reconfirmed by design-docs on 2026-10-23: templates.mjs gains the
-designTemplate scaffold beside the existing artifact scaffolds; review
-findings stay advisory (R1/R2/R3 dispositions were fixed or argued, never
-overridden); design.md has no validator door by the sponsor's
-charter-only decision, so reviews remain its only check.
+- Reconfirmed by design-docs on 2026-10-23: templates.mjs gains the designTemplate scaffold beside the existing artifact scaffolds; review findings stay advisory (R1/R2/R3 dispositions were fixed or argued, never overridden); design.md has no validator door by the sponsor's charter-only decision, so reviews remain its only check.
 
-Reconfirmed by r3-findings on 2026-10-23: splitting the R3 findings file
-per axis changes where findings land, not what they are — the advisory
-grammar (blocker/should/note plus fixed:/open/won't-fix:) and the
-never-verdicts rule carry into both files unchanged, and dispositions
-still never gate on their own.
+- Reconfirmed by r3-findings on 2026-10-23: splitting the R3 findings file per axis changes where findings land, not what they are — the advisory grammar (blocker/should/note plus fixed:/open/won't-fix:) and the never-verdicts rule carry into both files unchanged, and dispositions still never gate on their own.
 
-Reconfirmed by law-guard-fixes on 2026-10-23: both R3 axes ran cold and
-advisory (opencode-zen/deepseek-v4-pro, opencode-zen/deepseek-v4.1-flash)
-— six findings, every one disposed fixed, none a verdict and none gating
-the archive.
+- Reconfirmed by law-guard-fixes on 2026-10-23: both R3 axes ran cold and advisory (opencode-zen/deepseek-v4-pro, opencode-zen/deepseek-v4.1-flash) — six findings, every one disposed fixed, none a verdict and none gating the archive.
 
-Reconfirmed-by: comments-are-shape-only — lib/templates.mjs, lib/context.mjs, lib/help.mjs headers swept; advisory-findings law unchanged.
+- Reconfirmed by comments-are-shape-only on 2026-10-23: lib/templates.mjs, lib/context.mjs, lib/help.mjs headers swept; advisory-findings law unchanged.
 
-Reconfirmed-by: backlog-revalidate — this change's own R1/R2/R3 reviews ran advisory (findings under the change's reviews/, every finding disposed, none gating the archive); the review-point law text untouched.
+- Reconfirmed by backlog-revalidate on 2026-10-23: this change's own R1/R2/R3 reviews ran advisory (findings under the change's reviews/, every finding disposed, none gating the archive); the review-point law text untouched.
 
-Reconfirmed-by: gitlab-ci-parity — this change' R1 was lawfully skipped (design gate all-NO); R2 and both R3 axes ran cold and advisory (opencode-zen/deepseek-v4-pro, findings under the change' reviews/, every finding disposed, none gating the archive).
+- Reconfirmed by gitlab-ci-parity on 2026-10-23: this change' R1 was lawfully skipped (design gate all-NO); R2 and both R3 axes ran cold and advisory (opencode-zen/deepseek-v4-pro, findings under the change' reviews/, every finding disposed, none gating the archive).
+
+- Reconfirmed by adr-ops on 2026-10-24: lib/templates.mjs changes only the DOOR_SCRIPTS list (adr-index.mjs travels to adopting stores beside the other door scripts); every review-artifact scaffold and advisory-findings text is byte-untouched.

@@ -48,18 +48,10 @@ independence is the permanent contract of the loop — a cold sub-agent
 reviewer by default, the recorded same-session fallback; a later change
 wanting same-session reviews as the default must supersede this ADR.
 
-Reconfirmed by acceptance-wiring on 2026-10-21: every review in this
-change — R1 proposal mode, R2 package mode, and both R3 axes — ran as a
-fresh cold sub-agent session; rule 2b is unchanged and followed.
+- Reconfirmed by acceptance-wiring on 2026-10-21: every review in this change — R1 proposal mode, R2 package mode, and both R3 axes — ran as a fresh cold sub-agent session; rule 2b is unchanged and followed.
 
-Reconfirmed by runner-ergonomics on 2026-10-21: R3 ran as two cold
-sub-agent sessions (standards and spec separately) with briefs from disk;
-this change's text edits to rule 2a do not touch rule 2b, and the cold
-reviews were performed, not assumed.
-Reconfirmed by runner-ergonomics (archive pair-commit) on 2026-10-21: the
-cdd/rules.md mirror rewrite travels in this archive commit with the
-merged living spec — the mirror text is the law's own render, not a
-review-wiring change; rule 2b and the cold-review norm are untouched.
+- Reconfirmed by runner-ergonomics on 2026-10-21: R3 ran as two cold sub-agent sessions (standards and spec separately) with briefs from disk; this change's text edits to rule 2a do not touch rule 2b, and the cold reviews were performed, not assumed.
+- Reconfirmed by runner-ergonomics (archive pair-commit) on 2026-10-21: the cdd/rules.md mirror rewrite travels in this archive commit with the merged living spec — the mirror text is the law's own render, not a review-wiring change; rule 2b and the cold-review norm are untouched.
 
 Amendment 2026-10-22 (loop-law-hardening): rule 2b gains two clauses.
 First, the author-family clause — the reviewer's model family must differ
@@ -82,42 +74,18 @@ the ADR's body was silent on both, and law tightening while the ADR
 stayed silent would be the silent contradiction the ADR review exists
 to catch.
 
-Reconfirmed by backlog-op on 2026-10-22: this change edits cdd/rules.md
-(the byte-regenerated mirror carrying the new rule 13); reviewer
-independence is unchanged — R3 ran as two separate cold sessions whose
-families differ from the author's, per rule 2b. Rule 13's PF-n citation
-duty extends the same advisory reporting to process findings: backlog ids
-in milestone and Close reports, never prose.
+- Reconfirmed by backlog-op on 2026-10-22: this change edits cdd/rules.md (the byte-regenerated mirror carrying the new rule 13); reviewer independence is unchanged — R3 ran as two separate cold sessions whose families differ from the author's, per rule 2b. Rule 13's PF-n citation duty extends the same advisory reporting to process findings: backlog ids in milestone and Close reports, never prose.
 
-Reconfirmed by adr-dir-migration on 2026-10-22: rule 2a's text changes
-only its decisions-directory sentence (rendered from lib/loop-law.mjs
-into cdd/rules.md); the reviewer-independence law — cold sessions, no
-author-reviewer, findings advisory — is untouched, and the cdd-adr-review
-SKILL example rows now cite the one decisions home.
+- Reconfirmed by adr-dir-migration on 2026-10-22: rule 2a's text changes only its decisions-directory sentence (rendered from lib/loop-law.mjs into cdd/rules.md); the reviewer-independence law — cold sessions, no author-reviewer, findings advisory — is untouched, and the cdd-adr-review SKILL example rows now cite the one decisions home.
 
-Reconfirmed by design-docs on 2026-10-23: brief-r1/brief-r2/SKILL charter
-object lines grow to include design.md and every review of this change ran
-cold (fresh deepseek-v4-pro sessions vs author zai/glm-5.3 at R1, R2, and
-both R3 axes); instantiated briefs stored under the change's reviews/
-folder, read from disk, never curated by the author.
+- Reconfirmed by design-docs on 2026-10-23: brief-r1/brief-r2/SKILL charter object lines grow to include design.md and every review of this change ran cold (fresh deepseek-v4-pro sessions vs author zai/glm-5.3 at R1, R2, and both R3 axes); instantiated briefs stored under the change's reviews/ folder, read from disk, never curated by the author.
 
-Reconfirmed by r3-findings on 2026-10-23: two axes = two cold sessions =
-two findings files is now the law itself instead of a runner-side patch —
-each R3 brief names only its own findings file so neither reviewer session
-can write the other's, closing the clobber recurrence this decision's law
-could not yet express.
+- Reconfirmed by r3-findings on 2026-10-23: two axes = two cold sessions = two findings files is now the law itself instead of a runner-side patch — each R3 brief names only its own findings file so neither reviewer session can write the other's, closing the clobber recurrence this decision's law could not yet express.
 
-Reconfirmed by law-guard-fixes on 2026-10-23: cdd/rules.md changed only as
-the byte-identical render of the single source, and both R3 axes ran in
-cold sessions of a different model family than the author — briefs lived
-under the change's reviews/, each axis its own findings file.
+- Reconfirmed by law-guard-fixes on 2026-10-23: cdd/rules.md changed only as the byte-identical render of the single source, and both R3 axes ran in cold sessions of a different model family than the author — briefs lived under the change's reviews/, each axis its own findings file.
 
-Reconfirmed by skill-layout on 2026-10-23: the reviewer briefs moved from
-beside each SKILL.md into per-skill assets/ dirs (pi skill-authoring
-layout, pure renames) — the independence law is unchanged; each R3 axis
-still ran in its own cold session of a different model family, briefed
-only from the instantiated brief under the change's reviews/.
+- Reconfirmed by skill-layout on 2026-10-23: the reviewer briefs moved from beside each SKILL.md into per-skill assets/ dirs (pi skill-authoring layout, pure renames) — the independence law is unchanged; each R3 axis still ran in its own cold session of a different model family, briefed only from the instantiated brief under the change's reviews/.
 
-Reconfirmed-by: comments-are-shape-only — lib/loop-law.mjs citations and test banners swept; reviewer-independence law unchanged.
+- Reconfirmed by comments-are-shape-only on 2026-10-23: lib/loop-law.mjs citations and test banners swept; reviewer-independence law unchanged.
 
-Reconfirmed-by: backlog-revalidate — no reviewer-independence text changed; this change's R3 ran as two cold sessions of a different model family, one per axis, briefed only from the change's reviews/.
+- Reconfirmed by backlog-revalidate on 2026-10-23: no reviewer-independence text changed; this change's R3 ran as two cold sessions of a different model family, one per axis, briefed only from the change's reviews/.

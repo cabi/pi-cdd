@@ -12,6 +12,8 @@ The factory needed the OpenSpec CLI as an external counterparty that forced the 
 
 Consequence: trust in pi-cdd is trust in *deterministic checks plus injected context*, not in an external vendor tool. That is a different trust model than the factory's — and the reason the validation run (P4) must falsify it before any packaging.
 
-Reconfirmed-by: comments-are-shape-only — index.ts banner comments swept; the harness-counterparty contract unchanged.
+- Reconfirmed by comments-are-shape-only on 2026-10-23: index.ts banner comments swept; the harness-counterparty contract unchanged.
 
-Reconfirmed-by: backlog-revalidate — index.ts gains the revalidate dispatch case and a premise option inside the existing backlog op (the action enum derived from lib/backlog.mjs's ACTIONS export); no new tool or counterparty surface, the harness contract unchanged.
+- Reconfirmed by backlog-revalidate on 2026-10-23: index.ts gains the revalidate dispatch case and a premise option inside the existing backlog op (the action enum derived from lib/backlog.mjs's ACTIONS export); no new tool or counterparty surface, the harness contract unchanged.
+
+- Reconfirmed by adr-ops on 2026-10-24: index.ts registers adrs/reconfirm as thin dispatch over lib/adr-ops.mjs — the extension facade law is untouched

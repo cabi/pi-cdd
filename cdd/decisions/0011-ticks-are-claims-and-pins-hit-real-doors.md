@@ -52,42 +52,22 @@ hardening dogfooded rule 11a twice before it became law. Drafted
 loop-law-hardening: rules 11a and 7 ship with this change; the re-tick
 duty was dogfooded twice during the change itself.
 
-Reconfirmed by backlog-op on 2026-10-22: this change edits
-lib/templates.mjs and the regenerated cdd/rules.md mirror; every tick in
-tasks.md carries a run record naming a real door, and the new pins hit
-real doors — the backlog scenarios round-trip the actual tool dispatch
-(BO1–BO12, tools T3) and the not-gated boundary runs the real drift guard
-inside a sandbox git repo (BO11).
+- Reconfirmed by backlog-op on 2026-10-22: this change edits lib/templates.mjs and the regenerated cdd/rules.md mirror; every tick in tasks.md carries a run record naming a real door, and the new pins hit real doors — the backlog scenarios round-trip the actual tool dispatch (BO1–BO12, tools T3) and the not-gated boundary runs the real drift guard inside a sandbox git repo (BO11).
 
-Reconfirmed by adr-dir-migration on 2026-10-22: cdd/rules.md changes
-only by deliberate mirror regeneration from RULES_MD after the rule 2a
-sentence edit (initStore does not rewrite an existing store's rules.md;
-identity pinned by the single-source-law suite).
-Ticks-still-claims and pins-hit-real-doors are untouched.
+- Reconfirmed by adr-dir-migration on 2026-10-22: cdd/rules.md changes only by deliberate mirror regeneration from RULES_MD after the rule 2a sentence edit (initStore does not rewrite an existing store's rules.md; identity pinned by the single-source-law suite). Ticks-still-claims and pins-hit-real-doors are untouched.
 
-Reconfirmed by design-docs on 2026-10-23: rule 2c joins the law text and
-cdd/rules.md moves only by the deliberate RULES_MD mirror regeneration;
-byte-identity now double-pinned (single-source-law suite plus
-tests/acceptance/design-docs.test.js DD9, with DD8 pinning 2c's rendered
-position between 2b and rule 3). Ticks-still-claims and pins-hit-real-doors
-are untouched.
+- Reconfirmed by design-docs on 2026-10-23: rule 2c joins the law text and cdd/rules.md moves only by the deliberate RULES_MD mirror regeneration; byte-identity now double-pinned (single-source-law suite plus tests/acceptance/design-docs.test.js DD9, with DD8 pinning 2c's rendered position between 2b and rule 3). Ticks-still-claims and pins-hit-real-doors are untouched.
 
-Reconfirmed by r3-findings on 2026-10-23: cdd/rules.md changed only as the byte-identical render of the single source, every tick in this change maps to an observable verify line, and the pins hit real doors — the R3 cold review found the red suite the runner's green claim had papered over.
+- Reconfirmed by r3-findings on 2026-10-23: cdd/rules.md changed only as the byte-identical render of the single source, every tick in this change maps to an observable verify line, and the pins hit real doors — the R3 cold review found the red suite the runner's green claim had papered over.
 
-Reconfirmed by law-guard-fixes on 2026-10-23: cdd/rules.md changed only as
-the byte-identical render of the single source, every Close tick cites an
-exact command and tail, and the new pins hit real doors — LDW4 drives the
-real validateChange door on a scratch change, the guard pin drives the
-real spec-drift child process in a sandbox repo.
+- Reconfirmed by law-guard-fixes on 2026-10-23: cdd/rules.md changed only as the byte-identical render of the single source, every Close tick cites an exact command and tail, and the new pins hit real doors — LDW4 drives the real validateChange door on a scratch change, the guard pin drives the real spec-drift child process in a sandbox repo.
 
-Reconfirmed by skill-layout on 2026-10-23: the brief-path pins in
-loop-law-hardening.test.js moved with the files into assets/ and still
-read the real briefs from disk; the S33 growth was red-first honest —
-it failed on the loose brief pre-move exactly as claimed before going
-green, and every Close tick cites an exact command.
+- Reconfirmed by skill-layout on 2026-10-23: the brief-path pins in loop-law-hardening.test.js moved with the files into assets/ and still read the real briefs from disk; the S33 growth was red-first honest — it failed on the loose brief pre-move exactly as claimed before going green, and every Close tick cites an exact command.
 
-Reconfirmed-by: comments-are-shape-only — lib/templates.mjs and tests/acceptance/loop-law-hardening.test.js comments swept; every tick still cites an exact command.
+- Reconfirmed by comments-are-shape-only on 2026-10-23: lib/templates.mjs and tests/acceptance/loop-law-hardening.test.js comments swept; every tick still cites an exact command.
 
-Reconfirmed-by: backlog-revalidate — every new tick cites an exact command (task 4.4 records the green evidence) and the new pins drive the real door; rule 11 text unchanged.
+- Reconfirmed by backlog-revalidate on 2026-10-23: every new tick cites an exact command (task 4.4 records the green evidence) and the new pins drive the real door; rule 11 text unchanged.
 
-Reconfirmed-by: gitlab-ci-parity — every tick in tasks.md cites its evidence (RED shown before green, green tails recorded); the new pin hits the real render and the real disk copy, mutation-verified by the R3 spec reviewer.
+- Reconfirmed by gitlab-ci-parity on 2026-10-23: every tick in tasks.md cites its evidence (RED shown before green, green tails recorded); the new pin hits the real render and the real disk copy, mutation-verified by the R3 spec reviewer.
+
+- Reconfirmed by adr-ops on 2026-10-24: lib/templates.mjs changes only the DOOR_SCRIPTS list — the RULES_MD law block is byte-untouched; every tick in this change keeps its exact verify-by command and the new pins drive real doors (RED evidence recorded before green).

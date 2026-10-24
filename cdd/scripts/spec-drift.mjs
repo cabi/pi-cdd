@@ -22,7 +22,8 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ADR_STATUSES, CODE_LINE, PIN_COMMENT, TASK_LIMIT, checkFenceBody, extractFences, isPlaceholderPin, parseDecisionFrontmatter, splitTaskSections } from './grammar-law.mjs';
+import { CODE_LINE, MECH_GREP, PIN_COMMENT, TASK_LIMIT, checkFenceBody, extractFences, isPlaceholderPin, splitTaskSections } from './grammar-law.mjs';
+import { ADR_STATUSES, buildAdrIndex, globToRe } from './adr-index.mjs';
 
 const argv = process.argv.slice(2);
 const msgIdx = argv.indexOf('--commit-msg');
@@ -68,9 +69,9 @@ function git(args) {
 }
 const isRepo = git(['rev-parse', '--is-inside-work-tree']) === 'true';
 
-// commits marked mechanical (lint sweeps, codemods, framework updates) carry
-// no contract information — they advance neither side of the staleness clock
-const MECH_GREP = '^Mechanical-Change:|^\\[mechanical\\]';
+// MECH_GREP (the mechanical-commit marker) is imported from grammar-law.mjs —
+// commits marked mechanical carry no contract information, so they advance
+// neither side of the staleness clock.
 
 function lastCommit(file) {
   return (
@@ -180,32 +181,6 @@ function accFiles(dir, acc = []) {
 }
 const accRel = accDirs.flatMap((d) => accFiles(d).map(rel));
 
-function globToRe(glob) {
-  // Translate, never double-escape. A `[...]` span passes through as a
-  // character class (leading `!` negates), a single `*` becomes `[^/]*`, every
-  // other regex metacharacter is escaped so literals stay literal, and an
-  // unterminated or empty `[` is literal text — a compiled claim is exactly
-  // the files the glob names, never silently zero.
-  const partToRe = (part) => {
-    let out = '';
-    for (let i = 0; i < part.length; i++) {
-      const c = part[i];
-      if (c === '*') out += '[^/]*';
-      else if (c === '[') {
-        const end = part.indexOf(']', i + 1);
-        const body = end === -1 ? null : part.slice(i + 1, end);
-        if (body === null || body.replace(/^!/, '').length === 0) out += '\\[';
-        else {
-          out += body.startsWith('!') ? `[^${body.slice(1)}]` : `[${body}]`;
-          i = end;
-        }
-      } else out += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-    return out;
-  };
-  const re = glob.split('**').map(partToRe).join('.*');
-  return new RegExp(`^${re}$`);
-}
 
 // ==============================================================================
 // L1 — forward: every pin resolves (staged mode: only specs staged in this commit)
@@ -593,25 +568,7 @@ if (fs.existsSync(changesDir)) {
 // A — architectural decisions (the decisions directory): the memory that replaces
 // osmosis. Beside the contract tree in form, visible to the guard in fact.
 // ==============================================================================
-const decisionsDir = path.join(root, 'cdd', 'decisions');
-const adrs = [];
-if (fs.existsSync(decisionsDir)) {
-  for (const e of fs.readdirSync(decisionsDir, { withFileTypes: true })) {
-    if (!e.isFile() || !e.name.endsWith('.md')) continue;
-    const num = e.name.match(/^(\d{4})-/);
-    if (!num) continue;
-    const fileRel = `cdd/decisions/${e.name}`;
-    const text = fs.readFileSync(path.join(root, fileRel), 'utf8');
-    const { header, status } = parseDecisionFrontmatter(text);
-    adrs.push({
-      id: `ADR-${num[1]}`,
-      fileRel,
-      status,
-      supersedes: header.supersedes ?? null,
-      globs: (header.code ?? '').split(/[,\s]+/).filter(Boolean).map((g) => g.replace(/`/g, '')),
-    });
-  }
-}
+const adrs = buildAdrIndex(root);
 const adrByNum = new Map(adrs.map((a) => [a.id.replace(/^ADR-/, ''), a]));
 
 if (adrs.length) {
@@ -652,7 +609,7 @@ if (adrs.length) {
         const overlap = [...files].filter((f) => governed.has(f));
         if (!overlap.length) continue;
         if (!docs.includes(a.id)) {
-          issues.push(`[A1] change ${change} touches code governed by ${a.id} (${a.fileRel}; e.g. ${overlap[0]}) — cite "${a.id}" in the proposal (follow it) or supersede the decision first`);
+          issues.push(`[A1] change ${change} touches code governed by ${a.id} (${a.fileRel}; e.g. ${overlap[0]}) — run \`cdd adrs --code ${overlap[0]}\` to find every governing ADR, then cite "${a.id}" in the proposal (follow it) or supersede the decision first`);
         }
       }
     }
@@ -668,7 +625,7 @@ if (adrs.length) {
       for (const f of filesOf(a.globs)) {
         const codeC = lastCommit(f);
         if (codeC && adrC !== codeC && git(['merge-base', '--is-ancestor', adrC, codeC]) === '') {
-          issues.push(`[A2] ${f} moved after ${a.id} was last touched — silent rot: reconfirm the decision (update ${a.fileRel} in this commit) or supersede it with a new ADR that marks this one superseded`);
+          issues.push(`[A2] ${f} moved after ${a.id} was last touched — silent rot: run \`cdd reconfirm ${a.id} --evidence "<one line>"\` to record the reconfirmation (update ${a.fileRel} in this commit) or supersede it with a new ADR that marks this one superseded`);
           break; // one finding per decision is enough to ring the bell
         }
       }

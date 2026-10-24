@@ -45,31 +45,20 @@ Amended by pin-law-rename on 2026-10-21: the law module is now
 `scripts/grammar-law.mjs` (self-describing rename, decision unchanged — one
 law behind every door).
 
-Reconfirmed by adr-dir-migration on 2026-10-22: the only glob file this
-change touches is lib/gherkin.mjs, and only a path comment there; the
-law-behind-every-door topology (machine law in scripts/, adapters
-injecting it) is unchanged. The product ADRs of this decision's era now
-live in the same store home, cdd/decisions/.
+- Reconfirmed by adr-dir-migration on 2026-10-22: the only glob file this change touches is lib/gherkin.mjs, and only a path comment there; the law-behind-every-door topology (machine law in scripts/, adapters injecting it) is unchanged. The product ADRs of this decision's era now live in the same store home, cdd/decisions/.
 
-Reconfirmed by design-docs on 2026-10-23: the design document stays
-outside every machine door by sponsor decision (charter-only enforcement;
-no validator change, no new door) — the briefs and the cdd-code-review
-skill carry its checks; if reviews keep finding missing or bad diagrams,
-that becomes a process finding and a door later, exactly the trajectory
-this decision prescribes.
+- Reconfirmed by design-docs on 2026-10-23: the design document stays outside every machine door by sponsor decision (charter-only enforcement; no validator change, no new door) — the briefs and the cdd-code-review skill carry its checks; if reviews keep finding missing or bad diagrams, that becomes a process finding and a door later, exactly the trajectory this decision prescribes.
 
-Reconfirmed by r3-findings on 2026-10-23: the per-axis R3 findings rule is rendered loop law from lib/loop-law.mjs with cdd/rules.md as its byte-identical mirror, and no new validator door is added — the Capabilities placeholder joins the existing validateProposal placeholder door.
+- Reconfirmed by r3-findings on 2026-10-23: the per-axis R3 findings rule is rendered loop law from lib/loop-law.mjs with cdd/rules.md as its byte-identical mirror, and no new validator door is added — the Capabilities placeholder joins the existing validateProposal placeholder door.
 
-Reconfirmed by law-guard-fixes on 2026-10-23: the rule-3 law wording now
-matches the validateProposal door's 1-5 criteria contract, and the guard's
-door ownership is made explicit — pre-commit keeps the staged checks, the
-commit-msg door owns staged pairs, the full scan owns topology L2 (!preCommit
-gate) — so every check stays door-backed and no door gained law-free checks.
+- Reconfirmed by law-guard-fixes on 2026-10-23: the rule-3 law wording now matches the validateProposal door's 1-5 criteria contract, and the guard's door ownership is made explicit — pre-commit keeps the staged checks, the commit-msg door owns staged pairs, the full scan owns topology L2 (!preCommit gate) — so every check stays door-backed and no door gained law-free checks.
 
-Reconfirmed by guard-glob-fix on 2026-10-23: scripts/spec-drift.mjs changed (globToRe fix, new memory-claim check), but the grammar decision holds: the Gherkin grammar (CODE_LINE, PIN_COMMENT and friends) still lives solely in scripts/grammar-law.mjs — the guard imports CODE_LINE rather than restating it, and no new grammar constant was introduced.
+- Reconfirmed by guard-glob-fix on 2026-10-23: scripts/spec-drift.mjs changed (globToRe fix, new memory-claim check), but the grammar decision holds: the Gherkin grammar (CODE_LINE, PIN_COMMENT and friends) still lives solely in scripts/grammar-law.mjs — the guard imports CODE_LINE rather than restating it, and no new grammar constant was introduced.
 
-Reconfirmed-by: comments-are-shape-only — doorway banners and ADR-pointer comments removed across scripts/ and lib/; every door still routes editors to the corpus at edit time.
+- Reconfirmed by comments-are-shape-only on 2026-10-23: doorway banners and ADR-pointer comments removed across scripts/ and lib/; every door still routes editors to the corpus at edit time.
 
-Reconfirmed-by: backlog-revalidate — the new refusals and verdicts are pinned by tests/acceptance/backlog-revalidate.test.js driving the real door (loadViaPi on index.ts); no law text restated in code.
+- Reconfirmed by backlog-revalidate on 2026-10-23: the new refusals and verdicts are pinned by tests/acceptance/backlog-revalidate.test.js driving the real door (loadViaPi on index.ts); no law text restated in code.
 
-Reconfirmed-by: gitlab-ci-parity — the parity contract is pinned by tests/acceptance/gitlab-ci-parity.test.js driving the real render (imports lib/templates.mjs, reads the real .gitlab-ci.yml from disk); no law text restated in code, and the new scaffold comments are rendered output, not law.
+- Reconfirmed by gitlab-ci-parity on 2026-10-23: the parity contract is pinned by tests/acceptance/gitlab-ci-parity.test.js driving the real render (imports lib/templates.mjs, reads the real .gitlab-ci.yml from disk); no law text restated in code, and the new scaffold comments are rendered output, not law.
+
+- Reconfirmed by adr-ops on 2026-10-24: scripts/adr-index.mjs joins scripts/grammar-law.mjs as shared door law (the guard and the cdd adrs/reconfirm ops import the same builder and matcher); the walk-up root finding and the A-check semantics in scripts/spec-drift.mjs are unchanged.

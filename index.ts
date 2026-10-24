@@ -16,6 +16,8 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { initStore, createChange, archiveChange } from "./lib/store.mjs";
 import { validateChange, validateStore, formatVerdict } from "./lib/validate.mjs";
 import { ACTIONS, listBacklog, addBacklogItem, resolveBacklogItem, revalidateBacklog } from "./lib/backlog.mjs";
+import { adrsOp, reconfirmOp } from "./lib/adr-ops.mjs";
+import { ADR_STATUSES } from "./scripts/adr-index.mjs";
 import { buildAmbientBlock } from "./lib/context.mjs";
 import { status, statusTable } from "./lib/status.mjs";
 import { CddStatusView } from "./lib/status-ui.ts";
@@ -114,6 +116,28 @@ const OPS_DOC = {
         status: { type: "string", enum: ["open", "watch", "done", "won't-do", "seeded-into-change"], description: "default open (add); required (resolve)" },
         change: { type: "string", description: "adopting change name (required for seeded-into-change)" },
         note: { type: "string", description: "free-form context" },
+      },
+    },
+  },
+  adrs: {
+    description: `adrs discovers the store's decisions in cdd/decisions/: a table of every ADR (id, title, status, code globs), a status filter, and a --code reverse lookup. Statuses: ${ADR_STATUSES.join(", ")} — an unknown value refuses with a nearest-match hint. --code <path> returns every governing ADR (accepted, id order) for a file or directory; paths normalize (./, absolute) and paths outside the store root refuse.`,
+    parameters: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: [...ADR_STATUSES], description: "filter the table by status" },
+        code: { type: "string", description: "reverse lookup: a file or directory path inside the store root" },
+      },
+    },
+  },
+  reconfirm: {
+    description: 'reconfirm records decision reconfirmation: appends "- Reconfirmed by <change> on <date>: <evidence>" to an ADR. Defaults to the open change; --change <name> works post-archive (the lawful path for reconfirmations that cannot ride an archive commit). Refuses superseded ADRs (suggests the supersede path), unknown ids, missing evidence, and a change that already reconfirmed the ADR. --check pre-flights: ADRs whose claimed files moved since their latest reconfirmation, for the open change.',
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: 'ADR id, e.g. "ADR-0008"' },
+        change: { type: "string", description: "change name; defaults to the open change, required post-archive" },
+        evidence: { type: "string", description: "one line: why the decision still holds" },
+        check: { type: "boolean", description: "pre-flight moved claims instead of appending" },
       },
     },
   },
@@ -275,11 +299,11 @@ export default function cddExtension(pi: ExtensionAPI) {
     name: "cdd",
     label: "cdd",
     description:
-      "Contract-driven development. init scaffolds the store per project. new scaffolds change artifacts to fill. validate: draft checks structure; strict adds Verified-by pin checks; no name → whole store. status lists open changes. archive merges deltas into the living spec, moves it to the archive; strict green first. backlog triages process findings in cdd/backlog.md. help lists per-op params.",
+      "Contract-driven development. init scaffolds the store per project. new scaffolds change artifacts to fill. validate: draft checks structure; strict adds Verified-by pin checks; no name → whole store. status lists open changes. archive merges deltas into the living spec, moves it to the archive; strict green first. backlog triages process findings in cdd/backlog.md. adrs lists ADRs and their code claims (status filter, --code reverse lookup). reconfirm records ADR reconfirmation lines; --check pre-flights moved claims. help lists per-op params.",
     parameters: {
       type: "object",
       properties: {
-        op: { type: "string", enum: ["init", "new", "validate", "status", "archive", "backlog", "help"] },
+        op: { type: "string", enum: ["init", "new", "validate", "status", "archive", "backlog", "adrs", "reconfirm", "help"] },
         name: { type: "string", description: "change name, kebab-case" },
         options: { type: "string", description: 'extra params as JSON, e.g. {"mode":"strict"}' },
       },
@@ -362,6 +386,19 @@ export default function cddExtension(pi: ExtensionAPI) {
             return r.ok ? result(r.text, { ok: true, items: r.items }) : fail(r.error);
           }
           return fail(`unknown action ${JSON.stringify(action)} (allowed: ${ACTIONS.join(", ")})`);
+        }
+        case "adrs": {
+          const o = parseOptions(params.options, ["status", "code"]);
+          if (!o.ok) return fail(o.error);
+          const r = adrsOp(ctx.cwd, o.value);
+          return r.ok ? result(r.text, { ok: true }) : fail(r.error);
+        }
+        case "reconfirm": {
+          const o = parseOptions(params.options, ["id", "change", "evidence", "check"]);
+          if (!o.ok) return fail(o.error);
+          const id = o.value.id !== undefined ? o.value.id : params.name;
+          const r = reconfirmOp(ctx.cwd, { ...o.value, id });
+          return r.ok ? result(r.text, { ok: true }) : fail(r.error);
         }
         case "help":
           return result(

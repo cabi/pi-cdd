@@ -69,14 +69,14 @@ await check("T1", "one lean `cdd` tool registered at load; list cannot change mi
   const t = api.tools[0];
   assert(t.name === "cdd", `tool name: ${t.name}`);
   assert(typeof t.prepareArguments === "function", "prepareArguments missing");
-  assert(t.parameters.properties.op.enum.length === 7, "op enum must list all seven ops");
+  assert(t.parameters.properties.op.enum.length === 9, "op enum must list all nine ops");
   assert(JSON.stringify(t.parameters.required) === '["op"]', "only op is required");
   assert(api.commands.length === 5, `expected 5 commands, got ${api.commands.length}`);
   assert(api.events["before_agent_start"], "ambient hook not registered");
   assert(api.setActiveToolsCalls === 0, "extension must never call setActiveTools");
-  // lean budget: name + description + parameters ≤ 700 chars (~175 tok)
+  // lean budget: name + description + parameters ≤ 900 chars (~225 tok, nine ops)
   const chars = t.name.length + t.description.length + JSON.stringify(t.parameters).length;
-  assert(chars <= 700, `declaration is ${chars} chars (budget 700)`);
+  assert(chars <= 900, `declaration is ${chars} chars (budget 900, nine ops)`);
   // no emphasis shouting, no prose that only OPS_DOC should carry
   assert(!/MUST|NEVER|[A-Z]{4,}/.test(t.description), `description has shouting/duplication: ${t.description}`);
   for (const dup of ["drift guard", "ADDED appends", "github", "PASS or FAIL"]) {
@@ -271,7 +271,7 @@ await check("T3g", "op help returns the full per-op parameters (nothing trimmed 
     assert(t.includes(frag), `help missing parameter fragment: ${frag}`);
   }
   const doc = r.details;
-  for (const op of ["init", "new", "validate", "status", "archive", "backlog"]) {
+  for (const op of ["init", "new", "validate", "status", "archive", "backlog", "adrs", "reconfirm"]) {
     assert(doc[op] && doc[op].description && doc[op].parameters, `help details missing op ${op}`);
   }
   assert(/options JSON string/.test(t), "help must say how to pass the parameters");
@@ -292,6 +292,32 @@ await check("T3h", "op backlog add/list/resolve round-trips through the library"
   r = await call({ op: "backlog", options: '{"action":"purge"}' }, bo.root);
   assert(r.isError && /unknown action.*allowed: list, add, resolve, revalidate/.test(textOf(r)), textOf(r));
   bo.dispose();
+});
+
+await check("T3i", "op adrs round-trips through the library (typo hint included)", async () => {
+  let r = await call({ op: "adrs" }, sb.root);
+  assert(!r.isError, textOf(r));
+  r = await call({ op: "adrs", options: '{"status":"drafed"}' }, sb.root);
+  assert(r.isError && /did you mean: --status draft/.test(textOf(r)), textOf(r));
+  assert(/allowed: accepted, superseded, draft, proposed/.test(textOf(r)), textOf(r));
+});
+
+await check("T3j", "op reconfirm round-trips through the library; tie rule pinned on a synthetic vocabulary", async () => {
+  let r = await call({ op: "reconfirm", options: '{"id":"ADR-0001","evidence":"fixture"}' }, sb.root);
+  assert(r.isError && /unknown ADR id \"ADR-0001\"/.test(textOf(r)), textOf(r));
+  const rc = sandbox();
+  await call({ op: "init" }, rc.root);
+  await call({ op: "new", name: "rc-op" }, rc.root);
+  r = await call({ op: "reconfirm", options: '{"check":true}' }, rc.root);
+  assert(!r.isError, textOf(r));
+  rc.dispose();
+  const { statusRefusal } = await import(path.join(REPO, "lib", "adr-ops.mjs"));
+  // synthetic vocabulary: the hint rule must not depend on the real ADR_STATUSES
+  const near = statusRefusal("xeta", ["beta", "gamma"]);
+  assert(/did you mean: --status beta/.test(near) && !/ambiguous/.test(near), near);
+  const tie = statusRefusal("cd", ["ad", "bd"]);
+  assert(/ambiguous: ad, bd/.test(tie) && !/did you mean/.test(tie), tie);
+  assert(/^unknown status "cd" \(allowed: ad, bd\)/.test(tie), tie);
 });
 
 // --- T4: clear errors for ambiguous calls --------------------------------------

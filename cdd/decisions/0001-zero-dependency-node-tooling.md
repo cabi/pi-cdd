@@ -10,4 +10,6 @@ The guard and the Phase 0 extractors are plain Node scripts over `fs` and `git` 
 
 In pi-cdd the extension itself may use the pi runtime (it runs inside pi by definition), but everything it copies into an adopting project — guard, extractors, CI templates — keeps this ADR: zero-dependency Node at every verification door.
 
-Reconfirmed-by: comments-are-shape-only — scripts/*.mjs headers compressed to shape-only; zero-dependency tooling unchanged.
+- Reconfirmed by comments-are-shape-only on 2026-10-23: scripts/*.mjs headers compressed to shape-only; zero-dependency tooling unchanged.
+
+- Reconfirmed by adr-ops on 2026-10-24: spec-drift refactor moves the claims index + matcher to scripts/adr-index.mjs and grows A1/A2 remedy text — the memory-claim checks themselves are unchanged

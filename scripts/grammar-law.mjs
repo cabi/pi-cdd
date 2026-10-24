@@ -104,6 +104,10 @@ export const ISSUE_LINE = /^\s*\[/;
 /** The Code-glob line: `Code: <globs>` (optionally a list item). Global — use with matchAll. */
 export const CODE_LINE = /^\s*(?:-\s+)?Code:\s*(.+)$/gm;
 
+/** The mechanical-commit marker: commits whose message matches never advance
+ * either side of a staleness clock (guard and ops agree on it via import). */
+export const MECH_GREP = '^Mechanical-Change:|^\\[mechanical\\]';
+
 /**
  * Extract every `gherkin` fence from markdown text.
  * Returns [{ body, line, closed }] where `line` is the 1-based absolute line

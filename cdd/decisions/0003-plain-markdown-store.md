@@ -14,4 +14,4 @@ Reasons:
 
 Consequence: the extension's store layer is a thin `fs` module, and any future format change is an ADR plus a migration note — never a silent version bump.
 
-Reconfirmed-by: comments-are-shape-only — lib/store.mjs lesson prose and pointer comments removed; the plain-markdown store unchanged.
+- Reconfirmed by comments-are-shape-only on 2026-10-23: lib/store.mjs lesson prose and pointer comments removed; the plain-markdown store unchanged.

@@ -49,70 +49,30 @@ wraps — or RW5 breaks; and the module is now a shared dependency of five
 surfaces (templates, instructions, context, help, tests), so renaming an
 export is no longer local.
 
-Reconfirmed by reviewer-not-author on 2026-10-21: rule 2b joins rules 2/2a
-as canonical text in lib/loop-law.mjs, byte-pinned to cdd/rules.md like the
-rest of the law; the reviewer-independence facts (REVIEWER_INDEPENDENCE,
-FINDINGS_GRAMMAR.reviewerForms) extend the module this ADR rules
-single-source, and the three skills cite the law without restating it.
+- Reconfirmed by reviewer-not-author on 2026-10-21: rule 2b joins rules 2/2a as canonical text in lib/loop-law.mjs, byte-pinned to cdd/rules.md like the rest of the law; the reviewer-independence facts (REVIEWER_INDEPENDENCE, FINDINGS_GRAMMAR.reviewerForms) extend the module this ADR rules single-source, and the three skills cite the law without restating it.
 
-Reconfirmed by acceptance-wiring on 2026-10-21: the new rule 7 sentence
-is authored once, in lib/templates.mjs's RULES_MD, and byte-mirrored to
-cdd/rules.md (SSL3 byte-identity re-verified green); rule 7 stays literal
-text in the template, outside lib/loop-law.mjs's scope (chain, review
-points, grammar) exactly as this ADR draws it.
+- Reconfirmed by acceptance-wiring on 2026-10-21: the new rule 7 sentence is authored once, in lib/templates.mjs's RULES_MD, and byte-mirrored to cdd/rules.md (SSL3 byte-identity re-verified green); rule 7 stays literal text in the template, outside lib/loop-law.mjs's scope (chain, review points, grammar) exactly as this ADR draws it.
 
-Reconfirmed by pin-law-rename on 2026-10-21: the grammar-law module
-rename does not touch lib/loop-law.mjs or any loop-law template text; the
-single-source seam this ADR records is unchanged.
+- Reconfirmed by pin-law-rename on 2026-10-21: the grammar-law module rename does not touch lib/loop-law.mjs or any loop-law template text; the single-source seam this ADR records is unchanged.
 
-Reconfirmed by runner-ergonomics on 2026-10-21: the reworded trigger and
-the decisions-split sentences render from lib/loop-law.mjs through every
-surface (rules text, scaffold 4.2 line, ambient block, /cdd-help); the
-cdd/rules.md mirror was rewritten deliberately because an existing store
-keeps its rules.md — single-sourcing is unchanged, not weakened.
+- Reconfirmed by runner-ergonomics on 2026-10-21: the reworded trigger and the decisions-split sentences render from lib/loop-law.mjs through every surface (rules text, scaffold 4.2 line, ambient block, /cdd-help); the cdd/rules.md mirror was rewritten deliberately because an existing store keeps its rules.md — single-sourcing is unchanged, not weakened.
 
-Reconfirmed by loop-law-hardening on 2026-10-22: the rule 2b and rule 2a
-additions render from lib/loop-law.mjs and the literal rules 11a and 7
-from the RULES_MD template; the cdd/rules.md mirror was rewritten
-deliberately (an existing store keeps its rules.md) — single-sourcing is
-unchanged, byte-identity pinned by the same acceptance suite.
+- Reconfirmed by loop-law-hardening on 2026-10-22: the rule 2b and rule 2a additions render from lib/loop-law.mjs and the literal rules 11a and 7 from the RULES_MD template; the cdd/rules.md mirror was rewritten deliberately (an existing store keeps its rules.md) — single-sourcing is unchanged, byte-identity pinned by the same acceptance suite.
 
-Reconfirmed by backlog-op on 2026-10-22: the literal rule 13 renders from
-the RULES_MD template in lib/templates.mjs, the ops row from lib/help.mjs,
-and the README seven-ops lines from the same source of truth as the tool
-declaration; the cdd/rules.md mirror was rewritten deliberately from
-RULES_MD (an existing store keeps its rules.md) — single-sourcing is
-unchanged, byte-identity still pinned by the single-source-law suite.
+- Reconfirmed by backlog-op on 2026-10-22: the literal rule 13 renders from the RULES_MD template in lib/templates.mjs, the ops row from lib/help.mjs, and the README seven-ops lines from the same source of truth as the tool declaration; the cdd/rules.md mirror was rewritten deliberately from RULES_MD (an existing store keeps its rules.md) — single-sourcing is unchanged, byte-identity still pinned by the single-source-law suite.
 
-Reconfirmed by adr-dir-migration on 2026-10-22: rule 2a's
-decisions-directory sentence is rewritten at its single source
-(lib/loop-law.mjs, rendered through RULES_MD) to state the one decisions
-home — every ADR lives in cdd/decisions/; the README layout row states
-the same truth, and the cdd/rules.md mirror was rewritten deliberately
-from RULES_MD (byte-identity still pinned by the single-source-law
-suite). Single-sourcing is unchanged.
+- Reconfirmed by adr-dir-migration on 2026-10-22: rule 2a's decisions-directory sentence is rewritten at its single source (lib/loop-law.mjs, rendered through RULES_MD) to state the one decisions home — every ADR lives in cdd/decisions/; the README layout row states the same truth, and the cdd/rules.md mirror was rewritten deliberately from RULES_MD (byte-identity still pinned by the single-source-law suite). Single-sourcing is unchanged.
 
-Reconfirmed by design-docs on 2026-10-23: rule 2c is defined once in
-lib/loop-law.mjs (lawRule2c) and rendered into RULES_MD between rules 2b
-and 3; cdd/rules.md moved only by the deliberate mirror regeneration and
-stays byte-identical (pinned by DD8/DD9 alongside the single-source-law
-suite). No second statement of the rule exists — briefs and the SKILL
-charter cite it.
+- Reconfirmed by design-docs on 2026-10-23: rule 2c is defined once in lib/loop-law.mjs (lawRule2c) and rendered into RULES_MD between rules 2b and 3; cdd/rules.md moved only by the deliberate mirror regeneration and stays byte-identical (pinned by DD8/DD9 alongside the single-source-law suite). No second statement of the rule exists — briefs and the SKILL charter cite it.
 
-Reconfirmed by r3-findings on 2026-10-23: the per-axis paths are defined
-once as findingsStandards/findingsSpec on the R3 review point in
-lib/loop-law.mjs and render from it into the law text, the statement
-surfaces, and the byte-identical cdd/rules.md mirror (pinned by the
-r3-findings and single-source-law suites) — no second statement of the
-rule exists; briefs and the SKILL charter cite it.
+- Reconfirmed by r3-findings on 2026-10-23: the per-axis paths are defined once as findingsStandards/findingsSpec on the R3 review point in lib/loop-law.mjs and render from it into the law text, the statement surfaces, and the byte-identical cdd/rules.md mirror (pinned by the r3-findings and single-source-law suites) — no second statement of the rule exists; briefs and the SKILL charter cite it.
 
-Reconfirmed by law-guard-fixes on 2026-10-23: lawRule3() is defined once
-in lib/loop-law.mjs, renders into RULES_MD, and cdd/rules.md is written as
-its byte-identical mirror — pinned byte-exact by LDW2 (r3store ===
-r3render) — no second statement of the rule exists.
+- Reconfirmed by law-guard-fixes on 2026-10-23: lawRule3() is defined once in lib/loop-law.mjs, renders into RULES_MD, and cdd/rules.md is written as its byte-identical mirror — pinned byte-exact by LDW2 (r3store === r3render) — no second statement of the rule exists.
 
-Reconfirmed-by: comments-are-shape-only — lib/loop-law.mjs header banners removed; the loop law stays single-sourced in cdd/rules.md.
+- Reconfirmed by comments-are-shape-only on 2026-10-23: lib/loop-law.mjs header banners removed; the loop law stays single-sourced in cdd/rules.md.
 
-Reconfirmed-by: backlog-revalidate — rule 13's reworded sentence is authored once in RULES_MD and byte-mirrored to cdd/rules.md (an existing store keeps its rules.md — the mirror rewrite is deliberate); single-sourcing unchanged, byte-identity still pinned by the single-source suite.
+- Reconfirmed by backlog-revalidate on 2026-10-23: rule 13's reworded sentence is authored once in RULES_MD and byte-mirrored to cdd/rules.md (an existing store keeps its rules.md — the mirror rewrite is deliberate); single-sourcing unchanged, byte-identity still pinned by the single-source suite.
 
-Reconfirmed-by: gitlab-ci-parity — CI_GITLAB grows in lib/templates.mjs only; the root .gitlab-ci.yml stays a byte-identical dogfood mirror of the render, now pinned byte-exact by GL6 — the same single-source mirror pattern as RULES_MD ↔ cdd/rules.md; no rule text duplicated.
+- Reconfirmed by gitlab-ci-parity on 2026-10-23: CI_GITLAB grows in lib/templates.mjs only; the root .gitlab-ci.yml stays a byte-identical dogfood mirror of the render, now pinned byte-exact by GL6 — the same single-source mirror pattern as RULES_MD ↔ cdd/rules.md; no rule text duplicated.
+
+- Reconfirmed by adr-ops on 2026-10-24: lib/templates.mjs changes only the DOOR_SCRIPTS list; the loop-law facts in lib/loop-law.mjs are untouched and this change's review-point answers (R1, R2) were read from them unchanged.
