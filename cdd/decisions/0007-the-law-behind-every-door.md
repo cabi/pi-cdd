@@ -67,3 +67,4 @@ law behind every door).
 - Reconfirmed by claim-map on 2026-10-24: the claim map joins the single-law scheme — derived once in scripts/adr-index.mjs, both doors import it, DOOR_SCRIPTS stays five, store copy travels (ADR-0013)
 - Reconfirmed by ops-registry on 2026-10-24: the op registry adds no door and moves no law: scripts/ untouched, guard and validator byte-identical, and the op-surface agreement is pinned by tests/acceptance/ops-registry.test.js driving the real tool
 - Reconfirmed by decision-scan-unify on 2026-10-24: the decision scan joins the single-law scheme: derived once behind explicit flags in scripts/adr-index.mjs, the extractor imports it and holds no private walk, DOOR_SCRIPTS stays five
+- Reconfirmed by 20261024-scaffold-honesty on 2026-10-24: no new law module: the comment mask lives inside validateProposal in lib/validate.mjs, one verdict for every door that calls it — change 20261024-scaffold-honesty

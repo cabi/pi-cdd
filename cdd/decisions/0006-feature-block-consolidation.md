@@ -83,3 +83,4 @@ the current format.
 - Reconfirmed by spec-model on 2026-10-24: spec-model re-pointed the guard to the law model; pins stay fence-interior comments, one dialect (SM1)
 - Reconfirmed by guard-pure-checks on 2026-10-24: pins stay "# Verified by:" comments inside the gherkin fence; the restructure moved no pin and touched no fence grammar (validate strict green)
 - Reconfirmed by claim-map on 2026-10-24: scripts/spec-drift.mjs keeps its feature-block structure — the claim map enters through the existing gather pass and pure checks read facts.claimMap
+- Reconfirmed by 20261024-scaffold-honesty on 2026-10-24: delta keeps one Feature fence per requirement with pin comments inside; the RULES_MD edit adds a rule-7 sentence only — change 20261024-scaffold-honesty, S39/SH pins green

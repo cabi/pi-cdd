@@ -68,3 +68,4 @@ a later door wanting verdict-shaped reviews must supersede this ADR.
 
 - Reconfirmed by adr-ops on 2026-10-24: lib/templates.mjs changes only the DOOR_SCRIPTS list (adr-index.mjs travels to adopting stores beside the other door scripts); every review-artifact scaffold and advisory-findings text is byte-untouched.
 - Reconfirmed by ops-registry on 2026-10-24: R3 ran cold and non-author; its findings stayed advisory with dispositions recorded, never verdicts
+- Reconfirmed by 20261024-scaffold-honesty on 2026-10-24: R2 + R3 ran as cold advisory reviews (opencode-zen/gpt-6-luna, family ≠ author zai); all findings disposed in the findings files, deterministic validators kept gate authority — change 20261024-scaffold-honesty

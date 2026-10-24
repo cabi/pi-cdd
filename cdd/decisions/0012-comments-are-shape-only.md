@@ -79,3 +79,4 @@ sweep, and landed the pins. cdd-adr-review runs on this ADR at Close.
 - Reconfirmed by claim-map on 2026-10-24: lib/adr-ops.mjs comments document shape — module header and reworked op flow state contracts, no history narration
 - Reconfirmed by ops-registry on 2026-10-24: moved comments stayed shape-only: the ops.mjs header dropped its corpus claim and test comments dropped their history
 - Reconfirmed by decision-scan-unify on 2026-10-24: the scan's comments stay shape-of-code — region comments name the walk, filter, and parse, no history narration (R3 standards reviewed)
+- Reconfirmed by 20261024-scaffold-honesty on 2026-10-24: R3 standards findings disposed: validate.mjs and test comments reduced to shape-only notes, no behavior law in comments — change 20261024-scaffold-honesty

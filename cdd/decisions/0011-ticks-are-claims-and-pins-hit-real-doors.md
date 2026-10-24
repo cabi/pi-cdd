@@ -71,3 +71,4 @@ duty was dogfooded twice during the change itself.
 - Reconfirmed by gitlab-ci-parity on 2026-10-23: every tick in tasks.md cites its evidence (RED shown before green, green tails recorded); the new pin hits the real render and the real disk copy, mutation-verified by the R3 spec reviewer.
 
 - Reconfirmed by adr-ops on 2026-10-24: lib/templates.mjs changes only the DOOR_SCRIPTS list — the RULES_MD law block is byte-untouched; every tick in this change keeps its exact verify-by command and the new pins drive real doors (RED evidence recorded before green).
+- Reconfirmed by 20261024-scaffold-honesty on 2026-10-24: S39 drives validateChange through real imports on a sandbox store; SH1/SH2 read the real RULES_MD and cdd/rules.md; every tick cites red-records.md evidence — change 20261024-scaffold-honesty
