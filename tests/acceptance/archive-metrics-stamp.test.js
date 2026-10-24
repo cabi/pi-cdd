@@ -3,9 +3,8 @@
 // commits, 7-layout reviews fixture, red-records present. Fixture B: non-git
 // store, lying declared-counts file, zero-severity file. Fixture C: read-only
 // pre-existing metrics.md forces a total stamp failure. Fixture D: git store
-// with exactly 1 path commit (the elapsed boundary). All checks are observed
-// red before the stamp module exists; the red outputs live in the change
-// folder's red-records file.
+// with exactly 1 path commit (the elapsed boundary). Fixture E: unreadable
+// reviews file forces a derivation failure before the write.
 
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -137,8 +136,7 @@ const tasksText = (tick31) => `# T
 - [ ] 4.1 c
 `;
 
-// The seven findings layouts observed in the archive corpus (phase 0,
-// research/2026-10-24-archive-metrics.md Method) — one file each.
+// One findings-layout fixture per counted row shape.
 const LAYOUTS = {
   "r2-change-review.md": `# r2
 |severity|finding|evidence|disposition|
@@ -176,6 +174,8 @@ const LAYOUTS = {
   "adr-review.md": `# adr
 
 ### should — ADR-0007 missing trade-off — DISPOSED fixed
+
+## Counts: blocker 0, should 1, note 0
 `,
   "r2-voided-run1.md": `# r2 voided run
 
@@ -252,6 +252,16 @@ fs.writeFileSync(
 **Counts:** 0 blocker, 0 should, 0 note
 `,
 );
+fs.writeFileSync(
+  path.join(BReviews, "r3-spec-code-review.md"),
+  `# r3-spec
+|severity|finding|evidence|disposition|
+|---|---|---|---|
+|should|d|p:4|fixed: done|
+
+## Counts: blocker 0, should 0, note 0
+`,
+);
 fs.writeFileSync(path.join(BReviews, "r1-proposal-review.md"), "# r1\n\nNo findings this run.\n");
 const vB = val.validateChange(B.root, "stamp-me", "strict");
 assert(vB.ok, "fixture B must be strict-valid: " + val.formatVerdict(vB));
@@ -267,6 +277,16 @@ const vC = val.validateChange(C.root, "stamp-me", "strict");
 assert(vC.ok, "fixture C must be strict-valid: " + val.formatVerdict(vC));
 const rC = lib.archiveChange(C.root, "stamp-me");
 
+// --- fixture E: derivation itself throws (unreadable reviews file) ---------
+
+const E = buildStore({ git: false });
+fs.mkdirSync(path.join(E.dir, "reviews"), { recursive: true });
+fs.writeFileSync(path.join(E.dir, "reviews", "r2-change-review.md"), "## Counts\n\n0 blocker, 0 should, 0 note\n");
+fs.chmodSync(path.join(E.dir, "reviews", "r2-change-review.md"), 0o000);
+const vE = val.validateChange(E.root, "stamp-me", "strict");
+assert(vE.ok, "fixture E must be strict-valid: " + val.formatVerdict(vE));
+const rE = lib.archiveChange(E.root, "stamp-me");
+
 // --- fixture D: git store with exactly 1 path commit (elapsed boundary) -----
 
 const D = buildStore({ git: true });
@@ -276,7 +296,7 @@ assert(vD.ok, "fixture D must be strict-valid: " + val.formatVerdict(vD));
 const rD = lib.archiveChange(D.root, "stamp-me");
 const stampD = readStamp(D.root, rD.archivedTo);
 
-// --- M1: the stamp lands in the archive folder ------------------------------
+// --- M1 ------------------------------------------------------------
 
 await check("M1", "archive writes metrics.md with the spec-strength block", () => {
   assert(rA.ok, "archive failed: " + JSON.stringify(rA));
@@ -289,7 +309,7 @@ await check("M1", "archive writes metrics.md with the spec-strength block", () =
   assert(/^subtasks: 5$/m.test(stampA), "subtasks not 5:\n" + stampA);
 });
 
-// --- M2: counts equal direct counts; single parse import ---------------------
+// --- M2 ------------------------------------------------------------
 
 await check("M2", "stamped counts equal direct counts and ride the single parse", () => {
   const proposal = proposalText();
@@ -307,10 +327,12 @@ await check("M2", "stamped counts equal direct counts and ride the single parse"
   assert(/^done-whens: 2$/m.test(stampA) && /^non-goals: 3$/m.test(stampA), "count drift vs direct counts:\n" + stampA);
   const src = fs.readFileSync(path.join(REPO, "lib", "metrics.mjs"), "utf8");
   assert(/from "\.\.\/scripts\/grammar-law\.mjs"/.test(src), "lib/metrics.mjs does not import the canonical grammar-law single parse");
+  assert(src.includes("parseSpecModel(") && /model\.ops/.test(src), "delta counts do not consume the canonical parseSpecModel result");
+  assert(!src.includes("### Requirement:"), "lib/metrics.mjs privately regex-counts requirements instead of using the single parse");
   assert(typeof metricsMod?.deriveStamp === "function", "lib/metrics.mjs does not export deriveStamp");
 });
 
-// --- M3: review yield counts every observed layout ---------------------------
+// --- M3 ------------------------------------------------------------
 
 await check("M3", "all 7 findings layouts counted, one format-version line, zero-row file is 0", () => {
   const line = (f) => stampA.split("\n").find((l) => l.startsWith(f)) ?? "";
@@ -325,20 +347,25 @@ await check("M3", "all 7 findings layouts counted, one format-version line, zero
   assert(/^red-records: present$/m.test(stampA), "red-records presence not stamped");
   assert(/r1-proposal-review\.md:.*0 findings/.test(stampB) || /blocker 0 \/ should 0 \/ note 0/.test(stampB.split("\n").find((l) => l.startsWith("r1-proposal-review.md:")) ?? ""),
     "zero-severity file did not contribute 0 in fixture B:\n" + stampB);
+  assert(!/^declared-counts-mismatch:/m.test(stampA), "truthful declared counts (word-first inline heading) produced a false mismatch:\n" + stampA);
 });
 
-// --- M4: a declared count that lies is stamped as a mismatch -----------------
+// --- M4 ------------------------------------------------------------
 
-await check("M4", "lying declared counts yield exactly 1 mismatch line; parsed numbers win", () => {
+await check("M4", "lying declared counts (bold line and inline heading) yield exactly 2 mismatch lines; parsed numbers win", () => {
   const mismatches = stampB.split("\n").filter((l) => /^declared-counts-mismatch:/.test(l));
-  assert(mismatches.length === 1, "not exactly 1 mismatch line:\n" + stampB);
-  assert(/r2-change-review\.md/.test(mismatches[0]), "mismatch line does not name the file");
+  assert(mismatches.length === 2, "not exactly 2 mismatch lines:\n" + stampB);
+  assert(/r2-change-review\.md/.test(mismatches[0]), "bold-line mismatch missing: " + mismatches.join(" | "));
+  assert(/r3-spec-code-review\.md/.test(mismatches[1]), "inline-heading mismatch missing: " + mismatches.join(" | "));
   assert(/0 blocker, 0 should, 0 note/.test(mismatches[0]) && /1 blocker, 2 should, 0 note/.test(mismatches[0]),
     "mismatch line does not carry declared vs parsed numbers: " + mismatches[0]);
+  assert(/0 blocker, 0 should, 0 note/.test(mismatches[1]) && /0 blocker, 1 should, 0 note/.test(mismatches[1]),
+    "inline mismatch does not carry declared vs parsed numbers: " + mismatches[1]);
   assert(/r2-change-review\.md:.*blocker 1 \/ should 2 \/ note 0.*fixed 1 \/ open 1 \/ won't-fix 1/.test(stampB), "review-yield did not use parsed numbers:\n" + stampB);
+  assert(/r3-spec-code-review\.md:.*blocker 0 \/ should 1 \/ note 0/.test(stampB), "inline-file yield line missing:\n" + stampB);
 });
 
-// --- M5: git facts carry their as-of-stamp label -----------------------------
+// --- M5 ------------------------------------------------------------
 
 await check("M5", "3 labeled derivable git facts, beyond-2-norm omitted-with-reason, honest gaps named", () => {
   assert(/^commits-before-archive: 3 \(as-of-stamp\)$/m.test(stampA), "commits-before-archive not 3 as-of-stamp:\n" + stampA);
@@ -355,7 +382,7 @@ await check("M5", "3 labeled derivable git facts, beyond-2-norm omitted-with-rea
   assert(/session-token cost/.test(gaps), "honest gaps missing session-token cost");
 });
 
-// --- M6: an underivable field states its reason ------------------------------
+// --- M6 ------------------------------------------------------------
 
 await check("M6", "non-git store stamps git fields not-derivable, never estimated", () => {
   assert(rB.ok, "non-git archive failed: " + JSON.stringify(rB));
@@ -368,13 +395,22 @@ await check("M6", "non-git store stamps git fields not-derivable, never estimate
   assert(/r2-change-review\.md:/.test(stampB), "review yield lost its numbers in the non-git store");
 });
 
-// --- M7: a total stamp failure never gates the archive ------------------------
+// --- M7 ------------------------------------------------------------
 
 await check("M7", "total stamp failure archives anyway with stamped:false + reason", () => {
   assert(rC.ok, "archive failed under stamp failure: " + JSON.stringify(rC));
   assert(fs.readdirSync(path.join(C.root, "cdd", "archive"))[0].endsWith("-stamp-me"), "archive folder missing after stamp failure");
   assert(rC.metrics && rC.metrics.stamped === false, "result missing stamped:false: " + JSON.stringify(rC.metrics ?? null));
   assert(typeof rC.metrics?.reason === "string" && rC.metrics.reason.length > 0, "stamp failure reason missing");
+  assert(Array.isArray(rC.merged) && rC.merged.length === 1 && /ADDED cap :: Fixture requirement/.test(rC.merged[0]),
+    "merge result lost under stamp failure: " + JSON.stringify(rC.merged));
+  const livingC = fs.readFileSync(path.join(C.root, "cdd", "specs", "cap", "spec.md"), "utf8");
+  assert(livingC.includes("### Requirement: Fixture requirement"), "living spec missing the merged requirement under stamp failure");
+  assert(rE.ok, "archive failed under derivation failure: " + JSON.stringify(rE));
+  assert(rE.metrics?.stamped === false && /EACCES/.test(String(rE.metrics?.reason)), "derivation failure not surfaced: " + JSON.stringify(rE.metrics ?? null));
+  const archivedE = fs.readdirSync(path.join(E.root, "cdd", "archive"))[0];
+  assert(archivedE.endsWith("-stamp-me"), "archive folder missing after derivation failure");
+  assert(!fs.existsSync(path.join(E.root, "cdd", "archive", archivedE, "metrics.md")), "a stamp file landed despite derivation failure");
 });
 
 for (const s of sandboxes) rmAll(s);
