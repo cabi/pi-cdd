@@ -9,10 +9,10 @@ Every ADR lives in `cdd/decisions/` — 0001–0007 the product decisions reloca
 ```gherkin
 Feature: Product ADRs live in the store's decisions home
 
-Scenario: The store holds exactly the twelve ADRs
+Scenario: The store holds exactly the thirteen ADRs
   Given a repository whose product ADRs 0001 through 0007 were moved into the store
   When the decisions home is listed
-  Then it holds exactly the 12 ADRs numbered 0001 through 0012 and the repository root holds no decisions directory
+  Then it holds exactly the 13 ADRs numbered 0001 through 0013 and the repository root holds no decisions directory
   # Verified by: tests/acceptance/decisions-home.test.js
 
 Scenario: A relocated ADR keeps its history through the move
@@ -23,14 +23,14 @@ Scenario: A relocated ADR keeps its history through the move
 
 Scenario: Relocated ADR statuses sit in the guard's enum
   Given a repository whose product ADRs 0001 through 0007 were moved into the store
-  When the frontmatter status of each of the 12 ADRs is read
+  When the frontmatter status of each of the 13 ADRs is read
   Then each is exactly one of accepted, superseded, draft, or proposed
   # Verified by: tests/acceptance/decisions-home.test.js
 
-Scenario: The door 3 full scan governs all twelve ADRs
+Scenario: The door 3 full scan governs all thirteen ADRs
   Given a repository whose product ADRs 0001 through 0007 were moved into the store
   When the door 3 full scan runs
-  Then it exits 0 with no A-check finding naming any of the 12 ADRs
+  Then it exits 0 with no A-check finding naming any of the 13 ADRs
   # Verified by: tests/acceptance/decisions-home.test.js
 
 ```
@@ -39,31 +39,31 @@ Code: tests/acceptance/decisions-home.test.js
 
 ### Requirement: The adrs op discovers governing decisions
 
-The cdd tool's adrs op lists every ADR from the shared claims index (id, title, status, code globs), filters by status using the shared vocabulary, and answers a code path with every accepted ADR whose globs claim it, ordered by id. An unknown status refuses listing the shared vocabulary's statuses with a nearest-match hint (edit distance at most 2, or an unambiguous prefix; an ambiguous tie lists the candidates and hints nothing). Paths normalize before matching: a leading `./` is stripped, an absolute path is relativized against the store root, and a path outside the root refuses. A directory answers every accepted ADR governing at least 1 claimed file under it, stating that semantics. An empty answer carries the remedy hint to run `cdd adrs` for all claims.
+The cdd tool's adrs op lists every ADR from the shared claims index (id, title, status, code globs), filters by status using the shared vocabulary, and answers a code path with every accepted ADR whose globs claim it, ordered by id. An unknown status refuses listing the shared vocabulary's statuses with a nearest-match hint (edit distance at most 2, or an unambiguous prefix; an ambiguous tie lists the candidates and hints nothing). Paths normalize before matching: a leading `./` is stripped, an absolute path is relativized against the store root, and a path outside the root refuses. A directory answers every accepted ADR governing at least 1 claimed file under it, stating that semantics. An empty answer carries the remedy hint to run `cdd adrs` for all claims. Single-path governing answers (including paths not among the tracked files) come from the claim map's per-path governing query; directory answers and open-delta claims come from the same map — the op holds no glob translation, no private claiming loop, and no restated `Code:`-line scan, and open-delta specs are read with the shared spec parse.
 
 ```gherkin
 Feature: The adrs op discovers governing decisions
 
 Scenario: The unfiltered table lists every ADR
-  Given the repository's store holding its 12 ADRs
+  Given the repository's store holding its 13 ADRs
   When the cdd tool runs op adrs with no options
-  Then the answer lists all 12 ADRs in id order, each with its id, its title, its status, and its code globs
+  Then the answer lists all 13 ADRs in id order, each with its id, its title, its status, and its code globs
   # Verified by: tests/acceptance/adr-ops.test.js
 
 Scenario: The status filter narrows to matching ADRs
-  Given the repository's store holding its 12 ADRs with exactly 1 superseded ADR
+  Given the repository's store holding its 13 ADRs with exactly 1 superseded ADR
   When the cdd tool runs op adrs with status superseded
   Then the answer lists exactly 1 ADR, the superseded one, and no other
   # Verified by: tests/acceptance/adr-ops.test.js
 
 Scenario: An unknown status by edit distance refuses with a hint
-  Given the repository's store holding its 12 ADRs
+  Given the repository's store holding its 13 ADRs
   When the cdd tool runs op adrs with status drafed
   Then the tool answers with exactly 1 error listing exactly the 4 shared statuses and hinting "did you mean: --status draft"
   # Verified by: tests/acceptance/adr-ops.test.js
 
 Scenario: An unambiguous prefix refuses with a hint
-  Given the repository's store holding its 12 ADRs
+  Given the repository's store holding its 13 ADRs
   When the cdd tool runs op adrs with status prop
   Then the tool answers with exactly 1 error listing exactly the 4 shared statuses and hinting "did you mean: --status proposed"
   # Verified by: tests/acceptance/adr-ops.test.js
@@ -109,7 +109,7 @@ Code: lib/adr-ops.mjs, tests/acceptance/adr-ops.test.js
 
 ### Requirement: The reconfirm op records decision reconfirmation
 
-The cdd tool's reconfirm op appends the standardized line `- Reconfirmed by <change> on <yyyy-mm-dd>: <evidence>` to an ADR's reconfirmation block, below existing reconfirmation lines. The change name defaults to the sole open change and explicitly accepts an archived change name (post-Close debt has a lawful path); evidence is one required line. The op refuses an unknown id, a superseded ADR (naming the supersede path), a missing change (no open change and none given), an unknown change name (naming the open and archived namespaces), missing or multi-line evidence, and a second reconfirmation of the same ADR by the same change. `--check` lists, for one open change (refusing the ambiguity of several until an explicit change narrows it), every ADR governing a claimed file of that change where the file's last non-mechanical commit date is strictly after the ADR's latest reconfirmation date — or, when never reconfirmed, after the ADR file's own last non-mechanical commit date. A store sweep holds every reconfirmation line in every ADR to the pinned grammar.
+The cdd tool's reconfirm op appends the standardized line `- Reconfirmed by <change> on <yyyy-mm-dd>: <evidence>` to an ADR's reconfirmation block, below existing reconfirmation lines. The change name defaults to the sole open change and explicitly accepts an archived change name (post-Close debt has a lawful path); evidence is one required line. The op refuses an unknown id, a superseded ADR (naming the supersede path), a missing change (no open change and none given), an unknown change name (naming the open and archived namespaces), missing or multi-line evidence, and a second reconfirmation of the same ADR by the same change. `--check` lists, for one open change (refusing the ambiguity of several until an explicit change narrows it), every ADR governing a claimed file of that change where the file's last non-mechanical commit date is strictly after the ADR's latest reconfirmation date — or, when never reconfirmed, after the ADR file's own last non-mechanical commit date. The governed claimed files in `--check` come from the shared claim map built in the claims-index module; the op holds no private claim derivation. A store sweep holds every reconfirmation line in every ADR to the pinned grammar.
 
 ```gherkin
 Feature: The reconfirm op records decision reconfirmation
@@ -173,6 +173,7 @@ Scenario: A new reconfirmation lands below the existing ones
   When the cdd tool runs op reconfirm with that ADR id and a one-line evidence
   Then the new pinned line sits directly below the last existing reconfirmation line and above the trailing sections
   # Verified by: tests/acceptance/adr-reconfirm.test.js
+
 Scenario: Check lists exactly the ADRs whose claims moved
   Given a synthetic git repository holding exactly 1 open change and 2 accepted ADRs governing its claimed files, where 1 ADR's governed file was last committed 2026-10-24 with the ADR's latest reconfirmation on 2026-10-23, and the other ADR's governed files were last committed 2026-10-20 with its latest reconfirmation on 2026-10-22
   When the cdd tool runs op reconfirm with check
@@ -186,7 +187,7 @@ Scenario: Check lists a never-reconfirmed ADR against the ADR file's own commits
   # Verified by: tests/acceptance/adr-reconfirm.test.js
 
 Scenario: The store sweep holds every reconfirmation line to the grammar
-  Given the repository's 12 ADRs after the migration
+  Given the repository's 13 ADRs after the migration
   When every line in every ADR mentioning reconfirmation is matched against the pinned grammar "- Reconfirmed by <change> on <yyyy-mm-dd>: <evidence>"
   Then every such line is a full-line match on the pinned grammar and no legacy shape remains
   # Verified by: tests/acceptance/adr-reconfirm.test.js

@@ -50,3 +50,5 @@ grammar home and the gherkin spec's claims-index law (matcher and
 index stated once, in the requirement that pins this module) stand;
 this decision adds
 the derivation law they implied.
+
+- Reconfirmed by claim-map on 2026-10-24: claim map derived once in scripts/adr-index.mjs (buildClaimMap); guard gather (spec-drift.mjs) and lib/adr-ops.mjs consume it, no consumer re-derives — pinned by claim-map.test.js CM1/CM2, byte-identity proofs in changes/claim-map tasks 3.6
