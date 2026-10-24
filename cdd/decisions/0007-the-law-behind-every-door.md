@@ -63,3 +63,4 @@ law behind every door).
 
 - Reconfirmed by adr-ops on 2026-10-24: scripts/adr-index.mjs joins scripts/grammar-law.mjs as shared door law (the guard and the cdd adrs/reconfirm ops import the same builder and matcher); the walk-up root finding and the A-check semantics in scripts/spec-drift.mjs are unchanged.
 - Reconfirmed by spec-model on 2026-10-24: spec-model extended the one grammar module with parseSpecModel; guard, extractor, and store read it, no private re-statement (SM2)
+- Reconfirmed by guard-pure-checks on 2026-10-24: one law, one door script still — the restructure stays inside spec-drift.mjs and its store copy, imports the parse and matcher from the law modules, adds no door file

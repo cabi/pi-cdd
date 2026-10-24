@@ -81,3 +81,4 @@ the current format.
 
 - Reconfirmed by adr-ops on 2026-10-24: the glob matcher and ADR-index construction moved verbatim from scripts/spec-drift.mjs to scripts/adr-index.mjs (one shared source for the guard and the new ops); the corpus-format verdicts — one Feature block per requirement, pins as the only comment inside the fence — are untouched, and the new requirements follow the same shape.
 - Reconfirmed by spec-model on 2026-10-24: spec-model re-pointed the guard to the law model; pins stay fence-interior comments, one dialect (SM1)
+- Reconfirmed by guard-pure-checks on 2026-10-24: pins stay "# Verified by:" comments inside the gherkin fence; the restructure moved no pin and touched no fence grammar (validate strict green)

@@ -14,3 +14,4 @@ In pi-cdd the extension itself may use the pi runtime (it runs inside pi by defi
 
 - Reconfirmed by adr-ops on 2026-10-24: spec-drift refactor moves the claims index + matcher to scripts/adr-index.mjs and grows A1/A2 remedy text — the memory-claim checks themselves are unchanged
 - Reconfirmed by spec-model on 2026-10-24: spec-model kept the doors zero-dependency: grammar-law imports globToRe from sibling adr-index, node built-ins only
+- Reconfirmed by guard-pure-checks on 2026-10-24: the guard still ships zero runtime deps — the restructure adds only the node:url builtin and keeps the @cucumber/gherkin dynamic import gated on the full-scan scope

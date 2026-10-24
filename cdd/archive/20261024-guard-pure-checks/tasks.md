@@ -60,4 +60,4 @@
 - [x] 4.4 cdd validate strict green, guard green
   - Tick: `cdd reconfirm --check` (reconfirmOp {check:true}) → `ok: true — guard-pure-checks claims no file that moved past its ADR's latest reconfirmation`; validate strict via validateChange → `{"errors":[],"warnings":[]}`; guard full-scan → `spec-drift: clean (5 specs, 36 acceptance test files, full scan)` exit 0 — all after the R3 dispositions (final state).
 - [x] 4.5 Archive — pair-commit: feature commit, then archive commit
-  - Tick: feature commit <F> then archive pair-commit <A> (SHAs recorded at commit time); both verified clean-tree after each commit; see git log guard-pure-checks.
+  - Tick: feature commit ebda60bff0ba7143d9d3e34473d3294e3380ab80 then this archive pair-commit (verify with `git log -2 --oneline guard-pure-checks`); archiveChange moved cdd/changes/guard-pure-checks/ to cdd/archive/20261024-guard-pure-checks/ and merged the delta into the living gherkin spec (ADDED: The drift guard gathers once, then checks purely); reconfirmation lines for ADR-0001, ADR-0006, ADR-0007, ADR-0012 ride this commit (reconfirmOp ok x4, one line each).

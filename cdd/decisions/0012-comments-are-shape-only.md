@@ -75,3 +75,4 @@ sweep, and landed the pins. cdd-adr-review runs on this ADR at Close.
 
 - Reconfirmed by adr-ops on 2026-10-24: the new scripts/adr-index.mjs and the scripts/spec-drift.mjs import refactor carry shape-only comments (what the module is and who consumes it — no law prose, no corpus routing); the guard's behavior surface is unchanged.
 - Reconfirmed by spec-model on 2026-10-24: spec-model comments are shape-of-code only; the R3 standards finding trimmed the last WHY-prose sites
+- Reconfirmed by guard-pure-checks on 2026-10-24: the new region markers and function comments describe module shape only; the R3 standards review found two WHY-prose blocks and both were trimmed before landing
