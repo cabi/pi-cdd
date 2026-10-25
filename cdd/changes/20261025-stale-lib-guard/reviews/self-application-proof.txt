@@ -1,0 +1,32 @@
+{
+  "cleanStatusNoWarning": true,
+  "archiveRefusal": {
+    "content": [
+      {
+        "type": "text",
+        "text": "cdd: refusing archive — this process holds pre-edit extension code; changed since load: scripts/zz-close-probe.mjs (added). Run the op in a fresh node instead:\n  node -e 'const [extDir, root] = process.argv.slice(1); const { pathToFileURL } = require(\"node:url\"); import(pathToFileURL(extDir + \"/lib/store.mjs\").href).then((m) => console.log(JSON.stringify(m.archiveChange(root, \"<name>\")))).catch((e) => { console.error(String(e)); process.exit(1); })' -- '/home/carsten/Projects/pi-extensions/pi-cdd' '/home/carsten/Projects/pi-extensions/pi-cdd'\n(substitute the <name>, <pf-id>, <adr-id>, <summary>, <source>, <premise>, <evidence> placeholders; then reload the extension so future dispatches are clean)"
+      }
+    ],
+    "details": {
+      "ok": false,
+      "error": "cdd: refusing archive — this process holds pre-edit extension code; changed since load: scripts/zz-close-probe.mjs (added). Run the op in a fresh node instead:\n  node -e 'const [extDir, root] = process.argv.slice(1); const { pathToFileURL } = require(\"node:url\"); import(pathToFileURL(extDir + \"/lib/store.mjs\").href).then((m) => console.log(JSON.stringify(m.archiveChange(root, \"<name>\")))).catch((e) => { console.error(String(e)); process.exit(1); })' -- '/home/carsten/Projects/pi-extensions/pi-cdd' '/home/carsten/Projects/pi-extensions/pi-cdd'\n(substitute the <name>, <pf-id>, <adr-id>, <summary>, <source>, <premise>, <evidence> placeholders; then reload the extension so future dispatches are clean)",
+      "stale": [
+        {
+          "path": "scripts/zz-close-probe.mjs",
+          "kind": "added"
+        }
+      ],
+      "freshCommand": "node -e 'const [extDir, root] = process.argv.slice(1); const { pathToFileURL } = require(\"node:url\"); import(pathToFileURL(extDir + \"/lib/store.mjs\").href).then((m) => console.log(JSON.stringify(m.archiveChange(root, \"<name>\")))).catch((e) => { console.error(String(e)); process.exit(1); })' -- '/home/carsten/Projects/pi-extensions/pi-cdd' '/home/carsten/Projects/pi-extensions/pi-cdd'",
+      "op": "archive"
+    },
+    "isError": true
+  },
+  "validateText": "PASS\n  warning: spec-size: living spec \"extension\" requirements at or over 8 scenarios: The backlog op triages findings on disk — split signal: consider splitting these requirements\n  warning: spec-size: delta requirement \"A stale process refuses mutation and warns on verdicts\" holds 9 scenarios (>= 8) — split signal: consider splitting the requirement\n\nstaleness warning: extension code changed since this process loaded (scripts/zz-close-probe.mjs (added)) — this answer comes from pre-edit code; rerun the op in a fresh node for authority",
+  "validateHasWarning": true,
+  "treeClean": true
+}
+
+# Driver: /tmp/pf36-selfapply.mjs (run 2026-10-25, fresh node)
+# Held process = real repo index.ts loaded via tests/pi-jiti.mjs (jiti, pi aliases);
+# Close-time edit simulated by adding scripts/zz-close-probe.mjs after load;
+# archive attempt on the real root refused, validate warned, probe removed, tree clean.
