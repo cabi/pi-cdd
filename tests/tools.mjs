@@ -56,6 +56,7 @@ function fakeApi() {
 }
 
 const { loadViaPi } = await import(path.join(REPO, "tests", "pi-jiti.mjs"));
+const { snapshotSources, staleEntries, gradeOp, refusalFor, freshNodeCommand } = await import(path.join(REPO, "lib", "stale.mjs"));
 // index.ts imports lib/status-ui.ts, which needs the pi-tui alias — load it
 // through the same jiti setup pi uses (tests/pi-jiti.mjs), plain import as fallback.
 const mod = (await loadViaPi(path.join(REPO, "index.ts"))) ?? (await import(path.join(REPO, "index.ts")));
@@ -354,6 +355,97 @@ await check("T4c", "op archive on a missing change refuses with the same shape a
 
 sb.dispose();
 ctrl.dispose();
+
+// --- T5: staleness guard units ----------------------------------------------------
+
+await check("T5a", "surface walk + diff: membership and digest decide, metadata never gates", () => {
+  const d = sandbox();
+  const ext = path.join(d.root, "ext");
+  for (const [p, t] of [
+    ["lib", null],
+    ["scripts", null],
+    ["vendor/x", null],
+  ]) {
+    fs.mkdirSync(path.join(ext, p), { recursive: true });
+  }
+  fs.writeFileSync(path.join(ext, "index.ts"), "// entry\n");
+  fs.writeFileSync(path.join(ext, "lib", "a.mjs"), "export const a = 1;\n");
+  fs.writeFileSync(path.join(ext, "scripts", "b.mjs"), "// b\n");
+  fs.writeFileSync(path.join(ext, "scripts", "c.txt"), "not on surface\n");
+  fs.writeFileSync(path.join(ext, "vendor", "x", "d.txt"), "vendor file\n");
+  const snap = snapshotSources(ext);
+  const names = [...snap.keys()].sort();
+  assert(JSON.stringify(names) === JSON.stringify(["index.ts", "lib/a.mjs", "scripts/b.mjs", "vendor/x/d.txt"]), `surface wrong: ${names}`);
+  assert(staleEntries(ext, snap).length === 0, "clean surface must be non-stale");
+  const f = path.join(ext, "lib", "a.mjs");
+  const stamp = new Date(); // align mtime to whole ms so the restore compares equal
+  fs.utimesSync(f, stamp, stamp);
+  const st = fs.statSync(f);
+  fs.writeFileSync(f, "export const a = 2;\n");
+  fs.utimesSync(f, st.atimeMs / 1000, st.mtimeMs / 1000);
+  const after = fs.statSync(f);
+  // stat and utimes disagree at sub-ms on this filesystem, so compare with 2ms
+  // tolerance — invisible to any real metadata-based detector either way
+  assert(after.size === st.size && Math.abs(after.mtimeMs - st.mtimeMs) < 2, "fixture: metadata preserved — only the digest can see this");
+  let diff = staleEntries(ext, snap);
+  assert(diff.length === 1 && diff[0].path === "lib/a.mjs" && diff[0].kind === "changed", `digest must catch: ${JSON.stringify(diff)}`);
+  fs.writeFileSync(path.join(ext, "lib", "zz.mjs"), "// new\n");
+  fs.rmSync(path.join(ext, "scripts", "b.mjs"));
+  diff = staleEntries(ext, snap);
+  assert(
+    JSON.stringify(diff) === JSON.stringify([
+      { path: "lib/a.mjs", kind: "changed" },
+      { path: "lib/zz.mjs", kind: "added" },
+      { path: "scripts/b.mjs", kind: "removed" },
+    ]),
+    `diff kinds wrong: ${JSON.stringify(diff)}`,
+  );
+  d.dispose();
+});
+
+await check("T5b", "grading table: known ops split, unknown and unknown backlog actions grade mutating", () => {
+  for (const [op, want] of [
+    ["init", "mutating"],
+    ["new", "mutating"],
+    ["archive", "mutating"],
+    ["reconfirm", "mutating"],
+    ["validate", "read"],
+    ["status", "read"],
+    ["adrs", "read"],
+    ["help", "read"],
+  ]) {
+    assert(gradeOp(op) === want, `${op} must grade ${want}`);
+  }
+  assert(gradeOp("backlog", "list") === "read", "backlog list grades read");
+  for (const a of ["add", "resolve", "revalidate", "purge", "unknown"]) {
+    assert(gradeOp("backlog", a) === "mutating", `backlog ${a} must grade mutating`);
+  }
+  assert(gradeOp("backlog", undefined) === "read", "absent backlog action is the list default — read");
+  assert(gradeOp("bogus") === "mutating" && gradeOp(undefined) === "mutating", "unknown ops grade mutating");
+});
+
+await check("T5c", "refusal names files and a bash-safe fresh-node command; a clean dispatch carries no guard data", async () => {
+  const d = sandbox();
+  const ext = path.join(d.root, "ext");
+  fs.mkdirSync(path.join(ext, "lib"), { recursive: true });
+  fs.writeFileSync(path.join(ext, "lib", "a.mjs"), "export const a = 1;\n");
+  const snap = snapshotSources(ext);
+  fs.writeFileSync(path.join(ext, "lib", "a.mjs"), "export const a = 2;\n");
+  const rf = refusalFor("archive", staleEntries(ext, snap), ext, d.root);
+  assert(rf.text.includes("lib/a.mjs") && rf.text.includes("refusing archive"), `refusal must name file and op: ${rf.text}`);
+  assert(rf.data.freshCommand.startsWith("node -e \"import('file://"), `command shape: ${rf.data.freshCommand}`);
+  const inner = rf.data.freshCommand.slice("node -e \"".length, -1);
+  assert(!inner.includes('"'), `command must stay double-quote-free inside node -e: ${inner}`);
+  const initCmd = freshNodeCommand("init", ext, d.root);
+  assert(initCmd.includes(`'${d.root}'`) && initCmd.includes(`'${ext}'`), `init command must pass root and ext dir explicitly: ${initCmd}`);
+  // clean-process integration: the dispatcher this file loaded is the repo's own, clean mid-run
+  const t5 = sandbox();
+  await call({ op: "init" }, t5.root);
+  const h = await call({ op: "help" }, t5.root);
+  assert(!h.details?.staleWarning && !/staleness warning/.test(textOf(h)), `clean dispatch must carry no guard data: ${textOf(h)}`);
+  t5.dispose();
+  d.dispose();
+});
 
 // --- summary -------------------------------------------------------------------
 

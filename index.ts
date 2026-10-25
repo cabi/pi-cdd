@@ -18,6 +18,7 @@ import { validateChange, validateStore, formatVerdict } from "./lib/validate.mjs
 import { ACTIONS, listBacklog, addBacklogItem, resolveBacklogItem, revalidateBacklog } from "./lib/backlog.mjs";
 import { adrsOp, reconfirmOp } from "./lib/adr-ops.mjs";
 import { OP_NAMES, OPS_DOC, OP_ALIASES, optionKeys } from "./lib/ops.mjs";
+import { snapshotSources, staleEntries, gradeOp, refusalFor, warningFor } from "./lib/stale.mjs";
 import { buildAmbientBlock } from "./lib/context.mjs";
 import { status, statusTable } from "./lib/status.mjs";
 import { CddStatusView } from "./lib/status-ui.ts";
@@ -33,6 +34,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 const EXT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
+const LOAD_SNAPSHOT = snapshotSources(EXT_DIR);
 
 const json = (v) => JSON.stringify(v, null, 2);
 /** Pre-existing-red warning block: a scaffold result's preexistingRed findings,
@@ -107,12 +109,46 @@ function pickName(top: unknown, inOpts: unknown): NamePick {
 }
 
 const fail = (text: string) => ({ ...result(text, { ok: false, error: text }), isError: true });
+
+// Staleness guard plumbing: one snapshot at load, one diff per dispatch
+// (membership plus per-file digest). Mutating ops refuse with the fresh-node
+// command that runs the same op; verdict and read ops answer with exactly
+// one staleness warning. Ops the grader does not recognize grade mutating.
+function backlogActionOf(params: any): string {
+  const raw = params?.options;
+  let v: any;
+  if (typeof raw === "string") {
+    if (raw.trim() === "") return "list";
+    try {
+      v = JSON.parse(raw);
+    } catch {
+      return "unknown";
+    }
+  } else v = raw;
+  return v && typeof v === "object" && typeof v.action === "string" ? v.action : "list";
+}
+
+const staleNow = () => staleEntries(EXT_DIR, LOAD_SNAPSHOT);
+
+function refuseIfStale(opKey: string, cwd: string) {
+  const stale = staleNow();
+  return stale.length ? refusalFor(opKey, stale, EXT_DIR, cwd) : null;
+}
+
+const doorRefusal = (opKey: string, ctx: any) => {
+  const r = refuseIfStale(opKey, ctx.cwd);
+  if (!r) return false;
+  if (ctx.hasUI) ctx.ui.notify(r.text, "error");
+  else console.log(r.text);
+  return true;
+};
 export default function cddExtension(pi: ExtensionAPI) {
   // ---- door 1 mirror: commands for the human --------------------------------
 
   pi.registerCommand("cdd-init", {
     description: "Scaffold the cdd store (cdd/, door scripts, hooks, CI) in this project",
     handler: async (args: string, ctx) => {
+      if (doorRefusal("init", ctx)) return;
       const r = initStore(ctx.cwd, EXT_DIR, { ci: "both", hooks: true });
       const text = r.ok
         ? `cdd store initialized.\n${json(r)}\nNext: git config core.hooksPath .githooks && start a change with /cdd-new <name>`
@@ -132,6 +168,7 @@ export default function cddExtension(pi: ExtensionAPI) {
         else console.log(t);
         return;
       }
+      if (doorRefusal("new", ctx)) return;
       const r = createChange(ctx.cwd, name, caps);
       const text = r.ok ? `change scaffolded.\n${json(r)}\nFill proposal.md, specs/*/spec.md, tasks.md — then validate via the cdd tool.${redBlock(r)}` : json(r);
       if (ctx.hasUI) {
@@ -172,6 +209,7 @@ export default function cddExtension(pi: ExtensionAPI) {
         console.log("usage: /cdd-archive <name>");
         return;
       }
+      if (doorRefusal("archive", ctx)) return;
       const r = archiveChange(ctx.cwd, name);
       if (!r.ok && r.stage) {
         console.log(`archive refused — strict validation failed:\n${formatVerdict(r.validation)}`);
@@ -204,6 +242,15 @@ export default function cddExtension(pi: ExtensionAPI) {
     },
     prepareArguments: fillArgs,
     async execute(_id, params, _signal, _onUpdate, ctx) {
+      // staleness guard: refuse mutation from a process that outlived source
+      // edits; warn on verdict and read ops
+      const stale = staleNow();
+      if (stale.length && gradeOp(params.op, backlogActionOf(params)) === "mutating") {
+        const opKey = params.op === "backlog" ? `backlog ${backlogActionOf(params)}` : String(params.op);
+        const rf = refusalFor(opKey, stale, EXT_DIR, ctx.cwd);
+        return { ...result(rf.text, rf.data), isError: true };
+      }
+      const base = async () => {
       switch (params.op) {
         case "init": {
           const o = parseOptions(params.options, optionKeys("init"));
@@ -301,6 +348,15 @@ export default function cddExtension(pi: ExtensionAPI) {
         default:
           return fail(`unknown op: ${params.op}`);
       }
+      };
+      const r = await base();
+      if (!stale.length) return r;
+      const w = warningFor(stale);
+      return {
+        ...r,
+        content: [{ type: "text", text: `${r.content[0].text}\n\n${w.text}` }],
+        details: { ...(r.details ?? {}), stale: w.data.stale, staleWarning: w.text },
+      };
     },
   });
   // ---- ambient context --------------------------------------------------------
