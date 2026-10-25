@@ -320,3 +320,68 @@ Scenario: The ADR op library refuses silent direct execution
 ```
 
 Code: index.ts, tests/tools.mjs
+
+### Requirement: A stale process refuses mutation and warns on verdicts
+
+A long-lived cdd process that outlived edits to the extension's own source MUST NOT mutate a store with pre-edit code. Every dispatch and every mutating door-1 command compares the extension source surface on disk against the process's load-time snapshot — membership plus each file's content digest, so a changed file counts as stale even when its modification time and size are unchanged. A mutating op (init, new, archive, backlog add/resolve/revalidate, reconfirm) on a changed surface is refused with exactly 1 error naming the changed files and the fresh-node command that runs the op; a verdict or read op (validate, status, adrs, help, backlog list) answers with exactly 1 staleness warning naming the changed files; a clean process is unaffected. An op the grader does not recognize grades mutating.
+
+```gherkin
+Feature: A stale process refuses mutation and warns on verdicts
+
+Scenario: A stale process refuses a mutating op
+  Given a store holding 1 strictly-green open change and a tool process whose load-time snapshot of the extension source no longer matches disk because one file changed after load
+  When the cdd tool runs op archive on that change
+  Then the tool answers with exactly 1 error whose data names the changed file and a fresh-node command that runs the archive op
+  And the store still holds the change folder under cdd/changes with no archive folder under cdd/archive
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+
+Scenario: A stale process warns on a verdict op
+  Given a store holding 1 open change and a tool process whose load-time snapshot of the extension source no longer matches disk because one file changed after load
+  When the cdd tool runs op validate on that change
+  Then the tool answers with the change's verdict plus exactly 1 staleness warning naming the changed file
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+
+Scenario: An added file counts as changed
+  Given a tool process loaded over an extension source surface with one new file written into that surface after load
+  When the cdd tool runs op archive
+  Then the tool answers with exactly 1 error naming the added file
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+
+Scenario: A removed file counts as changed
+  Given a tool process loaded over an extension source surface with one of the surface's files deleted after load
+  When the cdd tool runs op archive
+  Then the tool answers with exactly 1 error naming the deleted file
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+
+Scenario: Backlog actions grade by their action
+  Given a store holding 1 backlog item and a tool process whose load-time snapshot of the extension source no longer matches disk because one file changed after load
+  When the cdd tool runs op backlog with action list and then op backlog with action add
+  Then the list run answers with the backlog items plus exactly 1 staleness warning and the add run answers with exactly 1 error naming a fresh-node command
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+
+Scenario: A clean process is unaffected
+  Given a store holding 1 open change and a tool process whose load-time snapshot matches disk
+  When the cdd tool runs op validate and then op status and then op help
+  Then each answer carries no staleness warning and no staleness refusal
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+
+Scenario: Every mutating door-1 command consults the same guard
+  Given a tool process whose load-time snapshot of the extension source no longer matches disk because one file changed after load
+  When the door-1 commands /cdd-init, /cdd-new, and /cdd-archive each run
+  Then each answers with exactly 1 error naming the changed file and a fresh-node command for its own operation
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+
+Scenario: A same-length rewrite with the original modification time is detected
+  Given a tool process loaded over an extension source surface and one surface file rewritten after load with the same byte length and its original modification time restored
+  When the cdd tool runs op archive
+  Then the tool answers with exactly 1 error naming that file
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+
+Scenario: Every refusal command runs its op
+  Given the guard's fresh-node command table and an isolated scratch store prepared per mutating op and backlog action
+  When each mutating refusal's fresh-node command runs in its scratch store in a fresh process
+  Then each command performs exactly its own operation — the store is initialized, the change is created, the backlog item is added, revalidated while open, and resolved, the reconfirmation is written, and the change is archived
+  # Verified by: tests/acceptance/stale-lib-guard.test.js
+```
+
+Code: index.ts, lib/stale.mjs, tests/tools.mjs, tests/acceptance/stale-lib-guard.test.js
