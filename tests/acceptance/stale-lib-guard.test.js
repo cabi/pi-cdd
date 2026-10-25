@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Acceptance pin — 20261025-stale-lib-guard: a long-lived cdd tool
+// Acceptance pin: a long-lived cdd tool
 // process that outlived edits to the extension's own source must refuse
 // mutation and warn on verdicts. The harness is hermetic: a scratch copy of
 // the extension surface (index.ts + lib + scripts + vendor) lives in one
@@ -270,35 +270,41 @@ test("scenario 7: every mutating door-1 command consults the same guard", async 
     console.log = orig;
   }
   assert.equal(capture.length, 3, `each command answers exactly once: ${JSON.stringify(capture)}`);
+  // each refusal must name ITS OWN op's fresh-node command, not just any command
+  const ownCall = ["initStore", "createChange", "archiveChange"];
   for (const [i, out] of capture.entries()) {
     assert.equal((out.match(/refusing/g) ?? []).length, 1, `command ${i}: exactly 1 refusal line: ${out}`);
     assert.ok(out.includes(OPS_MJS), `command ${i} must name the changed file: ${out}`);
     assert.ok(/node -e /.test(out), `command ${i} must name a fresh-node command: ${out}`);
+    assert.ok(out.includes(`m.${ownCall[i]}(`), `command ${i} must name its own op's fresh-node call (${ownCall[i]}): ${out}`);
   }
   assert(!fs.existsSync(path.join(A.proj, "cdd", "changes", "door-new")), "cdd-new must not have scaffolded");
 });
 
 test("scenario 8: a same-length rewrite with the original modification time is detected", async () => {
-  fs.copyFileSync(path.join(A.ext, OPS_MJS), path.join(A.ext, OPS_MJS) + ".bak");
-  const file = path.join(A.ext, OPS_MJS);
-  const stamp = new Date(); // align mtime to whole ms so the restore compares equal
-  fs.utimesSync(file, stamp, stamp);
-  const before = fs.statSync(file);
-  const swapped = fs.readFileSync(file, "utf8").replace("export", "exporT"); // same byte length as the file just stat'ed, digest changes
-  fs.writeFileSync(file, swapped);
-  fs.utimesSync(file, before.atimeMs / 1000, before.mtimeMs / 1000); // seconds floats keep sub-ms precision
-  const after = fs.statSync(file);
-  assert.equal(after.size, before.size, "fixture: same length");
-  assert.equal(after.size, before.size, "fixture: same size");
-  // stat and utimes disagree at sub-ms on this filesystem; 2ms tolerance — invisible to metadata detectors
-  assert(Math.abs(after.mtimeMs - before.mtimeMs) < 2, "fixture: same mtime — only the digest can catch this");
+  // isolation: a process whose snapshot matches disk, so the ONLY staleness
+  // in play is the rewrite below — the shared stale process A stays untouched
+  const C = scratch();
   try {
-    const r = await call({ op: "archive", name: "guard-fx" });
+    const apiC = await loadTool(C.ext);
+    const callC = (args) => apiC.tools[0].execute(1, args, undefined, undefined, { cwd: C.proj });
+    const file = path.join(C.ext, OPS_MJS);
+    const stamp = new Date(); // align mtime to whole ms so the restore compares equal
+    fs.utimesSync(file, stamp, stamp);
+    const before = fs.statSync(file);
+    const swapped = fs.readFileSync(file, "utf8").replace("export", "exporT"); // same byte length as the file just stat'ed, digest changes
+    fs.writeFileSync(file, swapped);
+    fs.utimesSync(file, before.atimeMs / 1000, before.mtimeMs / 1000); // seconds floats keep sub-ms precision
+    const after = fs.statSync(file);
+    assert.equal(after.size, before.size, "fixture: same length");
+    // stat and utimes disagree at sub-ms on this filesystem; 2ms tolerance — invisible to metadata detectors
+    assert(Math.abs(after.mtimeMs - before.mtimeMs) < 2, "fixture: same mtime — only the digest can catch this");
+    const r = await callC({ op: "archive", name: "guard-fx" });
     assert.equal(r.isError, true, "same-length/same-mtime rewrite must still be refused");
     assert.ok(textOf(r).includes(OPS_MJS), `error must name the rewritten file: ${textOf(r)}`);
+    assert.equal(JSON.stringify(r.details?.stale), JSON.stringify([{ path: "lib/ops.mjs", kind: "changed" }]), `exactly one stale entry — the rewrite: ${JSON.stringify(r.details?.stale)}`);
   } finally {
-    fs.renameSync(path.join(A.ext, OPS_MJS) + ".bak", path.join(A.ext, OPS_MJS));
-    fs.appendFileSync(path.join(A.ext, OPS_MJS), "\n// stale-probe edit — digest must change\n");
+    C.dispose();
   }
 });
 
@@ -316,7 +322,7 @@ test("scenario 6: a clean process is unaffected", async () => {
 // --- scenario 9: every refusal command runs its op ---------------------------------
 
 const substitute = (cmd, map) =>
-  Object.entries(map).reduce((c, [k, v]) => c.split(k).join(v), cmd).replace(/<(name|pf-id|adr-id|summary|source|evidence)>/g, (m) => {
+  Object.entries(map).reduce((c, [k, v]) => c.split(k).join(v), cmd).replace(/<(name|pf-id|adr-id|summary|source|evidence|premise)>/g, (m) => {
     throw new Error(`unsubstituted placeholder ${m} in command`);
   });
 
@@ -347,17 +353,18 @@ test("scenario 9: every refusal command runs its op", () => {
   assert.equal(rNew.ok, true, `new command failed: ${JSON.stringify(rNew)}`);
   assert.ok(fs.existsSync(path.join(pNew, "cdd", "changes", "cmd-fx", "proposal.md")), "new command must scaffold the change");
 
-  // backlog: the item is added, resolved, and revalidated
+  // backlog: the item is added with a premise, revalidated while open, then resolved
   const pBl = proj("backlog");
   runFresh(refusals.init, pBl);
-  const rAdd = runFresh(refusals["backlog add"], pBl, { "<summary>": "fresh-node legality probe", "<source>": "acceptance stale-lib-guard" });
+  const rAdd = runFresh(refusals["backlog add"], pBl, { "<summary>": "fresh-node legality probe", "<source>": "acceptance stale-lib-guard", "<premise>": "exists:cdd/backlog.md" });
   assert.equal(rAdd.ok, true, `backlog add command failed: ${JSON.stringify(rAdd)}`);
   assert.match(fs.readFileSync(path.join(pBl, "cdd", "backlog.md"), "utf8"), /PF-1/, "add command must write the PF line");
+  const rReval = runFresh(refusals["backlog revalidate"], pBl);
+  assert.equal(rReval.ok, true, `backlog revalidate command failed: ${JSON.stringify(rReval)}`);
+  assert.match(String(rReval.text ?? ""), /PF-1 \[open\] hold — premise holds/, `revalidate command must actually examine the open item: ${JSON.stringify(rReval)}`);
   const rResolve = runFresh(refusals["backlog resolve"], pBl, { "<pf-id>": "PF-1" });
   assert.equal(rResolve.ok, true, `backlog resolve command failed: ${JSON.stringify(rResolve)}`);
   assert.match(fs.readFileSync(path.join(pBl, "cdd", "backlog.md"), "utf8"), /PF-1 \[done\]/, "resolve command must mark it done");
-  const rReval = runFresh(refusals["backlog revalidate"], pBl);
-  assert.equal(rReval.ok, true, `backlog revalidate command failed: ${JSON.stringify(rReval)}`);
 
   // reconfirm: the reconfirmation is written into the ADR
   const pRc = proj("reconfirm");

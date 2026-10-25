@@ -18,3 +18,4 @@ Consequence: trust in pi-cdd is trust in *deterministic checks plus injected con
 
 - Reconfirmed by adr-ops on 2026-10-24: index.ts registers adrs/reconfirm as thin dispatch over lib/adr-ops.mjs — the extension facade law is untouched
 - Reconfirmed by ops-registry on 2026-10-24: every op still answers through the same single cdd tool execute contract — the registry only moves where the op table lives, no new counterparty surface
+- Reconfirmed by 20261025-stale-lib-guard on 2026-10-25: the staleness guard adds the counterparty structure this decision demands at dispatch time — refusals and warnings the model reads but cannot override, naming the exact fresh-node command that keeps the harness the arbiter

@@ -118,7 +118,7 @@ Scenario: A same-length rewrite with the original modification time is detected
 Scenario: Every refusal command runs its op
   Given the guard's fresh-node command table and an isolated scratch store prepared per mutating op and backlog action
   When each mutating refusal's fresh-node command runs in its scratch store in a fresh process
-  Then each command performs exactly its own operation — the store is initialized, the change is created, the backlog item is added, resolved, and revalidated, the reconfirmation is written, and the change is archived
+  Then each command performs exactly its own operation — the store is initialized, the change is created, the backlog item is added, revalidated while open, and resolved, the reconfirmation is written, and the change is archived
   # Verified by: tests/acceptance/stale-lib-guard.test.js
 ```
 

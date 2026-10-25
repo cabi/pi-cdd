@@ -429,13 +429,16 @@ await check("T5c", "refusal names files and a bash-safe fresh-node command; a cl
   const ext = path.join(d.root, "ext");
   fs.mkdirSync(path.join(ext, "lib"), { recursive: true });
   fs.writeFileSync(path.join(ext, "lib", "a.mjs"), "export const a = 1;\n");
+  fs.writeFileSync(path.join(ext, "lib", "ignored.txt"), "asset\n");
   const snap = snapshotSources(ext);
+  assert(snap.has("lib/ignored.txt"), `every file under lib/ is on the surface, not just .mjs: ${[...snap.keys()].join(", ")}`);
   fs.writeFileSync(path.join(ext, "lib", "a.mjs"), "export const a = 2;\n");
   const rf = refusalFor("archive", staleEntries(ext, snap), ext, d.root);
   assert(rf.text.includes("lib/a.mjs") && rf.text.includes("refusing archive"), `refusal must name file and op: ${rf.text}`);
-  assert(rf.data.freshCommand.startsWith("node -e \"import('file://"), `command shape: ${rf.data.freshCommand}`);
-  const inner = rf.data.freshCommand.slice("node -e \"".length, -1);
-  assert(!inner.includes('"'), `command must stay double-quote-free inside node -e: ${inner}`);
+  const cmd = rf.data.freshCommand;
+  assert(cmd.startsWith("node -e '") && cmd.includes(`-- '${ext}' '${d.root}'`), `command must be a single-quoted node -e with explicit ext and root args: ${cmd}`);
+  const payload = cmd.slice("node -e '".length, cmd.indexOf("' -- "));
+  assert(!payload.includes("'"), `payload must stay single-quote-free so the wrapper quotes cannot break: ${payload}`);
   const initCmd = freshNodeCommand("init", ext, d.root);
   assert(initCmd.includes(`'${d.root}'`) && initCmd.includes(`'${ext}'`), `init command must pass root and ext dir explicitly: ${initCmd}`);
   // clean-process integration: the dispatcher this file loaded is the repo's own, clean mid-run
