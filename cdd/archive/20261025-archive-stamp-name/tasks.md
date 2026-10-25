@@ -90,4 +90,4 @@ proposal as Non-Goals or a future change.
 - [x] 4.2 Spec-axis change code review — run skill `cdd-code-review` with the spec-axis brief (brief-r3-spec.md) over the same diff, in a second cold session; findings at `reviews/r3-spec-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-spec-code-review.md holding no open blocker
 - [x] 4.3 ADR review — skip recorded on this line: this change drafted no ADR and amended no decision content (reconfirmations only — a Reconfirmed-by paragraph does not count); verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line
 - [x] 4.4 cdd validate strict green, guard green
-- [ ] 4.5 Archive — pair-commit: feature commit, then archive commit
+- [x] 4.5 Archive — pair-commit: feature commit, then archive commit
