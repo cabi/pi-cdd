@@ -1122,6 +1122,31 @@ check("S38", "skills/ holds the cdd-director skill, frontmatter valid, charter c
   const constraints = briefSection("Reviewer constraints");
   assert(constraints.includes("floor-down") && constraints.includes("stop") && constraints.includes("human decision"), `skills/${s}: floor-down halts for a human decision missing`);
 });
+
+// --- S39: dated-name archive round-trip -----------------------------------------
+
+const sbx = sandbox();
+initStore(sbx.root, REPO, { ci: "none", hooks: false });
+check("S39", "dated change name archives with exactly one date prefix and recovers bare", () => {
+  const d8 = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const name = `${d8}-dated-round-trip`;
+  createChange(sbx.root, name, ["cap"]);
+  const w = (rel, text) => fs.writeFileSync(path.join(sbx.root, rel), text);
+  w(`cdd/changes/${name}/proposal.md`, `# ${name}\n\n## Why\n\nfixture.\n\n## What Changes\n\n- fixture change closes and archives\n\n## Solutions Considered\n\n- stdlib covers it\n\n## Non-Goals\n\n- none beyond scope\n\nDone-When: it archives — verify tests/acceptance/fixture-pin.test.js\nCode: fixture.js\n`);
+  w(`cdd/changes/${name}/specs/cap/spec.md`, `## ADDED Requirements\n\n### Requirement: Fixture requirement\n\nFixture.\n\n\`\`\`gherkin\nFeature: Fixture requirement\n\nScenario: Fixture\n  Given a fixture store\n  When the fixture runs\n  Then it works\n  # Verified by: tests/acceptance/fixture-pin.test.js\n\`\`\`\n`);
+  w(`cdd/changes/${name}/tasks.md`, `# Tasks — ${name}\n\n## 1. Context\n\n- [x] 1.1 Read the living spec and every file matching the proposal's Code: globs\n\n## 2. Design\n\n- [x] 2.1 Design gate: single scenario, one task — no split needed\n\n## 3. Implementation\n\n- [x] 3.1 fixture — verify by tests/acceptance/fixture-pin.test.js\n\n## Done When Traceability\n\n| it archives | 3.1 |\n\n## 4. Close\n\n- [ ] 4.1 cdd validate strict green, guard green\n- [ ] 4.2 Archive — pair-commit: feature commit, then archive commit\n`);
+  w("tests/acceptance/fixture-pin.test.js", "// pin target\n");
+  const s = validateChange(sbx.root, name, "strict");
+  assert(s.ok, formatVerdict(s));
+  const r = archiveChange(sbx.root, name);
+  assert(r.ok, JSON.stringify(r));
+  const folders = fs.readdirSync(path.join(sbx.root, "cdd", "archive"));
+  assert(folders.length === 1 && folders[0] === name, `folder carries exactly 1 date prefix (equals the change name here): ${JSON.stringify(folders)}`);
+  assert(r.archivedTo === `cdd/archive/${name}/`, `archivedTo names the folder: ${r.archivedTo}`);
+  const rec = lib.listArchived(sbx.root);
+  assert(rec.length === 1 && rec[0].date === d8 && rec[0].name === "dated-round-trip", `recovery splits date + bare name: ${JSON.stringify(rec)}`);
+});
+sbx.dispose();
 sb.dispose();
 sb2.dispose();
 g.dispose();

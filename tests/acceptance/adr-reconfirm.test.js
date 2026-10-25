@@ -330,6 +330,34 @@ await check("RC15", "a new reconfirmation lands below the existing ones", async 
   fs.rmSync(root, { recursive: true, force: true });
 });
 
+await check("RC16", "a dated change query resolves to its bare archived name", async () => {
+  const root = adrRoot();
+  archivedChange(root, "dated-thing"); // archived folder 20261023-dated-thing — the bare recovered name
+  const r = await call(
+    { op: "reconfirm", options: JSON.stringify({ id: "ADR-0001", change: "20261022-dated-thing", evidence: "dated query" }) },
+    root
+  );
+  assert(!r.isError, `a dated query must resolve post-archive: ${r.isError ? r.content[0].text : ""}`);
+  const lines = reconfirmLines(root);
+  assert(lines.length === 1 && lines[0] === `- Reconfirmed by 20261022-dated-thing on ${today()}: dated query`, `pinned format naming the dated change: ${lines[0]}`);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+await check("RC17", "an unknown change name still refuses after normalized matching", async () => {
+  const root = adrRoot();
+  openChange(root);
+  const before = fs.readFileSync(adrFile(root), "utf8");
+  const r = await call(
+    { op: "reconfirm", options: JSON.stringify({ id: "ADR-0001", change: "99999999-ghost", evidence: "x" }) },
+    root
+  );
+  assert(r.isError, "a query matching nothing verbatim or after one date-strip must refuse");
+  const t = r.content[0].text;
+  assert(/unknown change "99999999-ghost"/.test(t), t);
+  assert(/t-change/.test(t) && /cdd\/archive/.test(t), `must name the open change and the archive namespace: ${t}`);
+  assert(fs.readFileSync(adrFile(root), "utf8") === before, "refusal must not touch the ADR file");
+  fs.rmSync(root, { recursive: true, force: true });
+});
 console.log(`\nadr-reconfirm: ${pass} passed, ${fail} failed`);
 if (failures.length) {
   for (const f of failures) console.error(`  ${f}`);
