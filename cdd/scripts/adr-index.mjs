@@ -118,17 +118,17 @@ export function buildAdrIndex(root) {
 /**
  * The claim map: which Code: globs claim which files, derived exactly once
  * for both doors. Pure over parsed inputs — spec models (grammar-law.mjs
- * parseSpecModel), an ADR index (buildAdrIndex), and the tracked file list —
- * never reading disk itself. Every set iterates in tracked order (ADR sets in
+ * parseSpecModel), an ADR index (buildAdrIndex), and the caller's claim universe — the tracked file list for the tool ops, the mode-bound universe for the guard —
+ * never reading disk itself. Every set iterates in universe order (ADR sets in
  * index order), so every derived list is deterministic:
  *
- * - `filesOfGlob`   — glob string -> Set of tracked files it claims
- * - `filesOfSpec`   — spec rel -> Set of tracked files its Code: globs claim
- * - `filesOfChange` — open change -> Set of tracked files its delta specs
+ * - `filesOfGlob`   — glob string -> Set of claim-universe files it claims
+ * - `filesOfSpec`   — spec rel -> Set of claim-universe files its Code: globs claim
+ * - `filesOfChange` — open change -> Set of claim-universe files its delta specs
  *                     claim together (non-empty only; a change is the union)
- * - `filesOfAdr`    — ADR id -> Set of tracked files its globs govern
- * - `filesOfGlobs`  — (globs) -> the tracked files any glob in the list
- *                     claims, in tracked order (the capability-level union)
+ * - `filesOfAdr`    — ADR id -> Set of claim-universe files its globs govern
+ * - `filesOfGlobs`  — (globs) -> the claim-universe files any glob in the list
+ *                     claims, in universe order (the capability-level union)
  * - `governingFor`  — (path) -> the accepted index entries whose globs govern
  *                     that path, in index order: the per-path query the adrs
  *                     op's --code branch answers with, tracked and untracked
@@ -137,13 +137,13 @@ export function buildAdrIndex(root) {
  * The claiming loop — a compiled glob tested against files — lives here and
  * only here; consumers read the sets and the queries, never re-derive.
  */
-export function buildClaimMap({ specs = [], adrIndex = [], tracked = [] }) {
+export function buildClaimMap({ specs = [], adrIndex = [], universe = [] }) {
   const filesOfGlob = new Map();
   const filesOf = (glob) => {
     if (!filesOfGlob.has(glob)) {
       const re = globToRe(glob);
       const set = new Set();
-      for (const f of tracked) if (re.test(f)) set.add(f);
+      for (const f of universe) if (re.test(f)) set.add(f);
       filesOfGlob.set(glob, set);
     }
     return filesOfGlob.get(glob);
@@ -151,7 +151,7 @@ export function buildClaimMap({ specs = [], adrIndex = [], tracked = [] }) {
   const unionOf = (globs) => {
     const u = new Set();
     for (const g of globs) for (const f of filesOf(g)) u.add(f);
-    return tracked.filter((f) => u.has(f)); // tracked order, like every set here
+    return universe.filter((f) => u.has(f)); // universe order, like every set here
   };
 
   const filesOfSpec = new Map();

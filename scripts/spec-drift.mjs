@@ -247,7 +247,7 @@ async function gatherFacts(root, mode) {
   const claimMap = buildClaimMap({
     specs: allSpecs.map((rel) => ({ rel, model: models.get(rel) })),
     adrIndex,
-    tracked,
+    universe,
   });
   const facts = {
     root, isRepo,
