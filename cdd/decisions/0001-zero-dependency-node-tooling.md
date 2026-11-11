@@ -18,3 +18,4 @@ In pi-cdd the extension itself may use the pi runtime (it runs inside pi by defi
 - Reconfirmed by claim-map on 2026-10-24: scripts/adr-index.mjs still imports nothing — buildClaimMap is pure ES module code over parsed inputs, no dependency added
 - Reconfirmed by decision-scan-unify on 2026-10-24: the shared decision scan lands inside scripts/adr-index.mjs and travels as its byte-identical store copy — Node built-ins only, no dependency added
 - Reconfirmed by fix-l3-implementation-count on 2026-11-11: pure-JS narrowing of L3's count scope; no dependency enters
+- Reconfirmed by 20261111-guard-untracked-claims on 2026-11-11: the mode-bound claim universe reuses the existing zero-dependency git gather (ls-files --others --exclude-standard adds no dependency); guard and store copy stay plain Node

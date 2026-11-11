@@ -189,6 +189,19 @@ async function gatherFacts(root, mode) {
     ? (git(['diff', '--cached', '--name-only', '--diff-filter=D']) ?? '').split('\n').filter(Boolean)
     : [];
   const tracked = isRepo ? (git(['ls-files']) ?? '').split('\n').filter(Boolean) : [];
+  // The claim universe is mode-bound: working-tree scans (door 3) claim over
+  // index files plus every non-ignored untracked file; staged doors (pre-commit
+  // and commit-msg) read the index alone. History law is not universe law —
+  // facts.tracked and the topology gather stay index-only, so an untracked
+  // file enters the claim sets but carries no commits and can fire no
+  // staleness verdict (L2 topology, A2). Only claim-set answers read the
+  // universe: ownership (O), dead-glob (L2), change-claim (A1), and L4's
+  // memory-claim exemption.
+  const claimFiles = isRepo
+    ? (mode.staged
+        ? tracked
+        : [...tracked, ...(git(['ls-files', '--others', '--exclude-standard']) ?? '').split('\n').filter(Boolean)])
+    : [];
   const hooksHalfUpgraded =
     isRepo &&
     fs.existsSync(path.join(root, '.githooks', 'pre-commit')) &&
@@ -247,13 +260,13 @@ async function gatherFacts(root, mode) {
   const claimMap = buildClaimMap({
     specs: allSpecs.map((rel) => ({ rel, model: models.get(rel) })),
     adrIndex,
-    universe,
+    universe: claimFiles,
   });
   const facts = {
     root, isRepo,
     preCommit: mode.preCommit, msgFile: mode.msgFile, staged: mode.staged, mechanical: mode.mechanical,
     livingSpecs, deltaSpecs, allSpecs, models, pinsOf, codeGlobs, pinnedAbs,
-    accDirRels, accRel, stagedSet, stagedAdds, stagedDels, tracked,
+    accDirRels, accRel, stagedSet, stagedAdds, stagedDels, tracked, claimFiles,
     hooksHalfUpgraded, mechLog, tasksTexts, adrIndex, changeDocs, gherkin, claimMap,
     topology: null,
   };
@@ -710,7 +723,7 @@ function checkA1(facts) {
   const issues = [];
   if (facts.staged || !facts.adrIndex.length) return { issues };
   const acceptedAdrs = acceptedAdrsOf(facts);
-  const changeFiles = filesClaimedByChange(facts.tracked, facts);
+  const changeFiles = filesClaimedByChange(facts.claimFiles, facts);
   for (const [change, files] of changeFiles) {
     const docs = facts.changeDocs.get(change) ?? '';
     for (const a of acceptedAdrs) {

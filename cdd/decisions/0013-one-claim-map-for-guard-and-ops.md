@@ -55,3 +55,4 @@ the derivation law they implied.
 - Reconfirmed by decision-scan-unify on 2026-10-24: scanDecisionFiles sits in the claim map's law home scripts/adr-index.mjs; the map itself and both its consumers are untouched, answers bit-identical
 - Reconfirmed by 20261025-archive-stamp-name on 2026-10-25: reconfirm matching still reads the single claim map; the query normalization adds no second index
 - Reconfirmed by fix-l3-implementation-count on 2026-11-11: L3 reads no claims; untouched by claim-map work
+- Reconfirmed by 20261111-guard-untracked-claims on 2026-11-11: the mode-bound claim universe flows through the one buildClaimMap — spec-drift.mjs gathers claimFiles once per mode, the adr ops still pass the tracked list
