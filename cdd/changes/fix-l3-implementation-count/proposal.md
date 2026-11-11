@@ -39,7 +39,7 @@ The drift guard's L3 scale law counts every tracked task in a change's tasks fil
 
 Done-When: a store holding a living change with 9 implementation subtasks and 4 non-implementation tracked tasks (13 tracked, no split-considered line) passes the drift guard with no L3 issue
 Done-When: a store holding a living change with 13 implementation subtasks and no split-considered line fails the guard with exactly 1 L3 issue naming "13 implementation subtasks (> 12)", and passes once a split-considered line is recorded
-Done-When: on the same tasks file the guard's task-scale count and the strict validator's implementation count both equal 9
+Done-When: on the same tasks file the guard's task-scale count and the strict validator's implementation count both equal 13
 Done-When: `cdd/scripts/spec-drift.mjs` is byte-identical to `scripts/spec-drift.mjs`
 Done-When: `GLOSSARY.md` defines implementation subtask and tracked task, and its design-gate entry names 8 implementation subtasks
 Code: scripts/spec-drift.mjs, cdd/scripts/**, tests/acceptance/guard-l3-scope.test.js

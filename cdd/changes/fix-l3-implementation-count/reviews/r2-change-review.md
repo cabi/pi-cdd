@@ -1,8 +1,7 @@
 # R2 package review — fix-l3-implementation-count
 
 **Review point:** R2 (package), at draft-green — skill `cdd-spec-review`, package mode.
-**Status:** COMPLETE — assigned scope fully inspected; 4 `should`, 3 `note` findings, all advisory, all disposition `open`.
-**Status:** COMPLETE — assigned scope fully inspected; 4 `should`, 3 `note` findings, all advisory; author dispositions in the final section.
+**Status:** COMPLETE — assigned scope fully inspected; 5 `should`, 2 `note` findings, all advisory; author dispositions in the final section.
 ## Reviewer form and independence (rule 2b)
 
 - **Form:** cold sub-agent session, spawned fresh for this review, briefed from paths on disk
@@ -254,7 +253,6 @@ deterministic validators and the human.
 ## Coverage gaps affecting this review
 
 - None material. The package is small enough to inspect whole: 3 artifacts, 171 lines total, plus
-  the 1757-line living spec (read in the regions the delta touches and the requirements its laws
 the 1757-line living spec (read in the regions the delta touches and the requirements its laws cite).
 
 ## Author dispositions (2026-11-11)

@@ -2,8 +2,8 @@
 // L3 scope — the task-scale law counts implementation subtasks only (rule 6):
 // the checkbox items under `## 3. Implementation`, the section the strict
 // validator counts. Context, design, and close tasks stay outside the limit;
-// the issue line names implementation subtasks. The scenarios mirror
-// cdd/changes/fix-l3-implementation-count/specs/gherkin/spec.md and run both
+// the issue line names implementation subtasks. The scenarios are this
+// change's delta (it archives under cdd/archive/ at close), run through both
 // real doors: the guard scan (sandbox store copy) and lib/validate.mjs.
 
 import * as fs from "node:fs";
@@ -136,27 +136,27 @@ await check("S3", "A split-considered line passes the limit", () => {
 
 await check("S4", "The guard agrees with the strict validator's counter", () => {
   const root = gitRepo();
-  // 9 implementation subtasks + 4 non-implementation tracked tasks = 13 tracked
-  writeTasks(root, "t-agree", { impl: 9, context: 2, design: 1, close: 1 });
+  // 13 implementation subtasks + 4 non-implementation tracked tasks = 17 tracked
+  writeTasks(root, "t-agree", { impl: 13, context: 2, design: 1, close: 1 });
 
-  // door: the guard scan — its clean summary carries the implementation-subtask count
+  // door: the guard scan — over the limit, so its L3 issue line carries the count
   const r = runScan(root);
-  assert(r.code === 0, `scan must exit 0 on 9 implementation subtasks:\n${r.out}`);
-  const summary = r.out.split("\n").find((l) => /spec-drift: clean/.test(l));
-  assert(summary !== undefined, `expected the clean summary, got:\n${r.out.trim()}`);
-  const guardMatch = summary.match(/(\d+) implementation subtasks/);
-  assert(guardMatch !== null, `the clean summary must carry the implementation-subtask count: ${summary}`);
+  assert(r.code !== 0, `scan must exit non-zero on 13 implementation subtasks:\n${r.out}`);
+  const l3 = l3Lines(r.out);
+  assert(l3.length === 1, `expected exactly 1 L3 issue: ${JSON.stringify(l3)}`);
+  const guardMatch = l3[0].match(/(\d+) implementation subtasks/);
+  assert(guardMatch !== null, `the L3 issue line must carry the count: ${l3[0]}`);
   const guardCount = Number(guardMatch[1]);
 
   // door: the strict validator — its split-signal warning carries the same count
   const v = val.validateChange(root, "t-agree", "strict");
   const warn = (v.warnings ?? []).find((w) => /implementation subtasks/.test(w));
-  assert(warn !== undefined, `strict validation must surface its implementation-subtask count (9 > 8 split signal): ${JSON.stringify(v.warnings)}`);
+  assert(warn !== undefined, `strict validation must surface its implementation-subtask count (13 > 8 split signal): ${JSON.stringify(v.warnings)}`);
   const valMatch = warn.match(/(\d+) implementation subtasks/);
   const valCount = Number(valMatch[1]);
 
-  assert(guardCount === 9, `guard counted ${guardCount} implementation subtasks, expected 9`);
-  assert(valCount === 9, `strict validator counted ${valCount} implementation subtasks, expected 9`);
+  assert(guardCount === 13, `guard counted ${guardCount} implementation subtasks, expected 13`);
+  assert(valCount === 13, `strict validator counted ${valCount} implementation subtasks, expected 13`);
 });
 
 // --- teardown -------------------------------------------------------------------

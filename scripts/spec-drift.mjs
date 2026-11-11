@@ -658,21 +658,14 @@ function checkO(facts) {
 // L3 — scale: a living change's implementation subtasks (the checkbox items
 // under `## 3. Implementation`, the section the strict validator counts,
 // rule 6) past 12 — context, design, and close items are scaffold overhead,
-// never work-plan scale. The design
-// gate (T5) fires at >8 as foresight; this is the backstop for when the gate
-// was skipped or wrong. The exception is explicit, not silent: a recorded
-// split-considered decision passes, matching the skip-record pattern.
+// never work-plan scale. The design gate (T5) fires at >8 as foresight; this is
+// the backstop for when the gate was skipped or wrong. The exception is
+// explicit, not silent: a recorded split-considered decision passes, matching
+// the skip-record pattern.
 // ==============================================================================
 const implSubtaskCount = (text) =>
-  splitTaskSections(text).filter((s) => s.num === 3).reduce((a, s) => a + s.items.length, 0);
+  splitTaskSections(text).find((s) => s.num === 3)?.items.length ?? 0;
 
-// the clean-summary phrase — the same scoped count L3 and the strict
-// validator use (rule 6), summed over every open change's tasks file
-function implSubtasksPhrase(facts) {
-  let n = 0;
-  for (const { text } of facts.tasksTexts.values()) n += implSubtaskCount(text);
-  return `${n} implementation subtask${n === 1 ? '' : 's'}`;
-}
 
 function checkL3(facts) {
   const issues = [];
@@ -781,7 +774,7 @@ function report(facts, outcome) {
   }
   console.log(
     facts.allSpecs.length
-      ? `spec-drift: clean (${facts.allSpecs.length} spec${facts.allSpecs.length > 1 ? 's' : ''}, ${facts.accRel.length} acceptance test file${facts.accRel.length === 1 ? '' : 's'}, ${implSubtasksPhrase(facts)}, ${facts.staged ? 'staged' : 'full'} scan)`
+      ? `spec-drift: clean (${facts.allSpecs.length} spec${facts.allSpecs.length > 1 ? 's' : ''}, ${facts.accRel.length} acceptance test file${facts.accRel.length === 1 ? '' : 's'}, ${facts.staged ? 'staged' : 'full'} scan)`
       : 'spec-drift: no specs found — nothing to guard'
   );
   // informational, never silent: skipped scaffold placeholders in open deltas

@@ -54,3 +54,4 @@ the derivation law they implied.
 - Reconfirmed by claim-map on 2026-10-24: claim map derived once in scripts/adr-index.mjs (buildClaimMap); guard gather (spec-drift.mjs) and lib/adr-ops.mjs consume it, no consumer re-derives — pinned by claim-map.test.js CM1/CM2, byte-identity proofs in changes/claim-map tasks 3.6
 - Reconfirmed by decision-scan-unify on 2026-10-24: scanDecisionFiles sits in the claim map's law home scripts/adr-index.mjs; the map itself and both its consumers are untouched, answers bit-identical
 - Reconfirmed by 20261025-archive-stamp-name on 2026-10-25: reconfirm matching still reads the single claim map; the query normalization adds no second index
+- Reconfirmed by fix-l3-implementation-count on 2026-11-11: L3 reads no claims; untouched by claim-map work

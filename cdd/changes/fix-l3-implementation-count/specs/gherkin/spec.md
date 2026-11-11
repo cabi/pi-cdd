@@ -26,9 +26,9 @@ Scenario: A split-considered line passes the limit
   # Verified by: tests/acceptance/guard-l3-scope.test.js
 
 Scenario: The guard agrees with the strict validator's counter
-  Given a living change whose tasks file holds 9 implementation subtasks and 4 non-implementation tracked tasks
+  Given a living change whose tasks file holds 13 implementation subtasks and 4 non-implementation tracked tasks
   When the guard's task-scale law and the strict validator each count that tasks file's implementation subtasks
-  Then both counts equal exactly 9
+  Then both counts equal exactly 13
   # Verified by: tests/acceptance/guard-l3-scope.test.js
 ```
 

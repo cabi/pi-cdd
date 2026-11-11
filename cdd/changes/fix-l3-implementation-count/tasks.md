@@ -78,14 +78,14 @@ proposal as Non-Goals or a future change.
 |---|---|
 | 9 implementation subtasks + 4 non-implementation tracked tasks pass the guard with no L3 issue | 3.2, 3.3 |
 | 13 implementation subtasks fail with exactly 1 L3 issue naming "13 implementation subtasks (> 12)"; split-considered line passes | 3.2, 3.3 |
-| guard count equals strict validator count (9) on the same tasks file | 3.2, 3.3 |
+| guard count equals strict validator count (13) on the same tasks file | 3.2, 3.3 |
 | `cdd/scripts/spec-drift.mjs` byte-identical to `scripts/spec-drift.mjs` | 3.4 |
 | GLOSSARY.md defines both terms; design-gate entry names 8 implementation subtasks | 3.5 (task-only: no spec or delta claims GLOSSARY.md — store-root documentation outside every capability; archive-stamp-name precedent) |
 
 ## 4. Close
 
-- [ ] 4.1 Standards-axis change code review — run skill `cdd-code-review` with the standards-axis brief (brief-r3-standards.md) over the diff since the change branched, in its own cold session; findings at `reviews/r3-standards-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-standards-code-review.md holding no open blocker
-- [ ] 4.2 Spec-axis change code review — run skill `cdd-code-review` with the spec-axis brief (brief-r3-spec.md) over the same diff, in a second cold session; findings at `reviews/r3-spec-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-spec-code-review.md holding no open blocker
-- [ ] 4.3 ADR review — if this change drafted an ADR under `cdd/decisions/` or amended one's decision content (a Reconfirmed-by paragraph or a typo fix does not count), run skill `cdd-adr-review` on them (findings at `reviews/adr-review.md` per that skill); if none, record the skip on this line, verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line
+- [x] 4.1 Standards-axis change code review — run skill `cdd-code-review` with the standards-axis brief (brief-r3-standards.md) over the diff since the change branched, in its own cold session; findings at `reviews/r3-standards-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-standards-code-review.md holding no open blocker
+- [x] 4.2 Spec-axis change code review — run skill `cdd-code-review` with the spec-axis brief (brief-r3-spec.md) over the same diff, in a second cold session; findings at `reviews/r3-spec-code-review.md`; dispose every blocker and record dispositions, verify by reviews/r3-spec-code-review.md holding no open blocker
+- [x] 4.3 ADR review — skip: this change drafted no ADR under `cdd/decisions/` and amended no decision content (the proposal cites ADRs read-only; GLOSSARY.md is not an ADR), verify by reviews/adr-review.md holding no open blocker or a skip recorded on this line
 - [ ] 4.4 cdd validate strict green, guard green
 - [ ] 4.5 Archive — pair-commit: feature commit, then archive commit; the archive commit also re-points PF-6's premise in `cdd/backlog.md` (gherkin 53→54, mirroring 91fe446), verify by grep -c "premise: grep:### Requirement:@cdd/specs/gherkin/spec.md=54" cdd/backlog.md returning 1 && git log --oneline -2

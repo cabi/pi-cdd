@@ -73,3 +73,4 @@ law behind every door).
 - Reconfirmed by 20261024-dw-masked-view on 2026-10-24: the mask body stays single-sourced in lib/validate.mjs; lib/metrics.mjs imports it rather than copying — no second mask behind any door, and the masked-view law rides the spec delta and acceptance pins
 - Reconfirmed by 20261025-stale-lib-guard on 2026-10-25: lib/stale.mjs adds no grammar or restate — the guard consults files and grades ops, the extension keeps restating nothing
 - Reconfirmed by 20261025-archive-stamp-name on 2026-10-25: archivedBasename is a store-lib helper beside the compose it serves; no new grammar surface moved behind the doors
+- Reconfirmed by fix-l3-implementation-count on 2026-11-11: L3 still counts via splitTaskSections; store copy byte-identical

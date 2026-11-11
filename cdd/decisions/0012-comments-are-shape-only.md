@@ -85,3 +85,4 @@ sweep, and landed the pins. cdd-adr-review runs on this ADR at Close.
 - Reconfirmed by 20261024-dw-masked-view on 2026-10-24: new comments state contracts and callers only (export rationale, fixture inventory); the R3 standards axis caught and this change fixed the last violations — a PF pointer in a doc comment and prose in test banners
 - Reconfirmed by 20261025-stale-lib-guard on 2026-10-25: comments in index.ts and lib/stale.mjs stay shape-only through this change — the guard adds no decision ids or spec citations to code
 - Reconfirmed by 20261025-archive-stamp-name on 2026-10-25: the new comments state local shape only — consumer-index and spec-pointer text removed at R3
+- Reconfirmed by fix-l3-implementation-count on 2026-11-11: L3 header comment re-flowed, shape-only; no corpus routing added
