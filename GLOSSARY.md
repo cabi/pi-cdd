@@ -36,7 +36,11 @@ _Avoid_: gate (reserved for the design gate specifically).
 
 **design gate** — the first phase of the change loop where the model of the
 change is designed and challenged before any artifact is written; emits the
-split signal at more than 8 tasks (T5). _Avoid_: review, planning phase.
+split signal at more than 8 implementation subtasks (T5). _Avoid_: review, planning phase.
+
+**tracked task** — any checkbox item (`- [ ]` / `- [x]`) under a tasks file's four skeleton sections; what the Done-When Traceability table maps. _Avoid_: using it for the rule-6 scale limits, which scope to implementation subtasks.
+
+**implementation subtask** — a tracked task under the `## 3. Implementation` heading; the only items the task-scale law (L3), the design-gate split signal (T5), and the strict validator count (rule 6). _Avoid_: work item, ticket; never "tracked task" when the count's scope matters.
 
 **mechanical change** — a behavior-preserving sweep (formatting, codemod,
 dependency or framework bump) that ages no spec and may never touch specs or
