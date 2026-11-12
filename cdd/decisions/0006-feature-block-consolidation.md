@@ -88,3 +88,4 @@ the current format.
 - Reconfirmed by 20261024-dw-masked-view on 2026-10-24: lib/validate.mjs gains one export keyword; no feature blocks added, moved, or split — the mask stays in its single home
 - Reconfirmed by fix-l3-implementation-count on 2026-11-11: S4 pin rewritten to read the L3 issue line; fences untouched
 - Reconfirmed by 20261111-guard-untracked-claims on 2026-11-11: the mode-bound claim universe changes no Feature shape — one ADDED requirement, six scenarios, pins stay comments inside the fence (tests/acceptance/guard-file-universe.test.js)
+- Reconfirmed by 20261112-adopter-neutral-citations on 2026-11-12: lib/instructions.mjs lost only the id parenthetical; feature-block law untouched

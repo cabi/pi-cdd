@@ -87,3 +87,4 @@ sweep, and landed the pins. cdd-adr-review runs on this ADR at Close.
 - Reconfirmed by 20261025-archive-stamp-name on 2026-10-25: the new comments state local shape only — consumer-index and spec-pointer text removed at R3
 - Reconfirmed by fix-l3-implementation-count on 2026-11-11: L3 header comment re-flowed, shape-only; no corpus routing added
 - Reconfirmed by 20261111-guard-untracked-claims on 2026-11-11: the mode-bound claim-universe comment is shape-of-code documentation only (universe readers vs topology readers); no decision ids, no spec headings
+- Reconfirmed by 20261112-adopter-neutral-citations on 2026-11-12: stripped ids were shape text; comment law and message phrases unchanged

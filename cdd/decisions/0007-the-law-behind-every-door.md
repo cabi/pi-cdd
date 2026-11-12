@@ -75,3 +75,4 @@ law behind every door).
 - Reconfirmed by 20261025-archive-stamp-name on 2026-10-25: archivedBasename is a store-lib helper beside the compose it serves; no new grammar surface moved behind the doors
 - Reconfirmed by fix-l3-implementation-count on 2026-11-11: L3 still counts via splitTaskSections; store copy byte-identical
 - Reconfirmed by 20261111-guard-untracked-claims on 2026-11-11: the mode-bound claim universe lives in spec-drift.mjs's existing gather seam; every door still reads the one grammar module, nothing parser-shaped forked
+- Reconfirmed by 20261112-adopter-neutral-citations on 2026-11-12: door messages keep their law phrases with ids dropped — pinned by adopter-neutral-surfaces.test.js
