@@ -619,7 +619,7 @@ function checkG(facts) {
         continue;
       }
       if (/^\s*Verified by[*:]/m.test(f.body)) {
-        issues.push(`[G] ${specRel}: line ${f.line}: markdown "Verified by:" pins are gone (ADR-0006) — the pin is a "# Verified by:" comment on the scenario's last line`);
+        issues.push(`[G] ${specRel}: line ${f.line}: markdown "Verified by:" pins are gone — the pin is a "# Verified by:" comment on the scenario's last line`);
         continue;
       }
       const res = checkFenceBody(f.body, facts.gherkin.mkParse);

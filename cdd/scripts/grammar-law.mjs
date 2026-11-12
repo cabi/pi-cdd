@@ -203,7 +203,7 @@ export function checkFenceBody(body, parse) {
   for (const sc of scenarios) {
     const scLine = sc.location.line;
     if (sc.keyword === "Scenario Outline") {
-      errors.push({ line: scLine, message: `Scenario Outline/Examples are outside the cdd subset (ADR-0006) — write each example as its own Scenario` });
+      errors.push({ line: scLine, message: `Scenario Outline/Examples are outside the cdd subset — write each example as its own Scenario` });
     }
     if (sc.tags?.length) {
       errors.push({ line: scLine, message: `tag "${sc.tags[0].name}" is outside the cdd subset — no @tags` });
@@ -224,7 +224,7 @@ export function checkFenceBody(body, parse) {
         errors.push({ line: st.location.line, message: `keyword "${st.keyword.trim()}" is outside the cdd subset — English Given/When/Then/And/But only` });
       }
       if (st.docString || st.dataTable) {
-        errors.push({ line: st.location.line, message: `doc strings and data tables are outside the cdd subset (ADR-0006) — steps stay single-line prose` });
+        errors.push({ line: st.location.line, message: `doc strings and data tables are outside the cdd subset — steps stay single-line prose` });
       }
     }
     const whens = steps.filter((st) => st.keyword.trim().toLowerCase() === "when");

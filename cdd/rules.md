@@ -63,7 +63,7 @@ the guard (cdd/scripts/spec-drift.mjs) enforces the machine-checkable parts.
    line naming the implementation surface.
 4. **Delta** — `## ADDED | MODIFIED | REMOVED Requirements` →
    `### Requirement: <name>` + prose, then exactly one ```gherkin fence
-   holding one complete Gherkin document (ADR-0006): `Feature: <name>`
+   holding one complete Gherkin document: `Feature: <name>`
    equal to the heading, every `Scenario: <name>` with exactly one When,
    at least one Then, And/But continuation-only, and each scenario's last
    line a `# Verified by: tests/acceptance/<path>` pin comment — the only
