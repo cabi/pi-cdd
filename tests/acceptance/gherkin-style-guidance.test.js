@@ -48,9 +48,10 @@ check("T1", "delta template scaffolds a Feature fence with the pin inside as a c
   assert(!/^Verified by:/m.test(t), "template still carries a markdown pin outside the fence");
 });
 
+const INSTRUCTION_SURFACES = fs.readFileSync(path.join(REPO, "lib", "instructions.mjs"), "utf8") + "\n" + insMod.DELTA_INSTRUCTION;
+
 check("T2", "DELTA_INSTRUCTION names the fence, pin placement, declarative clause", () => {
-  const src = fs.readFileSync(path.join(REPO, "lib", "instructions.mjs"), "utf8");
-  const text = src + "\n" + insMod.DELTA_INSTRUCTION;
+  const text = INSTRUCTION_SURFACES;
   assert(text.includes("```gherkin"), "no fenced-gherkin mention");
   assert(text.includes("# Verified by:"), "no pin-inside-fence clause");
   assert(/no other comments/.test(text), "no comment-law clause");
@@ -59,17 +60,26 @@ check("T2", "DELTA_INSTRUCTION names the fence, pin placement, declarative claus
 });
 
 check("T3", "RULES_MD rule 4 carries the fence law and declarative clause", () => {
-  const rules = tpl.RULES_MD ?? fs.readFileSync(path.join(REPO, "cdd", "rules.md"), "utf8");
+  const rules = tpl.RULES_MD;
   assert(/```gherkin/.test(rules), "rules.md lacks fenced-gherkin law");
   assert(/# Verified by:/.test(rules), "rules.md lacks pin-inside-fence law");
   assert(/declarative/i.test(rules), "rules.md lacks declarative clause");
 });
 
-// --- 2. version 0.4.1 -----------------------------------------------------------
+// --- 2. released version — the corpus stays version-agnostic ------------------
 
-check("T4", "package.json is at 0.4.1", () => {
+check("T4", "no corpus source names the manifest's release version", () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(REPO, "package.json"), "utf8"));
-  assert(pkg.version === "0.4.1", `expected 0.4.1, got ${pkg.version}`);
+  assert(typeof pkg.version === "string" && pkg.version.length > 0, "package.json carries no release version");
+  const corpus = [
+    ["delta template", tpl.deltaTemplate("style")],
+    ["instructions.mjs source + export", INSTRUCTION_SURFACES],
+    ["rule 4 (RULES_MD)", tpl.RULES_MD],
+    ["rule 4 (cdd/rules.md)", fs.readFileSync(path.join(REPO, "cdd", "rules.md"), "utf8")],
+  ];
+  for (const [label, text] of corpus) {
+    assert(!text.includes(pkg.version), `${label} names the manifest's release version`);
+  }
 });
 
 // --- 3. style is never machine-checked ----------------------------------------
